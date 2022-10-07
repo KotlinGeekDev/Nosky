@@ -14,6 +14,7 @@
 .cxx
 local.properties
 keystore.properties
+/SigningConfig
 
 # Built application files
 *.apk
@@ -52,6 +53,10 @@ proguard/
 captures/
 
 # IntelliJ
+.idea/
+.idea/inspectionProfiles/
+.idea/jarRepositories.xml
+.idea/misc.xml
 .idea/workspace.xml
 .idea/tasks.xml
 .idea/gradle.xml
