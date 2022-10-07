@@ -6,7 +6,7 @@ A native Android client for Nostr
 If you want to donate to the project:
 
 ### Lightning
-Lightning Address - [⚡nullktdev@ln.tips](lightning:nullktdev@ln.tips "Lightning address")
+Lightning Address - <a href="lightning:nullktdev@ln.tips">⚡nullktdev@ln.tips</a>
 
 Lightning Invoice
 
