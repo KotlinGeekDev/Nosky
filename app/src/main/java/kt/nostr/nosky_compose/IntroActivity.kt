@@ -97,19 +97,23 @@ fun IntroScreen(appThemeState: AppThemeState,
     var userIsNew by rememberSaveable {
         mutableStateOf(false)
     }
+    val themeIcon = remember {
+        { if (appThemeState.isDark()) Icons.Default.LightMode else Icons.Default.DarkMode }
+    }
+    val backgroundColor: @Composable () -> Color = remember {
+        { if (appThemeState.isDark()) MaterialTheme.colors.surface else Purple500 }
+    }
 
     Scaffold(topBar = {
         TopAppBar(title = {}, actions = {
-            Icon(imageVector = if (appThemeState.isDark())
-                Icons.Default.DarkMode else Icons.Default.LightMode,
+            Icon(imageVector = themeIcon(),
                 contentDescription = "Switch App theme",
                 modifier = Modifier
                     .size(30.dp)
                     .padding(end = 5.dp, top = 3.dp)
                     .clickable { onThemeChange() }, tint = Color.White)
         },
-            backgroundColor = if (appThemeState.isDark())
-                MaterialTheme.colors.surface else Purple500,
+            backgroundColor = backgroundColor(),
             elevation = 0.dp)
     }) { it ->
         AnimatedVisibility(visible = userIsNew,

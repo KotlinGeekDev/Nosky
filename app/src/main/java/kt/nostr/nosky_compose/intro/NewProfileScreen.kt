@@ -4,6 +4,8 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
@@ -15,9 +17,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -33,7 +38,7 @@ import kt.nostr.nosky_compose.settings.backend.AppThemeState
 /**
  * TODO:
  *  - Modify the composable parameters to account for the
- *   data given by the new user, and hoot it up to the
+ *   data given by the new user, and hook it up to the
  *   Profile model.(make it look like WelcomeScreen, with tweaks)
  *  - Find a solution for the image choosing UX/upload.
  */
@@ -50,6 +55,23 @@ fun NewProfileScreen(themeState: AppThemeState,
                      onProfileCreated:() -> Unit) {
 
     val scrollState = rememberScrollState()
+
+    val focusManager = LocalFocusManager.current
+
+    val clearFocus = remember {
+        { focusManager.clearFocus(force = true)}
+    }
+
+    val intermediateFieldActions = remember {
+        KeyboardActions {
+            this.defaultKeyboardAction(ImeAction.Next)
+        }
+    }
+    val finalFieldActions = remember {
+        KeyboardActions {
+            clearFocus()
+        }
+    }
 
     val backgroundColor: @Composable () -> Color = remember {
         { if (themeState.isDark()) MaterialTheme.colors.surface else Purple500 }
@@ -87,7 +109,7 @@ fun NewProfileScreen(themeState: AppThemeState,
             end.linkTo(parent.end)
         }) {
             Box(
-                modifier = Modifier.padding(top = 80.dp)
+                modifier = Modifier.padding(top = 70.dp)
             //    contentAlignment = Alignment.TopCenter
             ) {
                 Text(text = "@",
@@ -99,13 +121,31 @@ fun NewProfileScreen(themeState: AppThemeState,
             Column(modifier = Modifier.imePadding(), horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center) {
                 Spacer(modifier = Modifier.height(30.dp))
-                EntryField(fieldName = "Username", fieldHint = "For ex.: fiatjaf")
+                EntryField(
+                    fieldName = "Username",
+                    fieldHint = "For ex.: fiatjaf",
+                    fieldKeyboardOptions = fieldKeyboardOptions,
+                    fieldKeyboardActions = intermediateFieldActions
+                )
                 Spacer(modifier = Modifier.height(20.dp))
-                EntryField(fieldName = "Display name", fieldHint = "For ex.: Fiatjaf")
+                EntryField(
+                    fieldName = "Display name",
+                    fieldHint = "For ex.: Fiatjaf",
+                    fieldKeyboardOptions = fieldKeyboardOptions,
+                    fieldKeyboardActions = intermediateFieldActions
+                )
                 Spacer(modifier = Modifier.height(20.dp))
-                EntryField(fieldName = "About", fieldHint = "For ex.:Came up with Nostr")
+                EntryField(
+                    fieldName = "About",
+                    fieldHint = "For ex.:Came up with Nostr",
+                    fieldKeyboardOptions = fieldKeyboardOptions,
+                    fieldKeyboardActions = intermediateFieldActions
+                )
                 Spacer(modifier = Modifier.height(20.dp))
-                EntryField(fieldName = "Profile Image Link")
+                EntryField(
+                    fieldName = "Profile Image Link",
+                    fieldKeyboardActions = finalFieldActions
+                )
                 Spacer(modifier = Modifier.height(40.dp))
             }
         }
@@ -113,7 +153,7 @@ fun NewProfileScreen(themeState: AppThemeState,
         //For the bottom buttons
         Column(modifier = Modifier.constrainAs(bottomContent){
             top.linkTo(formContent.bottom)
-            bottom.linkTo(parent.bottom, 15.dp)
+            bottom.linkTo(parent.bottom, margin = 30.dp)
             start.linkTo(parent.start)
             end.linkTo(parent.end)
         },
@@ -138,7 +178,7 @@ fun NewProfileScreen(themeState: AppThemeState,
 }
 
 @Composable
-fun ProfileImageSelector() {
+private fun ProfileImageSelector() {
 
 
 //    Image(
@@ -179,7 +219,14 @@ fun ProfileImageSelector() {
 }
 
 @Composable
-fun EntryField(fieldName: String, fieldHint: String = "") {
+private fun EntryField(fieldName: String,
+               fieldHint: String = "",
+               fieldKeyboardOptions: KeyboardOptions = remember {
+                   KeyboardOptions()
+               },
+               fieldKeyboardActions: KeyboardActions = remember {
+                   KeyboardActions()
+               }) {
     var enteredKey by remember {
         mutableStateOf("")
     }
@@ -212,6 +259,8 @@ fun EntryField(fieldName: String, fieldHint: String = "") {
                 modifier = Modifier.clickable {},
                 tint = Color.White
             ) },
+            keyboardOptions = fieldKeyboardOptions,
+            keyboardActions = fieldKeyboardActions,
             singleLine = true,
             colors = TextFieldDefaults
                 .outlinedTextFieldColors(
@@ -224,9 +273,15 @@ fun EntryField(fieldName: String, fieldHint: String = "") {
     }
 }
 
+private val fieldKeyboardOptions = KeyboardOptions(
+    autoCorrect = false,
+    keyboardType = KeyboardType.Ascii,
+    imeAction = ImeAction.Next
+)
+
 @Preview
 @Composable
-fun NewProfileScreenPreview() {
+private fun NewProfileScreenPreview() {
     val appTheme = AppThemeState(true)
     NoskycomposeTheme(darkTheme = appTheme.isDark()) {
         NewProfileScreen(themeState = appTheme, onLoginClicked = {}, onProfileCreated = {})

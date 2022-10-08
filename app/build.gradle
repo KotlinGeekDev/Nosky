@@ -91,7 +91,7 @@ dependencies {
     implementation "com.github.skydoves:landscapist-coil:1.6.1"
 
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.5.1'
-    implementation 'androidx.activity:activity-compose:1.6.0'
+    implementation 'androidx.activity:activity-compose:1.5.0'
     implementation "androidx.navigation:navigation-compose:$nav_version"
 //    //----Alternative Navigation ----
     implementation "com.bumble.appyx:core:1.0-alpha09"
@@ -105,7 +105,7 @@ dependencies {
 //    implementation "cafe.adriel.voyager:voyager-transitions:$voyager_version"
 
     //Encrypted Shared Prefs
-    implementation "androidx.security:security-crypto:1.0.0"
+    //implementation "androidx.security:security-crypto:1.0.0"
 
 
     //File API
