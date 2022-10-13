@@ -1,19 +1,22 @@
 package kt.nostr.nosky_compose.profile.model
 
 import android.os.Parcelable
+import android.util.Log
 import androidx.compose.runtime.Stable
-import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.*
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
-import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import fr.acinq.secp256k1.Secp256k1
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 import kt.nostr.nosky_compose.NoskyApplication
-import kotlin.reflect.KProperty
+import ktnostr.crypto.toHexString
+import java.security.SecureRandom
 
 /**
  * TODO:
@@ -23,7 +26,12 @@ import kotlin.reflect.KProperty
 
 @Stable
 @Parcelize
-class Profile(var pubKey: String = "", var privKey: String = ""): Parcelable {
+data class Profile(
+    var pubKey: String = "",
+    var privKey: String = "",
+    var userName: String = "",
+    var profileImage: String = "",
+    var bio: String = ""): Parcelable {
     override fun toString(): String = "Profile($pubKey)"
 }
 
@@ -32,27 +40,72 @@ class ProfileViewModel(
     private val profile: Profile = Profile()
 ): ViewModel() {
 
+    //private val cryptoContext = CryptoUtils.get()
 
-    private var internalPubKey = MutableStateFlow("")
+    private val internalPubKey = MutableStateFlow("")
     val pubKey = internalPubKey.asStateFlow()
 
-    private var internalPrivKey = MutableStateFlow("")
+    private val internalPrivKey = MutableStateFlow("")
     val privKey = internalPrivKey.asStateFlow()
+
+
+    private val internalProfile = MutableStateFlow(Profile())
+    val newUserProfile = internalProfile.asStateFlow()
 
 
     fun updatePrivKey(newKey: String){
 
-        internalPrivKey.tryEmit(newKey)
+        internalPrivKey.value = newKey
         profile.privKey = privKey.value
-        println("Privkey value: ${profile.privKey}")
+        Log.d("NoskyApp", "updatePrivKey -> Privkey value: ${profile.privKey} ")
     }
 
     fun updatePubKey(newKey: String){
 
         internalPubKey.tryEmit(newKey)
         profile.pubKey = pubKey.value
-        println("Privkey value: ${profile.pubKey}")
+        Log.d("NoskyApp", "updatePubKey -> Pubkey value: ${profile.pubKey} ")
 
+    }
+
+    fun updateUserName(updatedName: String){
+        internalProfile.update { currentProfile -> currentProfile.copy(userName = updatedName) }
+        profile.userName = newUserProfile.value.userName
+        Log.d("NoskyApp", "updateUserName -> Username value: ${profile.userName} ")
+    }
+
+    fun updateBio(updatedBio: String){
+        internalProfile.update { currentProfile -> currentProfile.copy(bio = updatedBio) }
+        profile.bio = newUserProfile.value.bio
+        Log.d("NoskyApp", "updateBio -> Bio value: ${profile.bio} ")
+    }
+
+    fun updateProfileImageLink(updatedImageUri: String){
+        internalProfile.update { currentProfile -> currentProfile.copy(profileImage = updatedImageUri) }
+        profile.profileImage = internalProfile.value.profileImage
+        Log.d("NoskyApp", "updateProfileImageLink: ImageLink value: ${profile.profileImage}")
+    }
+
+    fun generateProfile() {
+        viewModelScope.launch(Dispatchers.Default) {
+            val privKey  = generatePrivKey()
+            val pubKey = Secp256k1.get().pubkeyCreate(privKey).drop(1).take(32).toByteArray()
+            internalProfile.update { currentProfile -> currentProfile.copy(privKey = privKey.toHexString()) }
+            internalProfile.update { profile -> profile.copy(pubKey = pubKey.toHexString()) }
+            profile.privKey = privKey.toHexString()
+            profile.pubKey = pubKey.toHexString()
+        }
+
+        println("internalProfile secKey: ${internalProfile.value.privKey}")
+        println("internalProfile pubKey: ${internalProfile.value.pubKey}")
+        println("profile pubKey: ${profile.pubKey}")
+    }
+
+    private fun generatePrivKey(): ByteArray {
+        val secretKey = ByteArray(32)
+        val pseudoRandomBytes = SecureRandom()
+        pseudoRandomBytes.nextBytes(secretKey)
+        return secretKey
     }
 
     fun deleteResetProfile(){
@@ -60,9 +113,9 @@ class ProfileViewModel(
         profile.pubKey = ""
     }
 
-    fun obtainProfile(): Profile {
-        return savedStateHandle.getStateFlow("profile_data", profile).value
-    }
+//    fun obtainProfile(): Profile {
+//        return savedStateHandle.getStateFlow("profile_data", profile).value
+//    }
 
     override fun onCleared() {
         super.onCleared()
@@ -70,9 +123,6 @@ class ProfileViewModel(
         savedStateHandle["profile_data"] = profile
     }
 
-    operator fun getValue(profile: Nothing?, property: KProperty<*>): ProfileViewModel {
-        return this
-    }
 
     companion object {
         fun create(): ViewModelProvider.Factory = viewModelFactory {
