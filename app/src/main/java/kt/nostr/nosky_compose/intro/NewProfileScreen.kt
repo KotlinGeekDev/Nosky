@@ -8,7 +8,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,6 +17,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -37,26 +38,28 @@ import kt.nostr.nosky_compose.settings.backend.AppThemeState
 
 /**
  * TODO:
- *  - Modify the composable parameters to account for the
- *   data given by the new user, and hook it up to the
- *   Profile model.(make it look like WelcomeScreen, with tweaks)
+ *  - Optimize the recomposition here, by playing with
+ *    the composable parameters.
  *  - Find a solution for the image choosing UX/upload.
  */
 
 @Composable
 fun NewProfileScreen(themeState: AppThemeState,
-                     userName: String = "",
-                     onUpdateUserName: (String) -> Unit = {},
-                     profileImageLink: String = "",
-                     onImageLinkUpdate: (String) -> Unit = {},
-                     userBio: String = "",
+                     userName: () -> String,
+                     onUserNameUpdate: (String) -> Unit = {},
+                     userBio: () -> String,
                      onUserBioUpdate: (String) -> Unit = {},
+                     profileImageLink: () -> String,
+                     onImageLinkUpdate: (String) -> Unit = {},
+                     pubkey: String,
+                     generatePubkey: () -> Unit,
                      onLoginClicked:() -> Unit,
                      onProfileCreated:() -> Unit) {
 
     val scrollState = rememberScrollState()
 
     val focusManager = LocalFocusManager.current
+
 
     val clearFocus = remember {
         { focusManager.clearFocus(force = true)}
@@ -104,7 +107,7 @@ fun NewProfileScreen(themeState: AppThemeState,
 
         // For the form content
         Row(modifier = Modifier.constrainAs(formContent){
-            top.linkTo(topContent.bottom, margin = 30.dp)
+            top.linkTo(topContent.bottom)
             start.linkTo(parent.start)
             end.linkTo(parent.end)
         }) {
@@ -122,20 +125,24 @@ fun NewProfileScreen(themeState: AppThemeState,
                 verticalArrangement = Arrangement.Center) {
                 Spacer(modifier = Modifier.height(30.dp))
                 EntryField(
+                    data = userName(),
+                    onDataUpdate = { onUserNameUpdate(it) },
                     fieldName = "Username",
                     fieldHint = "For ex.: fiatjaf",
                     fieldKeyboardOptions = fieldKeyboardOptions,
                     fieldKeyboardActions = intermediateFieldActions
                 )
+//                Spacer(modifier = Modifier.height(20.dp))
+//                EntryField(
+//                    fieldName = "Display name",
+//                    fieldHint = "For ex.: Fiatjaf",
+//                    fieldKeyboardOptions = fieldKeyboardOptions,
+//                    fieldKeyboardActions = intermediateFieldActions
+//                )
                 Spacer(modifier = Modifier.height(20.dp))
                 EntryField(
-                    fieldName = "Display name",
-                    fieldHint = "For ex.: Fiatjaf",
-                    fieldKeyboardOptions = fieldKeyboardOptions,
-                    fieldKeyboardActions = intermediateFieldActions
-                )
-                Spacer(modifier = Modifier.height(20.dp))
-                EntryField(
+                    data = userBio(),
+                    onDataUpdate = { onUserBioUpdate(it) },
                     fieldName = "About",
                     fieldHint = "For ex.:Came up with Nostr",
                     fieldKeyboardOptions = fieldKeyboardOptions,
@@ -143,17 +150,39 @@ fun NewProfileScreen(themeState: AppThemeState,
                 )
                 Spacer(modifier = Modifier.height(20.dp))
                 EntryField(
+                    data = profileImageLink(),
+                    onDataUpdate = { onImageLinkUpdate(it) },
                     fieldName = "Profile Image Link",
                     fieldKeyboardActions = finalFieldActions
                 )
-                Spacer(modifier = Modifier.height(40.dp))
+                Spacer(modifier = Modifier.height(20.dp))
+
+                OutlinedTextField(
+                    value = pubkey,
+                    onValueChange = {},
+                    modifier = Modifier
+                        .widthIn(max = TextFieldDefaults.MinWidth),
+                    readOnly = true,
+                    singleLine = true,
+                    colors = TextFieldDefaults
+                        .outlinedTextFieldColors(
+                            textColor = Color.White,
+                            cursorColor = Color.White,
+                            focusedBorderColor = Color.White.copy(alpha = ContentAlpha.medium),
+                            unfocusedBorderColor = Color.White.copy(alpha = ContentAlpha.medium)
+                        )
+                )
+                Spacer(modifier = Modifier.height(5.dp))
+                Button(onClick = { generatePubkey() }) {
+                    Text(text = "Generate profile")
+                }
             }
         }
 
         //For the bottom buttons
         Column(modifier = Modifier.constrainAs(bottomContent){
-            top.linkTo(formContent.bottom)
-            bottom.linkTo(parent.bottom, margin = 30.dp)
+            top.linkTo(formContent.bottom, margin = 60.dp)
+            //bottom.linkTo(parent.bottom, margin = 80.dp)
             start.linkTo(parent.start)
             end.linkTo(parent.end)
         },
@@ -219,17 +248,19 @@ private fun ProfileImageSelector() {
 }
 
 @Composable
-private fun EntryField(fieldName: String,
-               fieldHint: String = "",
-               fieldKeyboardOptions: KeyboardOptions = remember {
-                   KeyboardOptions()
-               },
-               fieldKeyboardActions: KeyboardActions = remember {
-                   KeyboardActions()
-               }) {
-    var enteredKey by remember {
-        mutableStateOf("")
-    }
+private fun EntryField(
+    data: String,
+    onDataUpdate: (String) -> Unit,
+    fieldName: String,
+    fieldHint: String = "",
+    fieldKeyboardOptions: KeyboardOptions = remember {
+        KeyboardOptions() },
+    fieldKeyboardActions: KeyboardActions = remember {
+        KeyboardActions() }
+    ) {
+
+    val clipboardManager = LocalClipboardManager.current
+
     val fieldDescription by remember {
         derivedStateOf {
             fieldHint.ifBlank { "Enter the $fieldName here..." }
@@ -246,17 +277,19 @@ private fun EntryField(fieldName: String,
             }
         }
 
-        OutlinedTextField(value = enteredKey,
-            onValueChange = { enteredKey = it },
+        OutlinedTextField(value = data,
+            onValueChange = { value -> onDataUpdate(value) },
             modifier = Modifier
                 .widthIn(max = TextFieldDefaults.MinWidth)
                 .selectable(true, onClick = {}),
             placeholder = { Text(text = fieldDescription,
                 color = Color.White.copy(alpha = 0.6f), maxLines = 1) },
             trailingIcon = { Icon(
-                imageVector = Icons.Default.ContentCopy,
+                imageVector = Icons.Default.ContentPaste,
                 contentDescription = "Copy the $fieldName",
-                modifier = Modifier.clickable {},
+                modifier = Modifier.clickable {
+                       onDataUpdate(clipboardManager.getText().toString())
+                },
                 tint = Color.White
             ) },
             keyboardOptions = fieldKeyboardOptions,
@@ -283,7 +316,27 @@ private val fieldKeyboardOptions = KeyboardOptions(
 @Composable
 private fun NewProfileScreenPreview() {
     val appTheme = AppThemeState(true)
+    val testName = remember {
+        mutableStateOf("")
+    }
+    val testBio = remember {
+        mutableStateOf("")
+    }
+    val profileImage = remember {
+        mutableStateOf("")
+    }
     NoskycomposeTheme(darkTheme = appTheme.isDark()) {
-        NewProfileScreen(themeState = appTheme, onLoginClicked = {}, onProfileCreated = {})
+        NewProfileScreen(
+            themeState = appTheme,
+            userName = { testName.value },
+            onUserNameUpdate = { testName.value = it },
+            userBio = { testBio.value },
+            onUserBioUpdate = { testBio.value = it },
+            profileImageLink = { profileImage.value },
+            onImageLinkUpdate = { profileImage.value = it },
+            pubkey = "",
+            generatePubkey = {},
+            onLoginClicked = {},
+            onProfileCreated = {})
     }
 }

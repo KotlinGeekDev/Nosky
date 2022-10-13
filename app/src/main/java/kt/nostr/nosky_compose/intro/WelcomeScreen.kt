@@ -37,11 +37,13 @@ import kt.nostr.nosky_compose.reusable_components.theme.Purple500
 import kt.nostr.nosky_compose.reusable_components.theme.Purple700
 import kt.nostr.nosky_compose.settings.backend.AppThemeState
 
+//TODO: Fix recomposition here, by revising the parameters of this composable.
+
 @Composable
 fun WelcomeScreen(appThemeState: AppThemeState,
-                  privKey: String,
+                  privKey: () -> String,
                   updatePrivKey: (String) -> Unit,
-                  pubKey: String,
+                  pubKey: () -> String,
                   updatePubKey: (String) -> Unit,
                   onLoginClick:() -> Unit,
                   onCreateProfileClick:() -> Unit) {
@@ -101,16 +103,16 @@ fun WelcomeScreen(appThemeState: AppThemeState,
             verticalArrangement = Arrangement.Center) {
             Spacer(modifier = Modifier.height(40.dp))
             KeyEntryField(fieldName = "Private key",
-                data = privKey,
+                data = privKey(),
                 fieldKeyboardOptions = keyboardOptions,
                 fieldKeyboardActions = privKeyFieldActions,
-                onDataUpdate = updatePrivKey
+                onDataUpdate = { updatePrivKey(it) }
             )
             Spacer(modifier = Modifier.height(20.dp))
             KeyEntryField(fieldName = "Public key",
-                data = pubKey,
+                data = pubKey(),
                 fieldKeyboardActions = pubKeyFieldActions,
-                onDataUpdate = updatePubKey
+                onDataUpdate = { updatePubKey(it) }
             )
         }
 
@@ -176,15 +178,15 @@ private fun AppLogo() {
 }
 
 @Composable
-private fun KeyEntryField(fieldName: String,
-                  data: String,
-                  fieldKeyboardOptions: KeyboardOptions = remember {
-                      KeyboardOptions()
-                  },
-                  fieldKeyboardActions: KeyboardActions = remember {
-                      KeyboardActions()
-                  },
-                  onDataUpdate: (String) -> Unit) {
+private fun KeyEntryField(
+    fieldName: String,
+    data: String,
+    fieldKeyboardOptions: KeyboardOptions = remember {
+        KeyboardOptions() },
+    fieldKeyboardActions: KeyboardActions = remember {
+        KeyboardActions() },
+    onDataUpdate: (String) -> Unit
+    ) {
 
 
     Column {
@@ -234,9 +236,9 @@ private fun WelcomeScreenPreview() {
     NoskycomposeTheme(darkTheme = appThemeState.isDark()) {
         Surface {
             WelcomeScreen(appThemeState = appThemeState,
-                privKey = privKey,
+                privKey = { privKey },
                 updatePrivKey = { privKey = it},
-                pubKey = pubKey,
+                pubKey = { pubKey },
                 updatePubKey = { pubKey = it },
                 onLoginClick = {},
                 onCreateProfileClick = {})

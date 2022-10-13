@@ -80,7 +80,7 @@ fun Content(modifier: Modifier = Modifier, scaffoldState: ScaffoldState,
     }
     val listState = rememberLazyListState()
 
-        LazyColumn(state = listState,
+    LazyColumn(state = listState,
             modifier = Modifier.then(modifier)){
 
             itemsIndexed(items = list, key = { index: Int, _: String -> index }){ post, _ ->

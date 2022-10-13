@@ -9,24 +9,26 @@ import android.preference.PreferenceManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kt.nostr.nosky_compose.intro.NewProfileScreen
 import kt.nostr.nosky_compose.intro.WelcomeScreen
@@ -51,19 +53,19 @@ class IntroActivity : ComponentActivity() {
 
         setContent {
             profileViewModel = viewModel(factory = ProfileViewModel.create())
-            val privKey by profileViewModel.privKey.collectAsState()
-            val pubKey by profileViewModel.pubKey.collectAsState()
+
             val darkMode = isSystemInDarkTheme()
             val appThemeState = rememberSaveable(saver = ThemeStateSaver) {
                 AppThemeState(darkMode)
             }
 
-            NoskycomposeTheme(darkTheme = appThemeState.isDark()) {
+            val isDark = remember {
+                appThemeState.isDark()
+            }
+
+            NoskycomposeTheme(darkTheme = isDark) {
                 IntroScreen(appThemeState = appThemeState,
-                    inputPrivKey = privKey,
-                    inputPubKey = pubKey,
-                    onPrivKeyUpdate = profileViewModel::updatePrivKey,
-                    onPubKeyUpdate = profileViewModel::updatePubKey,
+                    profileViewModel = profileViewModel,
                     onLoginClick = {
                     preferenceManager.edit {
                         putBoolean("profile_present", true)
@@ -87,16 +89,21 @@ class IntroActivity : ComponentActivity() {
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun IntroScreen(appThemeState: AppThemeState,
-                inputPrivKey: String,
-                inputPubKey: String,
-                onPrivKeyUpdate: (String) -> Unit,
-                onPubKeyUpdate: (String) -> Unit,
+                profileViewModel: ProfileViewModel,
                 onLoginClick:() -> Unit,
                 onThemeChange:() -> Unit) {
 
     var userIsNew by rememberSaveable {
         mutableStateOf(false)
     }
+
+    //For login
+    val existingUserPrivKey by profileViewModel.privKey.collectAsState()
+    val existingUserPubKey by profileViewModel.pubKey.collectAsState()
+
+    //For account creation
+    val newUserProfile by profileViewModel.newUserProfile.collectAsState()
+
     val themeIcon = remember {
         { if (appThemeState.isDark()) Icons.Default.LightMode else Icons.Default.DarkMode }
     }
@@ -104,37 +111,50 @@ fun IntroScreen(appThemeState: AppThemeState,
         { if (appThemeState.isDark()) MaterialTheme.colors.surface else Purple500 }
     }
 
-    Scaffold(topBar = {
-        TopAppBar(title = {}, actions = {
+
+        Box(modifier = Modifier
+            .background(color = backgroundColor())
+        ) {
+            AnimatedVisibility(visible = userIsNew,
+                enter = fadeIn() + slideInHorizontally(),
+                exit = fadeOut() + slideOutHorizontally()
+            ) {
+                NewProfileScreen(themeState = appThemeState,
+                    userName = { newUserProfile::userName.get() },
+                    onUserNameUpdate = profileViewModel::updateUserName,
+                    userBio = { newUserProfile.bio },
+                    onUserBioUpdate = profileViewModel::updateBio,
+                    profileImageLink = { newUserProfile.profileImage },
+                    onImageLinkUpdate = profileViewModel::updateProfileImageLink,
+                    pubkey = newUserProfile.pubKey,
+                    generatePubkey = { profileViewModel.generateProfile() },
+                    onLoginClicked = { userIsNew = !userIsNew },
+                    onProfileCreated = {})
+            }
+
+            AnimatedVisibility(visible = !userIsNew, enter = fadeIn() + slideInHorizontally(),
+                exit = fadeOut() + slideOutHorizontally()
+            ) {
+                WelcomeScreen(appThemeState = appThemeState,
+                    privKey = { existingUserPrivKey },
+                    updatePrivKey = profileViewModel::updatePrivKey,
+                    pubKey = { existingUserPubKey },
+                    updatePubKey = profileViewModel::updatePubKey,
+                    onLoginClick = onLoginClick,
+                    onCreateProfileClick = { userIsNew = !userIsNew })
+            }
+
             Icon(imageVector = themeIcon(),
                 contentDescription = "Switch App theme",
                 modifier = Modifier
-                    .size(30.dp)
-                    .padding(end = 5.dp, top = 3.dp)
+                    .align(Alignment.TopEnd)
+                    .size(35.dp)
+                    .padding(end = 5.dp, top = 10.dp)
                     .clickable { onThemeChange() }, tint = Color.White)
-        },
-            backgroundColor = backgroundColor(),
-            elevation = 0.dp)
-    }) { it ->
-        AnimatedVisibility(visible = userIsNew,
-            enter = fadeIn() + slideInHorizontally(),
-            exit = fadeOut() + slideOutHorizontally()) {
-            NewProfileScreen(themeState = appThemeState,
-                onLoginClicked = { userIsNew = !userIsNew },
-                onProfileCreated = {})
         }
 
-        AnimatedVisibility(visible = !userIsNew, enter = fadeIn() + slideInHorizontally() + expandIn(),
-            exit = fadeOut() + slideOutHorizontally()) {
-            WelcomeScreen(appThemeState = appThemeState,
-                privKey = inputPrivKey,
-                updatePrivKey = onPrivKeyUpdate,
-                pubKey = inputPubKey,
-                updatePubKey = onPubKeyUpdate,
-                onLoginClick = onLoginClick,
-                onCreateProfileClick = { userIsNew = !userIsNew })
-        }
-    }
+
+
 
 
 }
@@ -145,18 +165,13 @@ fun IntroScreenPreview() {
     val darkTheme = rememberSaveable(saver = ThemeStateSaver) {
         AppThemeState(true)
     }
-    var testPrivKey by remember {
-        mutableStateOf("")
+    val testProfile by remember {
+        mutableStateOf(ProfileViewModel(SavedStateHandle()))
     }
-    var testPubKey by remember {
-        mutableStateOf("")
-    }
+
     NoskycomposeTheme(darkTheme = darkTheme.isDark()) {
         IntroScreen (appThemeState = darkTheme,
-            inputPrivKey = testPrivKey,
-            inputPubKey = testPubKey,
-            onPrivKeyUpdate = { testPrivKey = it },
-            onPubKeyUpdate = { testPubKey = it },
+            profileViewModel = testProfile,
             onLoginClick = { },
             onThemeChange = { darkTheme.switchTheme() })
     }
