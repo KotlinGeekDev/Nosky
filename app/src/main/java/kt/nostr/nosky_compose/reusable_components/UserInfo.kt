@@ -1,9 +1,11 @@
 package kt.nostr.nosky_compose.reusable_components
 
 import android.os.Parcelable
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
@@ -14,23 +16,38 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun UserInfo(modifier: Modifier = Modifier,
-             user: User,
+             username: String,
+             userPubKey: String,
+             userBio: String,
+             following: Int,
+             followers: Int,
              isUserVerified: Boolean = false,
              showBio: Boolean = false,
              showRelatedFollowers: () -> Unit) {
-    Row(verticalAlignment = CenterVertically) {
+    Row(
+        verticalAlignment = CenterVertically,
+        horizontalArrangement = Arrangement.Start
+    ) {
         ThemedText(
-            text = user.name,
-            style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            modifier = Modifier.animateContentSize(),
+            text = username,
+            style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 16.sp),
+            maxLines = 1
         )
         if (isUserVerified)
-            VerifiedUserIcon(Modifier.padding(start = 2.dp, top = 3.dp).align(CenterVertically))
+            VerifiedUserIcon(
+                Modifier
+                    .padding(start = 0.dp, top = 3.dp)
+                    .align(CenterVertically)
+                    .animateContentSize()
+                    //.weight(1f, fill = false)
+            )
     }
-    GrayText(modifier = Modifier.then(modifier), text = "@${user.username}")
-    if (showBio && user.bio.isNotBlank()) {
+    GrayText(modifier = Modifier.then(modifier), text = "@$userPubKey")
+    if (showBio && userBio.isNotBlank()) {
         Spacer(modifier = Modifier.height(8.dp).then(modifier))
         ThemedText(modifier = modifier,
-            text = user.bio,
+            text = userBio,
             style = TextStyle(fontSize = 14.sp)
         )
     }
@@ -41,7 +58,7 @@ fun UserInfo(modifier: Modifier = Modifier,
     ) {
         Row(Modifier.clickable { showRelatedFollowers() }) {
             ThemedText(
-                text = "${user.following} ",
+                text = "$following ",
                 style = TextStyle(fontWeight = FontWeight.Bold)
             )
             ThemedText(
@@ -52,7 +69,7 @@ fun UserInfo(modifier: Modifier = Modifier,
         Spacer(modifier = Modifier.width(24.dp))
         Row(Modifier.clickable { showRelatedFollowers() }) {
             ThemedText(
-                text = "${user.followers} ",
+                text = "$followers ",
                 style = TextStyle(fontWeight = FontWeight.Bold)
             )
             ThemedText(
@@ -63,6 +80,7 @@ fun UserInfo(modifier: Modifier = Modifier,
     }
 }
 
+@Immutable
 @kotlinx.parcelize.Parcelize
 data class User(val name: String, val username: String, val bio: String,
                 val following: Int, val followers: Int): Parcelable
@@ -74,7 +92,14 @@ fun UserInfoPreview() {
         "A pseudonymous dev", 10, 100_000)
     androidx.compose.material.Surface {
         Column {
-            UserInfo(user = user, isUserVerified = true, showBio = true, showRelatedFollowers = {})
+            UserInfo(
+                username = user.name,
+                userPubKey = user.username,
+                userBio = user.bio,
+                following = user.following,
+                followers = user.followers,
+                isUserVerified = true,
+                showBio = true, showRelatedFollowers = {})
         }
     }
 }
