@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.Scaffold
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -22,6 +22,12 @@ import kt.nostr.nosky_compose.reusable_components.theme.NoskycomposeTheme
 @Composable
 fun NotificationsScreen(navigator: NavController){
 
+    val list by remember() {
+        derivedStateOf {
+            ListItems(opsList)
+        }
+    }
+
     Scaffold(
         topBar = {
             TopBar(tabTitle = "Notifications")
@@ -33,7 +39,7 @@ fun NotificationsScreen(navigator: NavController){
         //FeedProfileImage()
 
         LazyColumn(Modifier.padding(paddingConstraints)){
-            itemsIndexed(items = opsList, key = {index: Int, item: String -> index }){ index, value ->
+            itemsIndexed(items = list.items, key = {index: Int, item: String -> index }){ index, value ->
                 Post(userName = index.toString(), userPubkey = value,
                     isUserVerified = index.mod(2) != 0,
                     onPostClick = { navigator.navigate("selected_post")}, showProfile = {})
@@ -44,6 +50,9 @@ fun NotificationsScreen(navigator: NavController){
 }
 
 val opsList = List(20){ "Profile ${it + 1} "}
+
+@Stable
+class ListItems(val items: List<String>)
 
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, showSystemUi = true)

@@ -86,8 +86,10 @@ fun UserProfile(userName: String,
 
     Row(
         Modifier
+            .padding(start = 8.dp, top = 5.dp, bottom = 8.dp)
             .fillMaxWidth()
-            .padding(start = 8.dp, top = 5.dp, bottom = 8.dp)) {
+
+    ) {
         Box(modifier = Modifier.clip(RoundedCornerShape(5.dp)),
             contentAlignment = Alignment.Center){
             Image(painter = painterResource(id = R.drawable.nosky_logo),
@@ -103,7 +105,7 @@ fun UserProfile(userName: String,
                     .aspectRatio(1f))
         }
         Spacer(modifier = Modifier.width(5.dp))
-        Column() {
+        Column(Modifier.weight(3f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 ThemedText(
                     text = userName,
@@ -112,24 +114,26 @@ fun UserProfile(userName: String,
                 if (isUserVerified)
                     VerifiedUserIcon(Modifier.padding(top = 1.dp, start = 1.dp))
             }
-            ThemedText(Modifier.fillMaxWidth(0.5f),
+            ThemedText(
                 text = userBio,
                 style = TextStyle(fontSize = 14.sp),
                 maxLines = 2
             )
         }
-        Spacer(modifier = Modifier.weight(1f))
+
+
         Button(
             modifier = Modifier
                 .align(CenterVertically)
-                .padding(start = 5.dp, end = 10.dp),
+                .padding(start = 5.dp, end = 10.dp)
+                .weight(2f),
             onClick = {
             },
             shape = RoundedCornerShape(20.dp),
             colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.surface),
             border = BorderStroke(1.dp, MaterialTheme.colors.primary)
         ) {
-            Text(text = "Follow", color = MaterialTheme.colors.primary)
+            Text(text = "Unfollow", color = MaterialTheme.colors.primary)
         }
     }
 }

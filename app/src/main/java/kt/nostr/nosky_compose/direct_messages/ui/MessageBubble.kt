@@ -6,6 +6,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -14,10 +15,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kt.nostr.nosky_compose.direct_messages.Models.MessageItem
 import kt.nostr.nosky_compose.reusable_components.GrayText
+import ktnostr.currentUnixTimeStampFromInstant
+import ktnostr.formattedDateTime
 
 
 @Composable
 fun MessageBubble(message: MessageItem) {
+    val timeStamp = remember {
+        formattedDateTime(currentUnixTimeStampFromInstant() - (60 * 60 *24*2))
+    }
     Column(modifier = Modifier
         .fillMaxWidth()
 
@@ -46,6 +52,6 @@ fun MessageBubble(message: MessageItem) {
                 overflow = TextOverflow.Ellipsis
             )
         }
-        GrayText(text = "Sent at 11:30 PM.")
+        GrayText(text = timeStamp)
     }
 }

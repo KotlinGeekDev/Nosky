@@ -1,10 +1,12 @@
 package kt.nostr.nosky_compose.direct_messages.Models
 
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 
+@Stable
 class MessageItem(val isMine: Boolean, val message: Message)
 
-@Stable
+@Immutable
 data class Message(val user: Person, val text: String)
 
 val messageList = List(5){

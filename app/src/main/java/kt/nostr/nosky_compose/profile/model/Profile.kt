@@ -62,7 +62,7 @@ class ProfileViewModel(
 
     fun updatePubKey(newKey: String){
 
-        internalPubKey.tryEmit(newKey)
+        internalPubKey.value = newKey
         profile.pubKey = pubKey.value
         Log.d("NoskyApp", "updatePubKey -> Pubkey value: ${profile.pubKey} ")
 
@@ -101,6 +101,7 @@ class ProfileViewModel(
         println("profile pubKey: ${profile.pubKey}")
     }
 
+    //This is here temporarily.
     private fun generatePrivKey(): ByteArray {
         val secretKey = ByteArray(32)
         val pseudoRandomBytes = SecureRandom()

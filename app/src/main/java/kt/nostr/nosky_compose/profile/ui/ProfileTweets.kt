@@ -6,8 +6,12 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import kt.nostr.nosky_compose.notifications.ui.ListItems
 import kt.nostr.nosky_compose.notifications.ui.opsList
 import kt.nostr.nosky_compose.reusable_components.Post
 
@@ -15,8 +19,14 @@ import kt.nostr.nosky_compose.reusable_components.Post
 fun ProfileTweets(modifier: Modifier = Modifier,
                   listState: LazyListState = rememberLazyListState(), onPostClick: () -> Unit) {
 
+    val list by remember() {
+        derivedStateOf {
+            ListItems(opsList)
+        }
+    }
+
     LazyColumn(state = listState, modifier = Modifier.padding(top = 10.dp).then(modifier)) {
-        itemsIndexed(items = opsList, key = { index: Int, _: String -> index }) { post, _ ->
+        itemsIndexed(items = list.items, key = { index: Int, _: String -> index }) { post, _ ->
             Post(
                 isUserVerified = post.mod(2) != 0,
                 containsImage = post.mod(2) == 0,

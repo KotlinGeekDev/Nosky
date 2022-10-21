@@ -25,6 +25,23 @@ fun AppTopBar(modifier: Modifier = Modifier,
 }
 
 @Composable
+fun AppTopBar(modifier: Modifier = Modifier,
+              header: @Composable () -> Unit,
+              menuActions: @Composable () -> Unit = {},
+              goBack: () -> Unit) {
+    TopAppBar(title = header,
+        modifier = Modifier.then(modifier),
+        navigationIcon = {
+            IconButton(onClick = goBack) {
+                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Go Back")
+            }
+        }, actions = {
+            menuActions()
+        })
+
+}
+
+@Composable
 fun TopBar(tabTitle: String){
     TopAppBar(
         title = { Text(text = tabTitle, fontSize = 18.sp) },

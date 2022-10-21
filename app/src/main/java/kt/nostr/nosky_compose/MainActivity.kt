@@ -12,11 +12,11 @@ import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -90,20 +90,22 @@ fun Screen(themeState: AppThemeState, onThemeChange: (Boolean) -> Unit){
 
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+
 @Composable
 fun BottomNavigationBar(modifier: Modifier = Modifier,
                         navController: NavController,
                         isNewNotification: Boolean = false){
 
 
-    val navItems = listOf(
-        NavigationItem.Home,
-        NavigationItem.Profile,
-        NavigationItem.Notifications,
-        NavigationItem.Messages,
-        NavigationItem.Settings
-    )
+    val navItems = remember {
+        listOf(
+            NavigationItem.Home,
+            NavigationItem.Profile,
+            NavigationItem.Notifications,
+            NavigationItem.Messages,
+            NavigationItem.Settings
+        )
+    }
 
     BottomNavigation(modifier = modifier) {
         val backStackEntry by navController.currentBackStackEntryAsState()

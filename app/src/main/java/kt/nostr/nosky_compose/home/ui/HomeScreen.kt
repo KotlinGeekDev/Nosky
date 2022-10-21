@@ -1,7 +1,6 @@
 package kt.nostr.nosky_compose.home.ui
 
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -11,7 +10,6 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
@@ -20,6 +18,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kt.nostr.nosky_compose.BottomNavigationBar
 import kt.nostr.nosky_compose.navigation.NavigationItem
+import kt.nostr.nosky_compose.notifications.ui.ListItems
 import kt.nostr.nosky_compose.notifications.ui.opsList
 import kt.nostr.nosky_compose.reusable_components.Post
 import kt.nostr.nosky_compose.reusable_components.ProfileView
@@ -27,11 +26,10 @@ import kt.nostr.nosky_compose.reusable_components.theme.NoskycomposeTheme
 import kt.nostr.nosky_compose.utility_functions.misc.isPrime
 
 
-@OptIn(ExperimentalFoundationApi::class)
+
 
 @Composable
 fun Home(modifier: Modifier = Modifier,
-         scaffoldState: ScaffoldState = rememberScaffoldState(),
          navigator: NavController) {
 
 //    val user = remember {
@@ -41,10 +39,11 @@ fun Home(modifier: Modifier = Modifier,
 //        )
 //    }
 
-
+    val scaffoldState = rememberScaffoldState()
     var isProfileClicked by remember {
         mutableStateOf(false)
     }
+
 
 
     Scaffold(
@@ -59,7 +58,7 @@ fun Home(modifier: Modifier = Modifier,
                 FeedProfileImage(
                     showProfile = { navigator.navigate(NavigationItem.Profile.route) }
                 )
-                Content(modifier = Modifier.padding(contentPadding), scaffoldState = scaffoldState,
+                Content(modifier = Modifier.padding(contentPadding),
                     showProfile = { isProfileClicked = isProfileClicked.not() },
                     showPost = { navigator.navigate("selected_post") })
             }
@@ -71,19 +70,22 @@ fun Home(modifier: Modifier = Modifier,
 
 
 @Composable
-fun Content(modifier: Modifier = Modifier, scaffoldState: ScaffoldState,
-            showProfile: () -> Unit, showPost: () -> Unit) {
+fun Content(modifier: Modifier = Modifier,
+            showProfile: () -> Unit,
+            showPost: () -> Unit) {
 
 
-    val list by rememberSaveable() {
-        mutableStateOf(opsList)
+    val list by remember() {
+        derivedStateOf {
+            ListItems(opsList)
+        }
     }
     val listState = rememberLazyListState()
 
     LazyColumn(state = listState,
             modifier = Modifier.then(modifier)){
 
-            itemsIndexed(items = list, key = { index: Int, _: String -> index }){ post, _ ->
+            itemsIndexed(items = list.items, key = { index: Int, _: String -> index }){ post, _ ->
                 Post(isUserVerified = post.mod(2) != 0,
                     containsImage = post.mod(2) == 0,
                     isNotMainOrNotifyPost = isPrime(post),

@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
@@ -59,26 +58,26 @@ class IntroActivity : ComponentActivity() {
                 AppThemeState(darkMode)
             }
 
-            val isDark = remember {
+            val isDark = rememberSaveable() {
                 appThemeState.isDark()
             }
 
             NoskycomposeTheme(darkTheme = isDark) {
-                IntroScreen(appThemeState = appThemeState,
-                    profileViewModel = profileViewModel,
-                    onLoginClick = {
-                    preferenceManager.edit {
-                        putBoolean("profile_present", true)
-                        putBoolean("dark_theme", appThemeState.isDark())
-                    }
-                    startActivity(
-                        Intent(this@IntroActivity, MainActivity::class.java)
-                            //.putExtra(PROFILE_DATA, Profile(pubKey, privKey))
-                    )
-                    finish()
-                }, onThemeChange = {
-                    appThemeState.switchTheme()
-                })
+                    IntroScreen(appThemeState = appThemeState,
+                        profileViewModel = profileViewModel,
+                        onLoginClick = {
+                            preferenceManager.edit {
+                                putBoolean("profile_present", true)
+                                putBoolean("dark_theme", appThemeState.isDark())
+                            }
+                            startActivity(
+                                Intent(this@IntroActivity, MainActivity::class.java)
+                                //.putExtra(PROFILE_DATA, Profile(pubKey, privKey))
+                            )
+                            finish()
+                        }, onThemeChange = {
+                            appThemeState.switchTheme()
+                        })
             }
         }
 
@@ -108,7 +107,7 @@ fun IntroScreen(appThemeState: AppThemeState,
         { if (appThemeState.isDark()) Icons.Default.LightMode else Icons.Default.DarkMode }
     }
     val backgroundColor: @Composable () -> Color = remember {
-        { if (appThemeState.isDark()) MaterialTheme.colors.surface else Purple500 }
+        { if (appThemeState.isDark()) Color(0xFF121212) else Purple500 }
     }
 
 
