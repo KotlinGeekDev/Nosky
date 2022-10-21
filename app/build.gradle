@@ -38,9 +38,7 @@ android {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            renderscriptDebuggable false
             debuggable false
-            jniDebuggable false
             signingConfig signingConfigs.release
         }
         debug {
