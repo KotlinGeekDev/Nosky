@@ -115,8 +115,8 @@ fun IntroScreen(appThemeState: AppThemeState,
             .background(color = backgroundColor())
         ) {
             AnimatedVisibility(visible = userIsNew,
-                enter = fadeIn() + slideInHorizontally(),
-                exit = fadeOut() + slideOutHorizontally()
+                enter = fadeIn(), //+ slideInHorizontally(),
+                exit = fadeOut() //+ slideOutHorizontally()
             ) {
                 NewProfileScreen(themeState = appThemeState,
                     userName = { newUserProfile::userName.get() },
