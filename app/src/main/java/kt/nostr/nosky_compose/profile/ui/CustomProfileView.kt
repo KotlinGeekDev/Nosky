@@ -23,14 +23,13 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.colorspace.ColorSpaces
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
-import androidx.compose.ui.unit.max
-import androidx.compose.ui.unit.min
 import androidx.constraintlayout.compose.*
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -132,7 +131,7 @@ fun ProfileView(modifier: Modifier = Modifier,
 //    val startContraints = ConstraintSet {
 //
 //        val banner = createRefFor("banner")
-//        val closeButton = createRefFor("close")
+//        val backButton = createRefFor("back")
 //        val moreButton = createRefFor("more")
 //        val avatar = createRefFor("avatar")
 //        val content = createRefFor("content")
@@ -153,7 +152,7 @@ fun ProfileView(modifier: Modifier = Modifier,
 //
 //        }
 //
-//        constrain(closeButton){
+//        constrain(backButton){
 //            top.linkTo(parent.top)
 //            start.linkTo(parent.start)
 //        }
@@ -172,7 +171,7 @@ fun ProfileView(modifier: Modifier = Modifier,
 //
 //    val endConstraintSet = ConstraintSet {
 //        val banner = createRefFor("banner")
-//        val closeButton = createRefFor("close")
+//        val backButton = createRefFor("back")
 //        val moreButton = createRefFor("more")
 //        val avatar = createRefFor("avatar")
 //        val content = createRefFor("content")
@@ -193,7 +192,7 @@ fun ProfileView(modifier: Modifier = Modifier,
 //
 //        }
 //
-//        constrain(closeButton){
+//        constrain(backButton){
 //            top.linkTo(parent.top)
 //            start.linkTo(parent.start)
 //        }
@@ -235,34 +234,35 @@ fun Profile(
 
     //---For Avatar(or profile picture, refer to constraint ref below)---
     val imageSize by animateDpAsState(
-        targetValue = max(50.dp, 80.dp * (1 - offsetProvider()))
+        targetValue = lerp(start = 80.dp, stop = 50.dp , fraction = offsetProvider())
     )
     val profilePictureLeftMargin by animateDpAsState(
         targetValue = lerp(start = 16.dp, stop = 40.dp, fraction = offsetProvider())
     )
 
     val profilePictureTopMargin by animateDpAsState(
-        targetValue = min(3.dp, (-40).dp * (1 - offsetProvider()))
+        targetValue = lerp(start = (-40).dp, stop = 3.dp, fraction = offsetProvider())
     )
 
     //---For banner(or background image, refer to constraint ref below)---
     val bannerHeight by animateDpAsState(
-        targetValue = max(0.dp, 70.dp * (1 - offsetProvider()))
+        targetValue = lerp(start = 70.dp, stop = 0.dp, fraction = offsetProvider())
     )
     //---For the follow or Edit profile button---
     val followButtonMargin by animateDpAsState(
-        targetValue = max(1.dp, 16.dp * (1 - offsetProvider()))
+        targetValue = lerp(start = 16.dp, stop = 1.dp, fraction = offsetProvider())
     )
 
     //---For the profile description(refer to constraint ref below)---
     val profileDescHeight by animateDpAsState(
-        targetValue = max(30.dp, 160.dp * (1 - offsetProvider()))
+        targetValue = lerp(start = 160.dp, stop = 30.dp, fraction = offsetProvider())
     )
     val profileNameLeftMargin by animateDpAsState(
-        targetValue = min(72.dp , 72.dp * offsetProvider())
+        targetValue = lerp(start = 0.dp, stop = 80.dp, fraction = offsetProvider())
     )
+
     val profileNameTopMargin by animateDpAsState(
-        targetValue = max(0.dp, 124.dp * (1 - offsetProvider()))
+        targetValue = lerp(start = 124.dp, stop = 0.dp, fraction = offsetProvider())
     )
 
     ConstraintLayout(constraintSet = ConstraintSet {
@@ -301,16 +301,16 @@ fun Profile(
         }
 
         constrain(moreButton){
-            alpha = if (isProfileMine) 1f else alphaProvider
             top.linkTo(parent.top)
             end.linkTo(parent.end)
         }
 
         constrain(content){
             height = Dimension.preferredValue(if (isProfileMine) 160.dp else profileDescHeight)
-            width = Dimension.wrapContent
+            width = Dimension.preferredWrapContent
             top.linkTo(parent.top, margin = if (isProfileMine) 124.dp else profileNameTopMargin)
             start.linkTo(parent.start, margin = if (isProfileMine) 0.dp else profileNameLeftMargin)
+            if (offsetProvider() >= 0.6f) end.linkTo(followButton.start)
 
 
         }
@@ -319,10 +319,10 @@ fun Profile(
         FollowButton(isProfileMine = isProfileMine)
         if (profileSelected)
             TopBar(
-//                modifier = Modifier
-//                    .graphicsLayer {
-//                          alpha = alphaProvider
-//                    },
+                modifier = Modifier
+                    .graphicsLayer {
+                          alpha = if (isProfileMine) 1f else alphaProvider
+                    },
                 goBack = goBack)
 
         Avatar()
