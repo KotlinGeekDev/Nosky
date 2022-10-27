@@ -63,7 +63,22 @@ fun Home(modifier: Modifier = Modifier,
                     showPost = { navigator.navigate("selected_post") })
             }
         } },
-        floatingActionButton = { if (!isProfileClicked) Fab(onTap = { }) },
+        floatingActionButton = {
+            if (!isProfileClicked)
+                Fab(onTap = {
+                    navigator.navigate("new_post"){
+
+                        navigator.currentDestination?.route?.let { route ->
+
+                            popUpTo(route){
+                                saveState = true
+                            }
+                        }
+
+                        restoreState = true
+                    }
+                })
+        },
         floatingActionButtonPosition = FabPosition.End
     )
 }
