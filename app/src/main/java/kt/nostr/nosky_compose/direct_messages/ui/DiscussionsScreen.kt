@@ -52,7 +52,7 @@ fun Discussions(navController: NavController) {
                                 saveState = true
                             }
                         }
-                        launchSingleTop = true
+
                         restoreState = true
                     }
                 })

@@ -23,6 +23,6 @@ fun timeAgoFrom(timestamp: Long): String {
             // Seconds
             return "${timeDiff / 1000}s";
         }
-        else -> return "0s"
+        else -> return "now"
     }
 }

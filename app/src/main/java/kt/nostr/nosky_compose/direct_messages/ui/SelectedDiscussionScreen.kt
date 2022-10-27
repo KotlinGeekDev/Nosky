@@ -60,7 +60,9 @@ fun DiscussionScreen(navigator: NavController) {
     }, floatingActionButton = {
         FloatingActionButton(
             backgroundColor = MaterialTheme.colors.primary,
-            onClick = { /*TODO*/ }) {
+            onClick = {
+
+            }) {
             Icon(imageVector = Icons.Default.Send, contentDescription = "New message")
         }
     },
@@ -68,6 +70,7 @@ fun DiscussionScreen(navigator: NavController) {
             BottomNavigationBar(navController = navigator)
         }
     ) { paddingConstraints ->
+
         LazyColumn(Modifier.padding(paddingConstraints)) {
             items(messageList){ item: MessageItem ->
                 MessageBubble(message = item)
@@ -76,6 +79,8 @@ fun DiscussionScreen(navigator: NavController) {
     }
 
 }
+
+
 
 @Preview
 @Preview(showSystemUi = false, uiMode = Configuration.UI_MODE_NIGHT_YES)

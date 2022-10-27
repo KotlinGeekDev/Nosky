@@ -310,7 +310,7 @@ fun Profile(
             width = Dimension.preferredWrapContent
             top.linkTo(parent.top, margin = if (isProfileMine) 124.dp else profileNameTopMargin)
             start.linkTo(parent.start, margin = if (isProfileMine) 0.dp else profileNameLeftMargin)
-            if (offsetProvider() >= 0.6f) end.linkTo(followButton.start)
+            if (offsetProvider() >= 0.6f && !isProfileMine) end.linkTo(followButton.start)
 
 
         }
