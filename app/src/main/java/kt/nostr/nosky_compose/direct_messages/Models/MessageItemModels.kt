@@ -13,6 +13,6 @@ val messageList = List(5){
     val person = if (it.mod(2) == 0) Person("Me") else Person("Other")
     MessageItem(
         it.mod(2) == 0,
-        Message(person, "Hi ${person.name}")
+        Message(person, "Hi ${person.name} . \nSee event at https://nostr.com")
     )
 }
