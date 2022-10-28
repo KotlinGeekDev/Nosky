@@ -115,7 +115,7 @@ fun Post(modifier: Modifier = Modifier,
                     )
                     .padding(all = 5.dp),
                     containsImage = true,
-                    onPostClick = { })
+                    onPostClick = { onPostClick() })
             Spacer(modifier = Modifier.height(3.dp))
             if (isRelayRecommendation) {
                 Card(
