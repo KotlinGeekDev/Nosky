@@ -52,6 +52,10 @@ class ProfileViewModel(
     private val internalProfile = MutableStateFlow(Profile())
     val newUserProfile = internalProfile.asStateFlow()
 
+//    val stateProfile = combine(flow = pubKey, flow2 = privKey){ newPub, newPriv ->
+//        Profile(pubKey = newPub, privKey = newPriv)
+//    }.stateIn(viewModelScope, SharingStarted.Lazily, Profile())
+
 
     fun updatePrivKey(newKey: String){
 
