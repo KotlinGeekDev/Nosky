@@ -36,7 +36,6 @@ import kt.nostr.nosky_compose.reusable_components.theme.Purple500
 import kt.nostr.nosky_compose.reusable_components.theme.Purple700
 import kt.nostr.nosky_compose.settings.backend.AppThemeState
 
-//TODO: Fix recomposition here, by revising the parameters of this composable.
 
 @Composable
 fun WelcomeScreen(appThemeState: AppThemeState,

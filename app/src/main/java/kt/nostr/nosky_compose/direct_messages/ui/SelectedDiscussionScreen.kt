@@ -38,7 +38,7 @@ fun DiscussionScreen(navigator: NavController) {
         AppTopBar(header = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 ThemedText(
-                    text = "Profile just abunch of additional text",
+                    text = "Profile just a bunch of additional text",
                     style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 18.sp),
                     maxLines = 1,
                     textColor = Color.White,

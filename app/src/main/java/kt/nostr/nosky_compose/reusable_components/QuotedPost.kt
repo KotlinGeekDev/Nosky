@@ -132,7 +132,10 @@ private fun NameAndUserName(userName: String = "", userPubkey: String = "",
     val timeStampDiff by remember {
         derivedStateOf { timeAgoFrom(publicationTime) }
     }
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
         ThemedText(
             modifier = Modifier.clickable {
                 if (showProfile != null) {
@@ -149,7 +152,7 @@ private fun NameAndUserName(userName: String = "", userPubkey: String = "",
             VerifiedUserIcon()
         }
         Spacer(modifier = Modifier.size(2.dp))
-        GrayText(modifier = Modifier.fillMaxWidth(0.6f), text = "@${userProfile.second}")
+        GrayText(modifier = Modifier.weight(1f), text = "@${userProfile.second}")
         GrayText(modifier = Modifier.padding(end = 5.dp), text = " · ${timeStampDiff}")
     }
 }
@@ -174,7 +177,7 @@ private fun TweetAndImage(modifier: Modifier = Modifier,
     }
 }
 
-@Preview
+@Preview()
 @Composable
 fun QuotedPostPreview() {
     NoskycomposeTheme {

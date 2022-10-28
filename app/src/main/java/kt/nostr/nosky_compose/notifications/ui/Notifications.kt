@@ -19,6 +19,7 @@ import kt.nostr.nosky_compose.reusable_components.TopBar
 import kt.nostr.nosky_compose.reusable_components.theme.NoskycomposeTheme
 
 
+
 @Composable
 fun NotificationsScreen(navigator: NavController){
 
@@ -39,7 +40,8 @@ fun NotificationsScreen(navigator: NavController){
         //FeedProfileImage()
 
         LazyColumn(Modifier.padding(paddingConstraints)){
-            itemsIndexed(items = list.items, key = {index: Int, item: String -> index }){ index, value ->
+            itemsIndexed(items = list.items,
+                key = {index: Int, item: String -> index }){ index, value ->
                 Post(userName = index.toString(), userPubkey = value,
                     isUserVerified = index.mod(2) != 0,
                     onPostClick = { navigator.navigate("selected_post")}, showProfile = {})
@@ -55,7 +57,10 @@ val opsList = List(20){ "Profile ${it + 1} "}
 class ListItems(val items: List<String>)
 
 
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, showSystemUi = true)
+@Preview(
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    showSystemUi = true
+)
 @Composable
 fun NotificationsPreview(){
     NoskycomposeTheme {

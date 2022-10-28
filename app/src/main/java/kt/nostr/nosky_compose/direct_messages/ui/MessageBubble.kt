@@ -9,6 +9,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -37,8 +38,8 @@ fun MessageBubble(message: MessageItem) {
             .clip(RoundedCornerShape(8.dp))
             .background(
                 color = when {
-                    message.isMine -> MaterialTheme.colors.primary
-                    else -> MaterialTheme.colors.secondary
+                    message.isMine -> MaterialTheme.colors.primary.copy(alpha = 0.65f)
+                    else -> Color.DarkGray.copy(alpha = 0.4f)
                 }
             )) {
 
@@ -46,9 +47,7 @@ fun MessageBubble(message: MessageItem) {
                 text = message.message.text,
                 modifier = Modifier.padding(8.dp),
                 fontSize = 16.sp,
-                color = when {
-                    message.isMine -> MaterialTheme.colors.onPrimary
-                    else -> MaterialTheme.colors.onSecondary },
+                color = MaterialTheme.colors.onSurface,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )

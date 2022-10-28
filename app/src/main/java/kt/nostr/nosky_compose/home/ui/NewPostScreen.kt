@@ -1,4 +1,4 @@
-package kt.nostr.nosky_compose.home
+package kt.nostr.nosky_compose.home.ui
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.Image
