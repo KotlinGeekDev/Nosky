@@ -4,7 +4,6 @@ import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -17,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kt.nostr.nosky_compose.BottomNavigationBar
+import kt.nostr.nosky_compose.home.TestPopupScreen
 import kt.nostr.nosky_compose.navigation.NavigationItem
 import kt.nostr.nosky_compose.notifications.ui.ListItems
 import kt.nostr.nosky_compose.notifications.ui.opsList
@@ -44,12 +44,20 @@ fun Home(modifier: Modifier = Modifier,
         mutableStateOf(false)
     }
 
-
+    var wantsToPost by remember {
+        mutableStateOf(false)
+    }
 
     Scaffold(
         scaffoldState = scaffoldState,
         bottomBar = { BottomNavigationBar(navController = navigator, isNewNotification = false) },
         content = { contentPadding ->
+            if (wantsToPost) TestPopupScreen (
+                onExit = {
+                    wantsToPost = false
+                }
+            )
+
             if (isProfileClicked)
             ProfileView(profileSelected = isProfileClicked, navController = navigator,
                 goBack =  { isProfileClicked = isProfileClicked.not() })
@@ -66,17 +74,18 @@ fun Home(modifier: Modifier = Modifier,
         floatingActionButton = {
             if (!isProfileClicked)
                 Fab(onTap = {
-                    navigator.navigate("new_post"){
-
-                        navigator.currentDestination?.route?.let { route ->
-
-                            popUpTo(route){
-                                saveState = true
-                            }
-                        }
-
-                        restoreState = true
-                    }
+                    wantsToPost = true
+//                    navigator.navigate("new_post"){
+//
+//                        navigator.currentDestination?.route?.let { route ->
+//
+//                            popUpTo(route){
+//                                saveState = true
+//                            }
+//                        }
+//
+//                        restoreState = true
+//                    }
                 })
         },
         floatingActionButtonPosition = FabPosition.End
@@ -100,11 +109,12 @@ fun Content(modifier: Modifier = Modifier,
     LazyColumn(state = listState,
             modifier = Modifier.then(modifier)){
 
-            itemsIndexed(items = list.items, key = { index: Int, _: String -> index }){ post, _ ->
+            items(count = list.items.size){ post ->
                 Post(isUserVerified = post.mod(2) != 0,
                     containsImage = post.mod(2) == 0,
                     isNotMainOrNotifyPost = isPrime(post),
-                post = "One of the user's very very long messages. from 8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f",
+                post = "One of the user's very very long messages. " +
+                        "from 8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f",
                  showProfile = showProfile, onPostClick = showPost)
                 //CustomDivider()
                 Spacer(modifier = Modifier.height(3.dp))
