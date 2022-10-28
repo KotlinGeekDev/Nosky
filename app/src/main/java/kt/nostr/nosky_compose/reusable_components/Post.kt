@@ -8,7 +8,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Comment
 import androidx.compose.material.icons.filled.Person
@@ -25,7 +27,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -113,45 +114,15 @@ fun Post(modifier: Modifier = Modifier,
                         border = BorderStroke(2.dp, MaterialTheme.colors.onSurface),
                         shape = RoundedCornerShape(15.dp)
                     )
-                    .padding(all = 5.dp),
+                    .padding(all = 2.dp)
+                    .fillMaxWidth(),
                     containsImage = true,
                     onPostClick = { onPostClick() })
-            Spacer(modifier = Modifier.height(3.dp))
+
             if (isRelayRecommendation) {
-                Card(
-                    elevation = 6.dp, modifier = Modifier.height(45.dp),
-                    contentColor = MaterialTheme.colors.surface,
-                    shape = MaterialTheme.shapes.small,
-                    backgroundColor = SnackbarDefaults.backgroundColor
-                ) {
-                    Row() {
-                        Text(text = "New relay has been recommended. Tap to add.",
-                            modifier = Modifier
-                                .fillMaxWidth(0.76f)
-                                .padding(3.dp)
-                                .alignBy { it.measuredHeight / 2 })
-                        Button(
-                            onClick = { /*TODO*/ },
-                            Modifier.padding(end = 5.dp)
-                        ) {
-                            Text(
-                                text = "Add",
-                                lineHeight = 4.sp,
-                                textAlign = TextAlign.Center,
-                                letterSpacing = 1.sp
-                            )
-                        }
-                    }
-                }
-                Spacer(modifier = Modifier.height(10.dp))
-                //TODO: Use Snackbar when I understand and solve the error: java.lang.IllegalArgumentException: No baselines for text
-//                Snackbar(modifier = Modifier.padding(4.dp), action = {
-//                    TextButton(onClick = {  }) {
-//                        Text(text = "Add")
-//                    }
-//                }) {
-//                    //Text(text = "New relay found.")
-//                }
+               //CustomRelayRecommendation()
+                RelayRecommendation()
+                Spacer(modifier = Modifier.height(5.dp))
             }
             TweetActions(numLikes = likes, numberOfBoosts = numBoosts,
                 isPostLiked = postLiked,
@@ -205,10 +176,13 @@ private fun UserAvatar(modifier: Modifier = Modifier,
 }
 
 @Composable
-private fun NameAndUserName(userName: String = "", userPubkey: String = "",
-                            isUserVerified: Boolean = false,
-                            showProfile: (() -> Unit)? = null,
-                            publicationTime: Long = currentUnixTimeStampFromInstant() - (60 * 60 *24*2)) {
+private fun NameAndUserName(
+    userName: String = "",
+    userPubkey: String = "",
+    isUserVerified: Boolean = false,
+    showProfile: (() -> Unit)? = null,
+    publicationTime: Long = currentUnixTimeStampFromInstant() - (60 * 60 *24*2)
+) {
     val userProfile by remember {
         derivedStateOf { Pair(userName, userPubkey ) }
     }
@@ -219,7 +193,10 @@ private fun NameAndUserName(userName: String = "", userPubkey: String = "",
     val timeStampDiff by remember {
         derivedStateOf { timeAgoFrom(publicationTime) }
     }
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        //horizontalArrangement = ,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         ThemedText(
             modifier = Modifier.clickable {
                 if (showProfile != null) {
@@ -236,7 +213,7 @@ private fun NameAndUserName(userName: String = "", userPubkey: String = "",
             VerifiedUserIcon()
         }
         Spacer(modifier = Modifier.size(2.dp))
-        GrayText(modifier = Modifier.fillMaxWidth(0.75f), text = "@${userProfile.second}")
+        GrayText(modifier = Modifier.weight(1f), text = "@${userProfile.second}")
         GrayText(text = " · ${timeStampDiff}")
     }
 }
@@ -327,12 +304,15 @@ internal fun TweetActions(numberOfComments: Int = 0,
     }
 }
 
-@Preview
+@Preview(
+//    device = Devices.DESKTOP
+)
 @Composable
 fun PostPreview() {
     NoskycomposeTheme(darkTheme = true) {
         Surface() {
-            Post(containsImage = true,
+            Post(
+                containsImage = true,
                 isRelayRecommendation = true,
                 isNotMainOrNotifyPost = true,
                 onPostClick = { })

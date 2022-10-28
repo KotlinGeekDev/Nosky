@@ -16,7 +16,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kt.nostr.nosky_compose.BottomNavigationBar
-import kt.nostr.nosky_compose.home.TestPopupScreen
 import kt.nostr.nosky_compose.navigation.NavigationItem
 import kt.nostr.nosky_compose.notifications.ui.ListItems
 import kt.nostr.nosky_compose.notifications.ui.opsList
@@ -112,6 +111,7 @@ fun Content(modifier: Modifier = Modifier,
             items(count = list.items.size){ post ->
                 Post(isUserVerified = post.mod(2) != 0,
                     containsImage = post.mod(2) == 0,
+                    isRelayRecommendation = post == 0,
                     isNotMainOrNotifyPost = isPrime(post),
                 post = "One of the user's very very long messages. " +
                         "from 8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f",
