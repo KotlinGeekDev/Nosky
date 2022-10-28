@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalMotionApi::class)
-
 package kt.nostr.nosky_compose.reusable_components
 
 import android.annotation.SuppressLint
@@ -17,7 +15,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.runtime.*
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
@@ -30,7 +27,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
-import androidx.constraintlayout.compose.*
+import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.constraintlayout.compose.ConstraintSet
+import androidx.constraintlayout.compose.Dimension
+import androidx.constraintlayout.compose.layoutId
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kt.nostr.nosky_compose.BottomNavigationBar
@@ -40,12 +40,11 @@ import kt.nostr.nosky_compose.reusable_components.theme.NoskycomposeTheme
 import kotlin.math.min
 
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ProfileView(modifier: Modifier = Modifier,
                 user: User = User("Satoshi Nakamoto (Gone)",
                     "8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f",
-                    "A pseudonymous dev", 10, 100_000),
+                    "A pseudonymous dev", 10, 1_001),
                 profileSelected: Boolean = false,
                 isProfileMine: Boolean = !profileSelected,
                 navController: NavController,
@@ -61,15 +60,26 @@ fun ProfileView(modifier: Modifier = Modifier,
     BackHandler(profileSelected) {
         goBack()
     }
-    var isRelatedFollowersClicked by remember {
+    var showFollowersProfiles by remember {
         mutableStateOf(false)
     }
 
-    if (isRelatedFollowersClicked){
-        ProfileListView {
-            isRelatedFollowersClicked = !isRelatedFollowersClicked
+    var showFollowingProfiles by remember {
+        mutableStateOf(false)
+    }
+
+    if (showFollowersProfiles){
+        ProfileListView(user.followers) {
+            showFollowersProfiles = !showFollowersProfiles
         }
-    } else {
+    }
+    else if (showFollowingProfiles){
+        ProfileListView(user.following) {
+            showFollowingProfiles = !showFollowingProfiles
+        }
+    }
+
+    else {
 
 
         val nestedScrollState = rememberScrollState(0)
@@ -82,7 +92,7 @@ fun ProfileView(modifier: Modifier = Modifier,
 
         val scrollOffset: Float by remember {
             derivedStateOf {
-                min(1f, scrollState.firstVisibleItemIndex*100/delta)
+                min(1f, scrollState.firstVisibleItemIndex*200/delta)
                // min(nestedScrollState.value/delta, 1f)
 
             }
@@ -96,14 +106,17 @@ fun ProfileView(modifier: Modifier = Modifier,
             Column(
                 Modifier
                     .padding(paddingValues = padding)
-//                    .scrollable(state = nestedScrollState,
-//                        orientation = Orientation.Vertical, reverseDirection = true),
             ) {
                 Profile(
                     user = internalUser,
                     profileSelected = profileSelected,
                     isProfileMine = isProfileMine,
-                    showRelatedFollowers = { isRelatedFollowersClicked = !isRelatedFollowersClicked },
+                    showFollowing = {
+                         showFollowingProfiles = !showFollowingProfiles
+                    },
+                    showFollowers = {
+                         showFollowersProfiles = !showFollowersProfiles
+                    },
                     goBack = goBack, offsetProvider = { scrollOffset })
                 ProfileTweets(
                     listState = scrollState,
@@ -224,7 +237,8 @@ fun Profile(
     user: User,
     profileSelected: Boolean,
     isProfileMine: Boolean,
-    showRelatedFollowers: () -> Unit,
+    showFollowing: () -> Unit,
+    showFollowers: () -> Unit,
     goBack: () -> Unit,
     offsetProvider: () -> Float
 ) {
@@ -328,7 +342,9 @@ fun Profile(
         Avatar()
         ProfileDescription(
             alpha = if (isProfileMine) 1f else alphaProvider,
-            user = user, showRelatedFollowers = showRelatedFollowers
+            user = user,
+            showFollowing = showFollowing,
+            showFollowers = showFollowers
         )
     }
 }
@@ -336,7 +352,9 @@ fun Profile(
 @Composable
 private fun ProfileDescription(modifier: Modifier = Modifier,
                                alpha: Float = 1f,
-                               user: User, showRelatedFollowers: () -> Unit) {
+                               user: User,
+                               showFollowing: () -> Unit,
+                               showFollowers: () -> Unit) {
     Column(modifier = Modifier
         .layoutId("content")
         .padding(start = 16.dp, end = 16.dp, top = 6.dp)
@@ -349,7 +367,8 @@ private fun ProfileDescription(modifier: Modifier = Modifier,
             following = user.following,
             followers = user.followers,
             isUserVerified = true,
-            showRelatedFollowers = showRelatedFollowers
+            showFollowing = showFollowing,
+            showFollowers = showFollowers
         )
         Divider(color = MaterialTheme.colors.onSurface)
     }

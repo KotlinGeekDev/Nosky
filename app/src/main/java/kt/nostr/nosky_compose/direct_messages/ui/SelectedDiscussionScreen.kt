@@ -60,9 +60,8 @@ fun DiscussionScreen(navigator: NavController) {
     }, floatingActionButton = {
         FloatingActionButton(
             backgroundColor = MaterialTheme.colors.primary,
-            onClick = {
-
-            }) {
+            onClick = {}
+        ) {
             Icon(imageVector = Icons.Default.Send, contentDescription = "New message")
         }
     },

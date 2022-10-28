@@ -22,7 +22,8 @@ fun UserInfo(modifier: Modifier = Modifier,
              following: Int,
              followers: Int,
              isUserVerified: Boolean = false,
-             showRelatedFollowers: () -> Unit) {
+             showFollowing: () -> Unit,
+             showFollowers: () -> Unit) {
     Column(modifier = Modifier.wrapContentWidth()) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -57,7 +58,7 @@ fun UserInfo(modifier: Modifier = Modifier,
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(Modifier.clickable { showRelatedFollowers() }) {
+            Row(Modifier.clickable { showFollowing() }) {
                 ThemedText(
                     text = "$following ",
                     style = TextStyle(fontWeight = FontWeight.Bold)
@@ -68,7 +69,7 @@ fun UserInfo(modifier: Modifier = Modifier,
                 )
             }
             Spacer(modifier = Modifier.width(24.dp))
-            Row(Modifier.clickable { showRelatedFollowers() }) {
+            Row(Modifier.clickable { showFollowers() }) {
                 ThemedText(
                     text = "$followers ",
                     style = TextStyle(fontWeight = FontWeight.Bold)
@@ -102,7 +103,8 @@ fun UserInfoPreview() {
                 following = user.following,
                 followers = user.followers,
                 isUserVerified = true,
-                showRelatedFollowers = {})
+                showFollowing = {},
+                showFollowers = {})
         }
     }
 }

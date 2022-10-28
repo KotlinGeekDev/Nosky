@@ -29,18 +29,19 @@ import kt.nostr.nosky_compose.R
 import kt.nostr.nosky_compose.home.ui.CustomDivider
 import kt.nostr.nosky_compose.reusable_components.theme.NoskycomposeTheme
 
+//TODO: Move list to being a parameter, move list state out.
 
 @Composable
-fun ProfileListView(goBack: () -> Unit) {
+fun ProfileListView(numberOfProfiles: Int = 1, goBack: () -> Unit) {
 
     BackHandler {
         goBack()
     }
 
     val userList by remember {
-        mutableStateOf(List(15){
+        mutableStateOf(List(numberOfProfiles){
             User("Satoshi Nakamoto", "satoshi",
-                "A pseudonymous dev working on iubigsubtieybgeuygbeiygbtgyibei", 10, 100_000)
+                "A pseudonymous dev working on iubigsubtieybgeuygbeiygbtgyibei", 10, 1_000)
         })
     }
     Scaffold(topBar = {
@@ -67,7 +68,11 @@ fun ListOfProfiles(modifier: Modifier = Modifier, userList: List<User>) {
         .padding(bottom = 50.dp)
         .then(modifier)){
         items(userList.size){ profilePosition ->
-            UserProfile(names[profilePosition], profileBios[profilePosition], profilePosition % 2 == 0)
+            UserProfile(
+                userName = names[profilePosition],
+                userBio = profileBios[profilePosition],
+                isUserVerified = profilePosition % 2 == 0
+            )
             CustomDivider()
         }
     }
@@ -109,10 +114,11 @@ fun UserProfile(userName: String,
             Row(verticalAlignment = Alignment.CenterVertically) {
                 ThemedText(
                     text = userName,
-                    style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 18.sp),
+                    maxLines = 1
                 )
                 if (isUserVerified)
-                    VerifiedUserIcon(Modifier.padding(top = 1.dp, start = 1.dp))
+                    VerifiedUserIcon(Modifier.padding(top = 1.dp, start = 3.dp))
             }
             ThemedText(
                 text = userBio,
@@ -133,7 +139,7 @@ fun UserProfile(userName: String,
             colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.surface),
             border = BorderStroke(1.dp, MaterialTheme.colors.primary)
         ) {
-            Text(text = "Unfollow", color = MaterialTheme.colors.primary)
+            Text(text = "Follow", color = MaterialTheme.colors.primary)
         }
     }
 }
@@ -145,7 +151,7 @@ fun UserProfile(userName: String,
 fun UserProfilePreview() {
     NoskycomposeTheme() {
         Surface {
-            UserProfile(userName = "Satoshi Nakamoto",
+            UserProfile(userName = "Satoshi Nakamoto (Gone)",
                 userBio = "A pseudonymous dev working on iubigsubtieybgeuygbeiygbtgyibei")
         }
     }

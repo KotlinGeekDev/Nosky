@@ -30,7 +30,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import kt.nostr.nosky_compose.R
-import kt.nostr.nosky_compose.reusable_components.GrayText
 import kt.nostr.nosky_compose.reusable_components.ThemedText
 import kt.nostr.nosky_compose.reusable_components.theme.NoskycomposeTheme
 import kt.nostr.nosky_compose.reusable_components.theme.Purple500
@@ -132,7 +131,10 @@ fun WelcomeScreen(appThemeState: AppThemeState,
             }
             Spacer(modifier = Modifier.fillMaxWidth(0.3f))
             Column {
-                GrayText(text = "First time joining?")
+                Text(
+                    text = "First time joining?",
+                    color = Color.White.copy(alpha = ContentAlpha.medium)
+                )
                 TextButton(onClick = onCreateProfileClick,
                     colors = ButtonDefaults.outlinedButtonColors(
                         backgroundColor = backgroundColor())) {
@@ -196,7 +198,12 @@ private fun KeyEntryField(
             modifier = Modifier
                 .requiredSize(TextFieldDefaults.MinWidth, height = 63.dp)
                 .selectable(true, onClick = {}),
-            label = { Text(text = "Enter the $fieldName here...", color = Color.White.copy(alpha = 0.7f)) },
+            label = {
+                Text(
+                    text = "Enter the $fieldName here...",
+                    color = Color.White.copy(alpha = 0.7f)
+                )
+            },
             trailingIcon = { Icon(
                 imageVector = Icons.Default.ContentPaste,
                 contentDescription = "Copy the $fieldName",
@@ -226,7 +233,7 @@ private val keyboardOptions = KeyboardOptions(
 @Preview
 @Composable
 private fun WelcomeScreenPreview() {
-    val appThemeState = AppThemeState(true)
+    val appThemeState = AppThemeState(false)
     var privKey by remember {
         mutableStateOf("")
     }

@@ -13,7 +13,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import kt.nostr.nosky_compose.direct_messages.ui.DiscussionScreen
 import kt.nostr.nosky_compose.direct_messages.ui.Discussions
-import kt.nostr.nosky_compose.home.TestPopupScreen
 import kt.nostr.nosky_compose.home.ui.Home
 import kt.nostr.nosky_compose.notifications.ui.NotificationsScreen
 import kt.nostr.nosky_compose.reusable_components.PostView
@@ -26,16 +25,17 @@ import kt.nostr.nosky_compose.settings.ui.SettingsScreen
 fun AppNavigation(navController: NavHostController,
                   appThemeState: AppThemeState, paddingConstraints: PaddingValues = PaddingValues.Absolute(), onThemeChange: (Boolean) -> Unit){
     NavHost(navController = navController, startDestination = NavigationItem.Home.route) {
+
         composable(NavigationItem.Home.route){
 
             Home(modifier = Modifier.padding(paddingConstraints), navigator = navController)
         }
 
-        composable(route = "new_post"){
-            TestPopupScreen {
-                navController.navigateUp()
-            }
-        }
+//        composable(route = "new_post"){
+//            TestPopupScreen {
+//                navController.navigateUp()
+//            }
+//        }
 
         composable(route = "selected_post"){
             PostView { navController.navigateUp() }

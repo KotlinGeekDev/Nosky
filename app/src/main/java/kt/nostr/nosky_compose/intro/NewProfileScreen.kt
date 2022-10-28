@@ -112,8 +112,8 @@ fun NewProfileScreen(themeState: AppThemeState,
             end.linkTo(parent.end)
         }) {
             Box(
-                modifier = Modifier.padding(top = 70.dp)
-            //    contentAlignment = Alignment.TopCenter
+                modifier = Modifier.padding(top = 70.dp),
+                contentAlignment = Alignment.Center
             ) {
                 Text(text = "@",
                     modifier = Modifier.padding(end = 5.dp),
@@ -121,8 +121,11 @@ fun NewProfileScreen(themeState: AppThemeState,
                     fontFamily = FontFamily.SansSerif,
                     style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 16.sp))
             }
-            Column(modifier = Modifier.imePadding(), horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center) {
+            Column(
+                modifier = Modifier.imePadding(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
                 Spacer(modifier = Modifier.height(30.dp))
                 EntryField(
                     data = userName(),
@@ -180,25 +183,36 @@ fun NewProfileScreen(themeState: AppThemeState,
         }
 
         //For the bottom buttons
-        Column(modifier = Modifier.constrainAs(bottomContent){
-            top.linkTo(formContent.bottom, margin = 60.dp)
-            //bottom.linkTo(parent.bottom, margin = 80.dp)
-            start.linkTo(parent.start)
-            end.linkTo(parent.end)
-        },
-            verticalArrangement = Arrangement.Bottom, horizontalAlignment = Alignment.CenterHorizontally) {
-            OutlinedButton(onClick = onProfileCreated,
-                modifier = Modifier.fillMaxWidth(0.8f),
+        Column(
+            modifier = Modifier.constrainAs(bottomContent) {
+                top.linkTo(formContent.bottom, margin = 60.dp)
+                //bottom.linkTo(parent.bottom, margin = 80.dp)
+                start.linkTo(parent.start)
+                end.linkTo(parent.end)
+            }.padding(start = 20.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            OutlinedButton(
+                onClick = { onProfileCreated() },
+                modifier = Modifier
+                    //.widthIn(max = TextFieldDefaults.MinWidth)
+                    .fillMaxWidth(0.5f),
                 shape = MaterialTheme.shapes.medium,
                 border = BorderStroke(2.dp, Color.White),
                 colors = ButtonDefaults.outlinedButtonColors(
-                    backgroundColor = backgroundColor())) {
+                    backgroundColor = backgroundColor()
+                )
+            ) {
                 Text(text = "Create Profile", color = Color.White)
             }
             Spacer(modifier = Modifier.fillMaxWidth(0.5f))
-            TextButton(onClick = onLoginClicked , border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))) {
-                Text(text = "Want to login instead?",
-                    color = textColor())
+            TextButton(onClick = { onLoginClicked() },
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))) {
+                Text(
+                    text = "Want to login instead?",
+                    color = textColor()
+                )
             }
         }
 
