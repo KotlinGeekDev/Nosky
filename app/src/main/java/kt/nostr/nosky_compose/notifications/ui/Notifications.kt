@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -21,9 +20,10 @@ import kt.nostr.nosky_compose.reusable_components.theme.NoskycomposeTheme
 
 
 @Composable
-fun NotificationsScreen(navigator: NavController){
+fun NotificationsScreen(navigator: NavController = rememberNavController()){
 
     val list by remember() {
+
         derivedStateOf {
             ListItems(opsList)
         }
@@ -40,9 +40,8 @@ fun NotificationsScreen(navigator: NavController){
         //FeedProfileImage()
 
         LazyColumn(Modifier.padding(paddingConstraints)){
-            itemsIndexed(items = list.items,
-                key = {index: Int, item: String -> index }){ index, value ->
-                Post(userName = index.toString(), userPubkey = value,
+            items(count = list.items.size){ index  ->
+                Post(userName = index.toString(), userPubkey = list.items[index],
                     isUserVerified = index.mod(2) != 0,
                     onPostClick = { navigator.navigate("selected_post")}, showProfile = {})
                 Spacer(modifier = Modifier.height(5.dp))

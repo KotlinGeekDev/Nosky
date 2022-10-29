@@ -195,7 +195,7 @@ private fun TweetButton(tweetText: TextFieldValue) {
                     Color(0xFFAAAAAA) else MaterialTheme.colors.primary
             )
     ) {
-        Text(text = "Tweet", color = Color.White)
+        Text(text = "Post", color = Color.White)
     }
 }
 

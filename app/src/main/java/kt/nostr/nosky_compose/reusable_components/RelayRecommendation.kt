@@ -11,7 +11,9 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun RelayRecommendation() {
-    Snackbar(modifier = Modifier.padding(4.dp), action = {
+    Snackbar(
+        modifier = Modifier.padding(4.dp),
+        action = {
         TextButton(onClick = {  }) {
             Text(text = "Add")
         }

@@ -1,13 +1,17 @@
 package kt.nostr.nosky_compose.reusable_components
 
 import android.annotation.SuppressLint
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.*
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -42,12 +46,12 @@ import kotlin.math.min
 
 @Composable
 fun ProfileView(modifier: Modifier = Modifier,
-                user: User = User("Satoshi Nakamoto (Gone)",
+                user: User = User("Satoshi Nakamoto",
                     "8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f",
                     "A pseudonymous dev", 10, 1_001),
                 profileSelected: Boolean = false,
                 isProfileMine: Boolean = !profileSelected,
-                navController: NavController,
+                navController: NavController = rememberNavController(),
                 goBack: () -> Unit) {
 
 
@@ -81,7 +85,6 @@ fun ProfileView(modifier: Modifier = Modifier,
 
     else {
 
-
         val nestedScrollState = rememberScrollState(0)
         val delta = with(LocalDensity.current){ 160.dp.toPx() - 30.dp.toPx() }
 
@@ -107,17 +110,22 @@ fun ProfileView(modifier: Modifier = Modifier,
                 Modifier
                     .padding(paddingValues = padding)
             ) {
-                Profile(
-                    user = internalUser,
-                    profileSelected = profileSelected,
-                    isProfileMine = isProfileMine,
-                    showFollowing = {
-                         showFollowingProfiles = !showFollowingProfiles
-                    },
-                    showFollowers = {
-                         showFollowersProfiles = !showFollowersProfiles
-                    },
-                    goBack = goBack, offsetProvider = { scrollOffset })
+                Surface(
+                    color = MaterialTheme.colors.onSurface.copy(alpha = 0.06f)
+                ) {
+                    Profile(
+                        user = internalUser,
+                        profileSelected = profileSelected,
+                        isProfileMine = isProfileMine,
+                        showFollowing = {
+                            showFollowingProfiles = !showFollowingProfiles
+                        },
+                        showFollowers = {
+                            showFollowersProfiles = !showFollowersProfiles
+                        },
+                        goBack = goBack, offsetProvider = { scrollOffset })
+                }
+
                 ProfileTweets(
                     listState = scrollState,
                     onPostClick = { navController.navigate("selected_post") })
@@ -322,13 +330,15 @@ fun Profile(
         constrain(content){
             height = Dimension.preferredValue(if (isProfileMine) 160.dp else profileDescHeight)
             width = Dimension.preferredWrapContent
-            top.linkTo(parent.top, margin = if (isProfileMine) 124.dp else profileNameTopMargin)
+            top.linkTo(parent.top, margin = if (isProfileMine) 100.dp else profileNameTopMargin)
             start.linkTo(parent.start, margin = if (isProfileMine) 0.dp else profileNameLeftMargin)
             if (offsetProvider() >= 0.6f && !isProfileMine) end.linkTo(followButton.start)
 
 
         }
-    }, modifier = Modifier.then(modifier)) {
+    },
+        modifier = Modifier.then(modifier)
+    ) {
         Banner()
         FollowButton(isProfileMine = isProfileMine)
         if (profileSelected)
@@ -377,6 +387,7 @@ private fun ProfileDescription(modifier: Modifier = Modifier,
 
 @Composable
 internal fun Avatar(modifier: Modifier = Modifier, profileImageUrl: String = "") {
+    //CoilImage(imageModel = user.bio, shimmerParams = ShimmerParams(), success = {})
 
     val color = remember {
         Color(0.4392157F, 0.5019608F, 0.72156864F, 1.0F, ColorSpaces.Srgb)
@@ -441,26 +452,23 @@ private fun FollowButton(modifier: Modifier = Modifier, isProfileMine: Boolean) 
 
 @Composable
 private fun Banner(modifier: Modifier = Modifier, profileImage: String = "") {
-    //CoilImage(imageModel = user.bio, shimmerParams = ShimmerParams(), success = {})
 
-    Image(
-        painter = painterResource(id = R.drawable.nosky_logo),
-        contentDescription = null,
+    Spacer(
         modifier = Modifier
             .fillMaxWidth()
             .layoutId("banner")
-            .then(modifier),
-        contentScale = ContentScale.Fit
+            .then(modifier)
     )
 }
 
 
 
-@ExperimentalFoundationApi
+//@ExperimentalFoundationApi
 @Preview
+@Preview(uiMode = UI_MODE_NIGHT_YES)
 @Composable
 fun CustomProfileViewPreview() {
-    NoskycomposeTheme(darkTheme = true){
+    NoskycomposeTheme {
         ProfileView(
             profileSelected = true,
             //profileSelected = true, isProfileMine = false,

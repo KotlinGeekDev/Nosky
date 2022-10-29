@@ -29,7 +29,7 @@ import kt.nostr.nosky_compose.reusable_components.theme.NoskycomposeTheme
 
 
 @Composable
-fun Discussions(navController: NavController) {
+fun Discussions(navController: NavController = rememberNavController()) {
 
 
     Scaffold(

@@ -20,10 +20,14 @@ import kt.nostr.nosky_compose.reusable_components.ProfileView
 import kt.nostr.nosky_compose.settings.backend.AppThemeState
 import kt.nostr.nosky_compose.settings.ui.SettingsScreen
 
+//TODO: Remove this navigation infrastructure and replace it with Appyx-based navigation structure.
+
 @ExperimentalMaterialApi
 @Composable
 fun AppNavigation(navController: NavHostController,
-                  appThemeState: AppThemeState, paddingConstraints: PaddingValues = PaddingValues.Absolute(), onThemeChange: (Boolean) -> Unit){
+                  appThemeState: AppThemeState,
+                  paddingConstraints: PaddingValues = PaddingValues.Absolute(),
+                  onThemeChange: (Boolean) -> Unit){
     NavHost(navController = navController, startDestination = NavigationItem.Home.route) {
 
         composable(NavigationItem.Home.route){

@@ -29,7 +29,7 @@ import kt.nostr.nosky_compose.utility_functions.misc.isPrime
 
 @Composable
 fun Home(modifier: Modifier = Modifier,
-         navigator: NavController) {
+         navigator: NavController = rememberNavController()) {
 
 //    val user = remember {
 //        User(

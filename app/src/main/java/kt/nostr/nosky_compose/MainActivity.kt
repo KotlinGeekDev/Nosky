@@ -2,7 +2,6 @@
 
 package kt.nostr.nosky_compose
 
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -41,7 +40,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (!preferenceManager.contains("profile_present") || !preferenceManager.getBoolean("profile_present", false)){
+        if (!preferenceManager.contains("profile_present")
+            || !preferenceManager.getBoolean("profile_present", false)){
             startActivity(Intent(this, IntroActivity::class.java))
             finish()
         }
@@ -73,15 +73,16 @@ class MainActivity : ComponentActivity() {
 }
 
 
-@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
-@Composable
-fun Screen(themeState: AppThemeState, onThemeChange: (Boolean) -> Unit){
 
-    NoskycomposeTheme(themeState.themeState.value) {
-        val rootNavController = rememberNavController()
+@Composable
+fun Screen(theme: AppThemeState, onThemeChange: (Boolean) -> Unit){
+
+    val rootNavController = rememberNavController()
+
+    NoskycomposeTheme(theme.themeState.value) {
 
         Surface {
-            AppNavigation(navController = rootNavController, appThemeState = themeState, onThemeChange = onThemeChange)
+            AppNavigation(navController = rootNavController, appThemeState = theme, onThemeChange = onThemeChange)
             //BottomNavigationBar(navController = navController)
 
         }
@@ -155,7 +156,7 @@ fun BottomNavigationBar(modifier: Modifier = Modifier,
 }
 
 
-@SuppressLint("UnrememberedMutableState")
+
 @Preview(showSystemUi = true)
 @Composable
 fun DefaultPreview() {

@@ -33,7 +33,10 @@ import kt.nostr.nosky_compose.settings.backend.AppThemeState
 
 
 @Composable
-fun SettingsScreen(appThemeState: AppThemeState, navController: NavController, onStateChange: (Boolean) -> Unit){
+fun SettingsScreen(
+    appThemeState: AppThemeState,
+    navController: NavController = rememberNavController(),
+    onStateChange: (Boolean) -> Unit){
 
 
         Scaffold(

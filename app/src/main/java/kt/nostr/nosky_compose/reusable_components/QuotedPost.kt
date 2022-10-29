@@ -118,10 +118,12 @@ private fun Avatar(modifier: Modifier = Modifier,
 }
 
 @Composable
-private fun NameAndUserName(userName: String = "", userPubkey: String = "",
-                            isUserVerified: Boolean = false,
-                            showProfile: (() -> Unit)? = null,
-                            publicationTime: Long = currentUnixTimeStampFromInstant() - (60 * 60 *24*2)) {
+private fun NameAndUserName(
+    userName: String = "",
+    userPubkey: String = "",
+    isUserVerified: Boolean = false,
+    showProfile: (() -> Unit)? = null,
+    publicationTime: Long = currentUnixTimeStampFromInstant() - (60 * 60 *24*2)) {
     val userProfile by remember {
         derivedStateOf { Pair(userName, userPubkey ) }
     }
