@@ -1,21 +1,26 @@
 package kt.nostr.nosky_compose.settings.ui
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowRight
 import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.DeviceHub
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.outlined.Android
-import androidx.compose.material.icons.rounded.AccountTree
 import androidx.compose.material.icons.rounded.ArrowForward
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -23,12 +28,9 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.alorma.settings.composables.SettingsMenuLink
 import com.alorma.settings.composables.SettingsSwitch
-import compose.icons.FontAwesomeIcons
-import compose.icons.fontawesomeicons.Brands
-import compose.icons.fontawesomeicons.brands.Bitcoin
 import kt.nostr.nosky_compose.BottomNavigationBar
-import kt.nostr.nosky_compose.reusable_components.TopBar
-import kt.nostr.nosky_compose.reusable_components.theme.NoskycomposeTheme
+import kt.nostr.nosky_compose.reusable_ui_components.TopBar
+import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
 import kt.nostr.nosky_compose.settings.backend.AppThemeState
 
 
@@ -38,43 +40,131 @@ fun SettingsScreen(
     navController: NavController = rememberNavController(),
     onStateChange: (Boolean) -> Unit){
 
+    var isOnMainPage by remember {
+        mutableStateOf(false)
+    }
 
-        Scaffold(
-            topBar = { TopBar(tabTitle = "Settings") },
-            bottomBar = { BottomNavigationBar(navController = navController) }
-        ) {  contentPadding ->
-            Column(Modifier.padding(contentPadding)) {
-                ProfileSettingsView()
-                Divider(thickness = Dp.Hairline)
-                DarkModeSettingView(appThemeState, onStateChange)
-                Description()
+    var showProfileManagement by remember {
+        mutableStateOf(false)
+    }
+
+
+
+    AnimatedVisibility(
+        visible = isOnMainPage,
+        enter = fadeIn(),
+        exit = fadeOut()
+    ) {
+        AppInformationDetails(
+            goBackToMainSettings = {
+                isOnMainPage = !isOnMainPage
             }
+        )
+    }
+
+    AnimatedVisibility(
+        visible = !isOnMainPage,
+//                && !showProfileManagement,
+        enter = fadeIn(),
+        exit = fadeOut()
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Scaffold(
+                topBar = { TopBar(tabTitle = "Settings") },
+                bottomBar = { BottomNavigationBar(navController = navController) }
+            ) { contentPadding ->
+                Column(Modifier.padding(contentPadding)) {
+                    ProfileSettingsView(
+                        goToProfileSettingDetails = {
+                            //showProfileManagement = !showProfileManagement
+                        }
+                    )
+                    Divider(thickness = Dp.Hairline)
+                    RelaySettingsView(goToRelayDetails = {})
+                    DarkModeSettingView(appThemeState, onStateChange)
+                    Description(
+                        goToAppDetails = {
+                            isOnMainPage = !isOnMainPage
+                        }
+                    )
+
+                }
+            }
+
+            TextField(
+                value = "App version : ${kt.nostr.nosky_compose.BuildConfig.VERSION_NAME}-alpha",
+                onValueChange = {},
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 60.dp, start = 40.dp),
+                readOnly = true,
+                colors = TextFieldDefaults
+                    .outlinedTextFieldColors(
+                        textColor = Color.White.copy(alpha = 0.5f),
+                        unfocusedBorderColor = Color.Transparent,
+                        focusedBorderColor = Color.Transparent
+                    )
+            )
         }
+    }
 
 }
 
 
 @Composable
-fun ProfileSettingsView(modifier: Modifier = Modifier){
+fun ProfileSettingsView(modifier: Modifier = Modifier, goToProfileSettingDetails: () -> Unit){
         SettingsMenuLink(
-            icon = { Icon(imageVector = Icons.Rounded.Person, contentDescription = "Nostr profile") },
+            icon = {
+                Icon(imageVector = Icons.Rounded.Person, contentDescription = "Nostr profile")
+            },
             title = { Text(text = "Profile Management") },
             subtitle = {
-                Text(text = "For showing the current keypair corresponding to the profile, and creating a new profile")
+                Text(
+                    text = "For showing the current keypair corresponding to the profile," +
+                            " and creating a new profile"
+                )
             },
             action = {
-                Icon(imageVector = Icons.Rounded.ArrowForward, contentDescription = "Click")
+                Icon(
+                    imageVector = Icons.Rounded.ArrowForward,
+                    contentDescription = "Show details of your managed profiles",
+                    modifier = Modifier.clickable { goToProfileSettingDetails() }
+                )
             }
         ){ }
 
 }
 
 @Composable
+fun RelaySettingsView(goToRelayDetails: () -> Unit) {
+    SettingsMenuLink(
+        icon = {
+            Icon(
+                imageVector = Icons.Filled.DeviceHub,
+                contentDescription = "Manage the list of relays."
+            )
+        },
+        title = { Text(text = "Relay Management") },
+        subtitle = {
+            Text(text = "To manage the relays the app connects to.")
+        },
+        action = {
+            Icon(
+                imageVector = Icons.Default.ArrowRight,
+                contentDescription = "Go to list of relays."
+            )
+        }
+    ) { }
+}
+
+@Composable
 fun DarkModeSettingView(appThemeState: AppThemeState, onStateChange:(Boolean) -> Unit) {
+    
+    val icon = if (appThemeState.isDark()) Icons.Default.DarkMode else Icons.Default.LightMode
 
-
-    SettingsSwitch(icon = { Icon(
-        imageVector = if (appThemeState.isDark()) Icons.Default.DarkMode else Icons.Default.LightMode,
+    SettingsSwitch(icon = { 
+        Icon(
+        imageVector = icon,
         contentDescription = "Switch the app theme"
     ) },
         title = { Text(text = "Dark mode") },
@@ -86,46 +176,18 @@ fun DarkModeSettingView(appThemeState: AppThemeState, onStateChange:(Boolean) ->
 }
 
 @Composable
-fun Description(){
-    var showDetails by remember {
-        mutableStateOf(false)
-    }
+fun Description(goToAppDetails: () -> Unit){
     SettingsMenuLink(
         icon = { Icon(imageVector = Icons.Outlined.Android,"App Info Logo") },
         title = { Text("About Nosky") },
         subtitle = { Text("General information about the app.") },
-        action = { IconButton(onClick = { showDetails = !showDetails }) {
-            val iconImage = if (showDetails) Icons.Default.ArrowDropDown else Icons.Default.ArrowRight
-            val description = if (showDetails) "Show the app's info" else "Close the app's info"
-
-            Icon(imageVector = iconImage, contentDescription = description)
+        action = { IconButton(onClick = { goToAppDetails() }) {
+            Icon(imageVector = Icons.Default.ArrowRight, contentDescription = "Show app details.")
             }
         }
     ){}
 
-    if (showDetails) {
-        DescriptionDetails()
-    } else {
-        Column {
-            TextField(value = "Nothing to see here.", onValueChange = {}, readOnly = true)
-        }
-    }
 
-}
-
-@Composable
-fun DescriptionDetails() {
-
-        Column {
-            SmallElement(image = Icons.Rounded.AccountTree, description = "Test")
-            SmallElement(image = FontAwesomeIcons.Brands.Bitcoin, description = "Test_2")
-        }
-
-}
-
-@Composable
-fun SmallElement(image: ImageVector, description: String) {
-    Icon(imageVector = image, contentDescription = description, Modifier.height(25.dp))
 }
 
 
