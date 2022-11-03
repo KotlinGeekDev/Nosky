@@ -24,10 +24,10 @@ import androidx.navigation.compose.rememberNavController
 import kt.nostr.nosky_compose.BottomNavigationBar
 import kt.nostr.nosky_compose.direct_messages.Models.MessageItem
 import kt.nostr.nosky_compose.direct_messages.Models.messageList
-import kt.nostr.nosky_compose.reusable_components.AppTopBar
-import kt.nostr.nosky_compose.reusable_components.ThemedText
-import kt.nostr.nosky_compose.reusable_components.VerifiedUserIcon
-import kt.nostr.nosky_compose.reusable_components.theme.NoskycomposeTheme
+import kt.nostr.nosky_compose.reusable_ui_components.AppTopBar
+import kt.nostr.nosky_compose.reusable_ui_components.ThemedText
+import kt.nostr.nosky_compose.reusable_ui_components.VerifiedUserIcon
+import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
 
 
 @Composable

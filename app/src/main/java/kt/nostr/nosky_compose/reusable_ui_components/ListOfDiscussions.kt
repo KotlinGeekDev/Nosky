@@ -1,11 +1,10 @@
 @file:OptIn(ExperimentalFoundationApi::class)
 
-package kt.nostr.nosky_compose.reusable_components
+package kt.nostr.nosky_compose.reusable_ui_components
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -48,9 +47,10 @@ fun DiscussionItem(modifier: Modifier = Modifier,
         modifier = modifier
             .fillMaxWidth()
             .wrapContentHeight()
-            .combinedClickable(
-                onClick = onItemClick,
-            ),
+            .clickable { onItemClick() }
+//            .combinedClickable(
+//                onClick = onItemClick,
+//            ),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),

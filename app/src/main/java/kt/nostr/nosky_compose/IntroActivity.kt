@@ -32,8 +32,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import kt.nostr.nosky_compose.intro.NewProfileScreen
 import kt.nostr.nosky_compose.intro.WelcomeScreen
 import kt.nostr.nosky_compose.profile.model.ProfileViewModel
-import kt.nostr.nosky_compose.reusable_components.theme.NoskycomposeTheme
-import kt.nostr.nosky_compose.reusable_components.theme.Purple500
+import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
+import kt.nostr.nosky_compose.reusable_ui_components.theme.Purple500
 import kt.nostr.nosky_compose.settings.backend.AppThemeState
 import kt.nostr.nosky_compose.settings.backend.ThemeStateSaver
 

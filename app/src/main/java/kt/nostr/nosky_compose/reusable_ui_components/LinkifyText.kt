@@ -1,4 +1,4 @@
-package kt.nostr.nosky_compose.reusable_components
+package kt.nostr.nosky_compose.reusable_ui_components
 
 import android.os.Build
 import android.text.SpannableString

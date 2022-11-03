@@ -30,10 +30,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import kt.nostr.nosky_compose.R
-import kt.nostr.nosky_compose.reusable_components.ThemedText
-import kt.nostr.nosky_compose.reusable_components.theme.NoskycomposeTheme
-import kt.nostr.nosky_compose.reusable_components.theme.Purple500
-import kt.nostr.nosky_compose.reusable_components.theme.Purple700
+import kt.nostr.nosky_compose.reusable_ui_components.ThemedText
+import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
+import kt.nostr.nosky_compose.reusable_ui_components.theme.Purple500
+import kt.nostr.nosky_compose.reusable_ui_components.theme.Purple700
 import kt.nostr.nosky_compose.settings.backend.AppThemeState
 
 

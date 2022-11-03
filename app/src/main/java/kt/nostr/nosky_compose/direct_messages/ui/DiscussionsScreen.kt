@@ -25,7 +25,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kt.nostr.nosky_compose.BottomNavigationBar
 import kt.nostr.nosky_compose.direct_messages.Models.Person
-import kt.nostr.nosky_compose.reusable_components.theme.NoskycomposeTheme
+import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
 
 
 @Composable

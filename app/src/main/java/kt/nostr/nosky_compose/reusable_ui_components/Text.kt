@@ -1,4 +1,4 @@
-package kt.nostr.nosky_compose.reusable_components
+package kt.nostr.nosky_compose.reusable_ui_components
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.MaterialTheme

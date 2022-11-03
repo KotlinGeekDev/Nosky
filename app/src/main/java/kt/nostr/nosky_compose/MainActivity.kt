@@ -27,7 +27,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import kt.nostr.nosky_compose.navigation.AppNavigation
 import kt.nostr.nosky_compose.navigation.NavigationItem
-import kt.nostr.nosky_compose.reusable_components.theme.NoskycomposeTheme
+import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
 import kt.nostr.nosky_compose.settings.backend.AppThemeState
 import kt.nostr.nosky_compose.settings.backend.ThemeStateSaver
 

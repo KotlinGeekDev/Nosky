@@ -15,8 +15,8 @@ import kt.nostr.nosky_compose.direct_messages.ui.DiscussionScreen
 import kt.nostr.nosky_compose.direct_messages.ui.Discussions
 import kt.nostr.nosky_compose.home.ui.Home
 import kt.nostr.nosky_compose.notifications.ui.NotificationsScreen
-import kt.nostr.nosky_compose.reusable_components.PostView
-import kt.nostr.nosky_compose.reusable_components.ProfileView
+import kt.nostr.nosky_compose.reusable_ui_components.PostScreen
+import kt.nostr.nosky_compose.reusable_ui_components.ProfileView
 import kt.nostr.nosky_compose.settings.backend.AppThemeState
 import kt.nostr.nosky_compose.settings.ui.SettingsScreen
 
@@ -42,7 +42,7 @@ fun AppNavigation(navController: NavHostController,
 //        }
 
         composable(route = "selected_post"){
-            PostView { navController.navigateUp() }
+            PostScreen { navController.navigateUp() }
         }
 
 

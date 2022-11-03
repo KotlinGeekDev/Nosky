@@ -25,8 +25,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kt.nostr.nosky_compose.R
-import kt.nostr.nosky_compose.reusable_components.ThemedText
-import kt.nostr.nosky_compose.reusable_components.theme.NoskycomposeTheme
+import kt.nostr.nosky_compose.reusable_ui_components.ThemedText
+import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
 
 @Composable
 fun FeedProfileImage(showProfile: () -> Unit){

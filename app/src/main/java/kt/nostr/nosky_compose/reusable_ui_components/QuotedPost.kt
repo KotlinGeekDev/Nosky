@@ -1,4 +1,4 @@
-package kt.nostr.nosky_compose.reusable_components
+package kt.nostr.nosky_compose.reusable_ui_components
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Image
@@ -26,7 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kt.nostr.nosky_compose.R
-import kt.nostr.nosky_compose.reusable_components.theme.NoskycomposeTheme
+import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
 import kt.nostr.nosky_compose.utility_functions.datetime.timeAgoFrom
 import ktnostr.currentUnixTimeStampFromInstant
 

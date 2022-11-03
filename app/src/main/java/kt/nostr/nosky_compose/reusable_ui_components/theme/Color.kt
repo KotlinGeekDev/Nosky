@@ -1,4 +1,4 @@
-package kt.nostr.nosky_compose.reusable_components.theme
+package kt.nostr.nosky_compose.reusable_ui_components.theme
 
 import androidx.compose.ui.graphics.Color
 
