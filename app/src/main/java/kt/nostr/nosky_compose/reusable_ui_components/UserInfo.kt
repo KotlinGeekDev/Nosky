@@ -1,11 +1,9 @@
-package kt.nostr.nosky_compose.reusable_components
+package kt.nostr.nosky_compose.reusable_ui_components
 
-import android.os.Parcelable
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
@@ -13,6 +11,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kt.nostr.nosky_compose.profile.model.Profile
 
 @Composable
 fun UserInfo(modifier: Modifier = Modifier,
@@ -31,7 +30,6 @@ fun UserInfo(modifier: Modifier = Modifier,
         ) {
             ThemedText(
                 modifier = Modifier.weight(4f, fill = false),
-                    //.weight(50f, fill = false),
                 text = username,
                 style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 16.sp),
                 maxLines = 1
@@ -84,21 +82,19 @@ fun UserInfo(modifier: Modifier = Modifier,
     }
 }
 
-@Immutable
-@kotlinx.parcelize.Parcelize
-data class User(val name: String, val username: String, val bio: String,
-                val following: Int, val followers: Int): Parcelable
 
 @Preview
 @Composable
 fun UserInfoPreview() {
-    val user = User("Satoshi Nakamoto (Gone)", "8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f",
-        "A pseudonymous dev", 10, 100_000)
+    val user = Profile(
+        userName = "Satoshi Nakamoto (Gone)",
+        pubKey = "8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f",
+        bio = "A pseudonymous dev", following = 10, followers = 100_000)
     androidx.compose.material.Surface {
         Column {
             UserInfo(
-                username = user.name,
-                userPubKey = user.username,
+                username = user.userName,
+                userPubKey = user.pubKey,
                 userBio = user.bio,
                 following = user.following,
                 followers = user.followers,

@@ -1,4 +1,4 @@
-package kt.nostr.nosky_compose.reusable_components
+package kt.nostr.nosky_compose.reusable_ui_components
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
@@ -14,7 +14,7 @@ import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Comment
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Reply
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,7 +31,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kt.nostr.nosky_compose.R
-import kt.nostr.nosky_compose.reusable_components.theme.NoskycomposeTheme
+import kt.nostr.nosky_compose.home.backend.Post
+import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
 import kt.nostr.nosky_compose.utility_functions.datetime.timeAgoFrom
 import ktnostr.currentUnixTimeStampFromInstant
 
@@ -41,23 +42,25 @@ import ktnostr.currentUnixTimeStampFromInstant
  *  - Replace a lot of state-representing variables(e.g boosts and likes) and
  *    hoist them.
  *  - Contemplate navigation for if a quoted post is present.
- *  - Look to improve performance.
+ *  - Look to improve performance(when performance issues are noticed).
  */
 
 
 @Composable
-fun Post(modifier: Modifier = Modifier,
-         userName: String = "Satoshi Nakamoto",
-         userPubkey: String = "8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f",
-         post: String = "One of the user's very very long messages.",
-         isUserVerified: Boolean = true,
-         containsImage: Boolean = false,
-         isPostLiked: Boolean = false,
-         isPostBoosted: Boolean = false,
-         isRelayRecommendation: Boolean = false,
-         isNotMainOrNotifyPost: Boolean = false,
-         onPostClick: () -> Unit,
-         showProfile: (() -> Unit)? = null) {
+fun PostView(modifier: Modifier = Modifier,
+             viewingPost: Post = Post(
+                 username = "Satoshi Nakamoto",
+                 userKey = "8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f",
+                 textContext = "One of the user's very very long messages."
+             ),
+             isUserVerified: Boolean = true,
+             containsImage: Boolean = false,
+             isPostLiked: Boolean = false,
+             isPostBoosted: Boolean = false,
+             isRelayRecommendation: Boolean = false,
+             onPostClick: () -> Unit = {},
+             onReplyTap: () -> Unit = {},
+             showProfile: (() -> Unit)? = null) {
     var likes by remember {
         mutableStateOf(0)
     }
@@ -102,12 +105,12 @@ fun Post(modifier: Modifier = Modifier,
         Column {
             //GrayText(text = "You liked")
             NameAndUserName(
-                userName = userName,
-                userPubkey = userPubkey, isUserVerified, showProfile = showProfile
+                userName = viewingPost.username,
+                userPubkey = viewingPost.userKey, isUserVerified, showProfile = showProfile
             )
             Spacer(modifier = Modifier.size(1.dp))
-            TweetAndImage(post = post, containsImage = containsImage)
-            if (isNotMainOrNotifyPost)
+            TweetAndImage(post = viewingPost.textContext, containsImage = containsImage)
+            if (viewingPost.quotedPost != null)
                 QuotedPost(modifier = Modifier
                     //.fillMaxWidth()
                     .border(
@@ -116,6 +119,9 @@ fun Post(modifier: Modifier = Modifier,
                     )
                     .padding(all = 2.dp)
                     .fillMaxWidth(),
+//                    userName = viewingPost.quotedPost.username,
+//                    userPubkey = viewingPost.quotedPost.userKey,
+//                    post = viewingPost.quotedPost.textContext,
                     containsImage = true,
                     onPostClick = { onPostClick() })
 
@@ -144,7 +150,8 @@ fun Post(modifier: Modifier = Modifier,
                         numBoosts += 1
                         postBoosted = !postBoosted
                     }
-                }
+                },
+                onPostReply = onReplyTap
             )
         }
     }
@@ -214,7 +221,7 @@ private fun NameAndUserName(
         }
         Spacer(modifier = Modifier.size(2.dp))
         GrayText(modifier = Modifier.weight(1f), text = "@${userProfile.second}")
-        GrayText(text = " · ${timeStampDiff}")
+        GrayText(text = " · $timeStampDiff")
     }
 }
 
@@ -248,15 +255,16 @@ internal fun TweetActions(numberOfComments: Int = 0,
                          isPostBoosted: Boolean,
                          isPostLiked: Boolean,
                          onPostBoost:() -> Unit,
-                         onPostLike:() -> Unit) {
+                         onPostLike:() -> Unit,
+                          onPostReply:() -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(end = 40.dp),
+            .padding(end = 20.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        val imageSize = 18.dp
+        val imageSize = 20.dp
         val likeIcon = if (isPostLiked) R.drawable.ic_liked else R.drawable.ic_like
         val boostIcon = if (isPostBoosted) R.drawable.ic_retweeted else R.drawable.ic_retweet
         Row {
@@ -295,11 +303,11 @@ internal fun TweetActions(numberOfComments: Int = 0,
         }
 
         Icon(
-            imageVector = Icons.Default.Share,
+            imageVector = Icons.Default.Reply,
             contentDescription = "",
             modifier = Modifier
                 .size(imageSize)
-                .clickable { }
+                .clickable { onPostReply() }
         )
     }
 }
@@ -311,10 +319,10 @@ internal fun TweetActions(numberOfComments: Int = 0,
 fun PostPreview() {
     NoskycomposeTheme(darkTheme = true) {
         Surface() {
-            Post(
+            PostView(
                 containsImage = true,
                 isRelayRecommendation = true,
-                isNotMainOrNotifyPost = true,
+                //containsQuotedPost = true,
                 onPostClick = { })
         }
     }

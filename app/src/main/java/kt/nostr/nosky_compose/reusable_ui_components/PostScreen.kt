@@ -1,4 +1,4 @@
-package kt.nostr.nosky_compose.reusable_components
+package kt.nostr.nosky_compose.reusable_ui_components
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -21,33 +21,38 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.compose.rememberNavController
 import kt.nostr.nosky_compose.BottomNavigationBar
+import kt.nostr.nosky_compose.home.backend.Post
 import kt.nostr.nosky_compose.home.ui.CustomDivider
-import kt.nostr.nosky_compose.profile.ProfileTweets
-import kt.nostr.nosky_compose.reusable_components.theme.NoskycomposeTheme
+import kt.nostr.nosky_compose.home.ui.PostReply
+import kt.nostr.nosky_compose.profile.ProfilePosts
+import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
 
 
-//TODO : Fix BottomNavigation controller issue.
+//TODO : Fix BottomNavigation controller issue.(Line 107)
 
 //TODO: Find a way to separate the state of the main post from the replies state.
 
 @Composable
-fun PostView(goBack: () -> Unit) {
+fun PostScreen(goBack: () -> Unit) {
     BackHandler {
         goBack()
     }
 
-//    val postColor by animateColorAsState(
-//        targetValue = if (isSystemInDarkTheme())
-//            Color(27, 27, 27) else
-//                Color.White.copy(alpha = 0.5f)
-//                //Color(240, 240, 240)
-//    )
+    var isReplyClicked by remember {
+        mutableStateOf(false)
+    }
+
+    if (isReplyClicked){
+        PostReply(closeDialog = { isReplyClicked =!isReplyClicked }) {
+
+        }
+    }
+
     ConstraintLayout(Modifier.fillMaxSize()) {
         val (topBar, mainPost, replies, bottomBar) = createRefs()
 
 
         TopAppBar(Modifier.constrainAs(topBar) {
-            //height = Dimension.value(56.dp)
             top.linkTo(parent.top)
             start.linkTo(parent.start)
             end.linkTo(parent.end)
@@ -80,14 +85,22 @@ fun PostView(goBack: () -> Unit) {
                 .background(
                     color = MaterialTheme.colors.onSurface.copy(alpha = 0.05f)
                 )) {
-            Post(containsImage = false,
-                post = "One of the user's very very long messages. from 8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f",
-                onPostClick = {})
+            PostView(
+                viewingPost = Post(
+                    textContext = "One of the user's very very long messages. " +
+                            "from 8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f"
+                ),
+                containsImage = false,
+                onPostClick = {},
+                onReplyTap = { isReplyClicked = !isReplyClicked })
             Column() {
-                Text(modifier = Modifier.align(Alignment.CenterHorizontally), text = "Replies", style = TextStyle(
+                Text(
+                    modifier = Modifier.align(Alignment.CenterHorizontally), text = "Replies",
+                    style = TextStyle(
                     fontSize = 18.sp,
-                    color = if (isSystemInDarkTheme()) Color(0xFF666666) else Color.Gray
-                ), maxLines = 1)
+                    color = if (isSystemInDarkTheme()) Color(0xFF666666) else Color.Gray),
+                    maxLines = 1
+                )
                 CustomDivider(Modifier.padding(start = 15.dp, end = 15.dp))
             }
         }
@@ -112,7 +125,7 @@ fun PostView(goBack: () -> Unit) {
 
 @Composable
 fun Replies(modifier: Modifier = Modifier) {
-    ProfileTweets(modifier = modifier, onPostClick = {})
+    ProfilePosts(modifier = modifier, onPostClick = {})
 }
 
 @Preview
@@ -120,7 +133,7 @@ fun Replies(modifier: Modifier = Modifier) {
 fun ParticularPostPreview() {
     NoskycomposeTheme(darkTheme = true) {
         Surface {
-            PostView({})
+            PostScreen({})
         }
     }
 }

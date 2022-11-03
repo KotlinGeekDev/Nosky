@@ -16,27 +16,19 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kt.nostr.nosky_compose.BottomNavigationBar
+import kt.nostr.nosky_compose.home.backend.Post
 import kt.nostr.nosky_compose.navigation.NavigationItem
-import kt.nostr.nosky_compose.notifications.ui.ListItems
+import kt.nostr.nosky_compose.notifications.ui.PostsList
 import kt.nostr.nosky_compose.notifications.ui.opsList
-import kt.nostr.nosky_compose.reusable_components.Post
-import kt.nostr.nosky_compose.reusable_components.ProfileView
-import kt.nostr.nosky_compose.reusable_components.theme.NoskycomposeTheme
-import kt.nostr.nosky_compose.utility_functions.misc.isPrime
-
-
+import kt.nostr.nosky_compose.reusable_ui_components.PostView
+import kt.nostr.nosky_compose.reusable_ui_components.ProfileView
+import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
 
 
 @Composable
 fun Home(modifier: Modifier = Modifier,
          navigator: NavController = rememberNavController()) {
 
-//    val user = remember {
-//        User(
-//            "Satoshi Nakamoto", "8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f",
-//            "A pseudonymous dev", 10, 100_000
-//        )
-//    }
 
     val scaffoldState = rememberScaffoldState()
     var isProfileClicked by remember {
@@ -100,7 +92,7 @@ fun Content(modifier: Modifier = Modifier,
 
     val list by remember() {
         derivedStateOf {
-            ListItems(opsList)
+            PostsList(opsList)
         }
     }
     val listState = rememberLazyListState()
@@ -109,12 +101,14 @@ fun Content(modifier: Modifier = Modifier,
             modifier = Modifier.then(modifier)){
 
             items(count = list.items.size){ post ->
-                Post(isUserVerified = post.mod(2) != 0,
+                PostView(
+                    viewingPost = Post(
+                        textContext = "One of the user's very very long messages. from" +
+                                " 8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f"
+                    ),
+                    isUserVerified = post.mod(2) != 0,
                     containsImage = post.mod(2) == 0,
                     isRelayRecommendation = post == 0,
-                    isNotMainOrNotifyPost = isPrime(post),
-                post = "One of the user's very very long messages. " +
-                        "from 8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f",
                  showProfile = showProfile, onPostClick = showPost)
                 //CustomDivider()
                 Spacer(modifier = Modifier.height(3.dp))
@@ -140,7 +134,10 @@ fun Fab(onTap: () -> Unit) {
 
 @Composable
 fun CustomDivider(modifier: Modifier = Modifier) {
-    Divider(modifier = modifier, color = if (!isSystemInDarkTheme()) Color.LightGray else Color(0xFF333333))
+    Divider(
+        modifier = modifier,
+        color = if (!isSystemInDarkTheme()) Color.LightGray else Color(0xFF333333)
+    )
 }
 
 

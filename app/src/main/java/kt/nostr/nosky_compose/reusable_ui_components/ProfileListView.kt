@@ -1,4 +1,4 @@
-package kt.nostr.nosky_compose.reusable_components
+package kt.nostr.nosky_compose.reusable_ui_components
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.activity.compose.BackHandler
@@ -27,7 +27,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kt.nostr.nosky_compose.R
 import kt.nostr.nosky_compose.home.ui.CustomDivider
-import kt.nostr.nosky_compose.reusable_components.theme.NoskycomposeTheme
+import kt.nostr.nosky_compose.profile.model.Profile
+import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
 
 //TODO: Move list to being a parameter, move list state out.
 
@@ -40,8 +41,10 @@ fun ProfileListView(numberOfProfiles: Int = 1, goBack: () -> Unit) {
 
     val userList by remember {
         mutableStateOf(List(numberOfProfiles){
-            User("Satoshi Nakamoto", "satoshi",
-                "A pseudonymous dev working on iubigsubtieybgeuygbeiygbtgyibei", 10, 1_000)
+            Profile(
+                userName = "Satoshi Nakamoto", pubKey =  "satoshi",
+                bio = "A pseudonymous dev working on iubigsubtieybgeuygbeiygbtgyibei",
+                following = 10, followers =  1_000)
         })
     }
     Scaffold(topBar = {
@@ -53,10 +56,10 @@ fun ProfileListView(numberOfProfiles: Int = 1, goBack: () -> Unit) {
 
 
 @Composable
-fun ListOfProfiles(modifier: Modifier = Modifier, userList: List<User>) {
+fun ListOfProfiles(modifier: Modifier = Modifier, userList: List<Profile>) {
     val names by remember {
         derivedStateOf { userList.map {  user ->
-            user.name }
+            user.userName }
         }
     }
     val profileBios by remember {

@@ -31,7 +31,9 @@ data class Profile(
     var privKey: String = "",
     var userName: String = "",
     var profileImage: String = "",
-    var bio: String = ""): Parcelable {
+    var bio: String = "",
+    val followers: Int = 0,
+    val following: Int = 0): Parcelable {
     override fun toString(): String = "Profile($pubKey)"
 }
 
@@ -59,15 +61,17 @@ class ProfileViewModel(
 
     fun updatePrivKey(newKey: String){
 
-        internalPrivKey.value = newKey
-        profile.privKey = privKey.value
+        //internalPrivKey.value = newKey
+        internalProfile.update { currentProfile -> currentProfile.copy(privKey = newKey) }
+        profile.privKey = newUserProfile.value.privKey
         Log.d("NoskyApp", "updatePrivKey -> Privkey value: ${profile.privKey} ")
     }
 
     fun updatePubKey(newKey: String){
 
-        internalPubKey.value = newKey
-        profile.pubKey = pubKey.value
+        //internalPubKey.value = newKey
+        internalProfile.update { currentProfile -> currentProfile.copy(pubKey = newKey) }
+        profile.pubKey = newUserProfile.value.pubKey
         Log.d("NoskyApp", "updatePubKey -> Pubkey value: ${profile.pubKey} ")
 
     }
@@ -86,7 +90,7 @@ class ProfileViewModel(
 
     fun updateProfileImageLink(updatedImageUri: String){
         internalProfile.update { currentProfile -> currentProfile.copy(profileImage = updatedImageUri) }
-        profile.profileImage = internalProfile.value.profileImage
+        profile.profileImage = newUserProfile.value.profileImage
         Log.d("NoskyApp", "updateProfileImageLink: ImageLink value: ${profile.profileImage}")
     }
 
@@ -102,6 +106,7 @@ class ProfileViewModel(
 
         println("internalProfile secKey: ${internalProfile.value.privKey}")
         println("internalProfile pubKey: ${internalProfile.value.pubKey}")
+        println("userProfile pubkey: ${newUserProfile.value.pubKey}")
         println("profile pubKey: ${profile.pubKey}")
     }
 

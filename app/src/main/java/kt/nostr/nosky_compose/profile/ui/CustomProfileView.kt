@@ -1,6 +1,5 @@
-package kt.nostr.nosky_compose.reusable_components
+package kt.nostr.nosky_compose.reusable_ui_components
 
-import android.annotation.SuppressLint
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateColorAsState
@@ -17,12 +16,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.colorspace.ColorSpaces
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -37,18 +37,22 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.constraintlayout.compose.layoutId
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import compose.icons.FontAwesomeIcons
+import compose.icons.fontawesomeicons.Solid
+import compose.icons.fontawesomeicons.solid.Envelope
 import kt.nostr.nosky_compose.BottomNavigationBar
 import kt.nostr.nosky_compose.R
-import kt.nostr.nosky_compose.profile.ProfileTweets
-import kt.nostr.nosky_compose.reusable_components.theme.NoskycomposeTheme
+import kt.nostr.nosky_compose.profile.ProfilePosts
+import kt.nostr.nosky_compose.profile.model.Profile
+import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
 import kotlin.math.min
 
 
 @Composable
 fun ProfileView(modifier: Modifier = Modifier,
-                user: User = User("Satoshi Nakamoto",
-                    "8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f",
-                    "A pseudonymous dev", 10, 1_001),
+                user: Profile = Profile(userName = "Satoshi Nakamoto",
+                    pubKey = "8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f",
+                    bio = "A pseudonymous dev", following = 10, followers = 1_001),
                 profileSelected: Boolean = false,
                 isProfileMine: Boolean = !profileSelected,
                 navController: NavController = rememberNavController(),
@@ -56,7 +60,7 @@ fun ProfileView(modifier: Modifier = Modifier,
 
 
 
-    val internalUser: User by remember {
+    val internalUser: Profile by remember {
         derivedStateOf {
             user
         }
@@ -113,7 +117,7 @@ fun ProfileView(modifier: Modifier = Modifier,
                 Surface(
                     color = MaterialTheme.colors.onSurface.copy(alpha = 0.06f)
                 ) {
-                    Profile(
+                    ProfileDetails(
                         user = internalUser,
                         profileSelected = profileSelected,
                         isProfileMine = isProfileMine,
@@ -126,7 +130,7 @@ fun ProfileView(modifier: Modifier = Modifier,
                         goBack = goBack, offsetProvider = { scrollOffset })
                 }
 
-                ProfileTweets(
+                ProfilePosts(
                     listState = scrollState,
                     onPostClick = { navController.navigate("selected_post") })
             }
@@ -238,11 +242,11 @@ fun ProfileView(modifier: Modifier = Modifier,
 //}
 
 
-@SuppressLint("Range")
+
 @Composable
-fun Profile(
+fun ProfileDetails(
     modifier: Modifier = Modifier,
-    user: User,
+    user: Profile,
     profileSelected: Boolean,
     isProfileMine: Boolean,
     showFollowing: () -> Unit,
@@ -351,7 +355,7 @@ fun Profile(
 
         Avatar()
         ProfileDescription(
-            alpha = if (isProfileMine) 1f else alphaProvider,
+            transparency = if (isProfileMine) 1f else alphaProvider,
             user = user,
             showFollowing = showFollowing,
             showFollowers = showFollowers
@@ -361,8 +365,8 @@ fun Profile(
 
 @Composable
 private fun ProfileDescription(modifier: Modifier = Modifier,
-                               alpha: Float = 1f,
-                               user: User,
+                               transparency: Float = 1f,
+                               user: Profile,
                                showFollowing: () -> Unit,
                                showFollowers: () -> Unit) {
     Column(modifier = Modifier
@@ -370,9 +374,9 @@ private fun ProfileDescription(modifier: Modifier = Modifier,
         .padding(start = 16.dp, end = 16.dp, top = 6.dp)
         .then(modifier)) {
         UserInfo(
-            Modifier.alpha(alpha),
-            username = user.name,
-            userPubKey = user.username,
+            Modifier.graphicsLayer { alpha = transparency },
+            username = user.userName,
+            userPubKey = user.pubKey,
             userBio = user.bio,
             following = user.following,
             followers = user.followers,
@@ -423,11 +427,11 @@ private fun TopBar(modifier: Modifier = Modifier, goBack:() -> Unit) {
             Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = null)
         }
 
-        IconButton(modifier = Modifier
-            .layoutId("more")
-            .then(modifier), onClick = {}) {
-            Icon(imageVector = Icons.Filled.MoreVert, contentDescription = null)
-        }
+//        IconButton(modifier = Modifier
+//            .layoutId("more")
+//            .then(modifier), onClick = {}) {
+//            Icon(imageVector = Icons.Filled.MoreVert, contentDescription = null)
+//        }
     }
 }
 
@@ -436,22 +440,44 @@ private fun FollowButton(modifier: Modifier = Modifier, isProfileMine: Boolean) 
     val buttonLabel by remember {
         derivedStateOf { if (isProfileMine) "Edit Profile" else "Following" }
     }
-    Button(
-        modifier = Modifier
-            .layoutId("follow")
-            .then(modifier),
-        onClick = {
-        },
-        shape = RoundedCornerShape(20.dp),
-        colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colors.primary)
+
+    Row(
+        modifier = Modifier.layoutId("follow"),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = buttonLabel, color = MaterialTheme.colors.primary)
+        Image(
+            imageVector = FontAwesomeIcons.Solid.Envelope,
+            contentDescription = "Send a direct message.",
+            modifier = Modifier
+                .size(35.dp)
+                .border(width = 1.dp,
+                    color = MaterialTheme.colors.primary,
+                    shape = RoundedCornerShape(80.dp)
+                )
+                .clip(CircleShape)
+                .scale(0.5f),
+            colorFilter = ColorFilter.tint(MaterialTheme.colors.primary)
+        )
+
+        Button(
+            modifier = Modifier
+                //.layoutId("follow")
+                .then(modifier),
+            onClick = {
+            },
+            shape = RoundedCornerShape(20.dp),
+            colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.surface),
+            border = BorderStroke(1.dp, MaterialTheme.colors.primary)
+        ) {
+            Text(text = buttonLabel, color = MaterialTheme.colors.primary)
+        }
     }
+
 }
 
 @Composable
-private fun Banner(modifier: Modifier = Modifier, profileImage: String = "") {
+private fun Banner(modifier: Modifier = Modifier) {
 
     Spacer(
         modifier = Modifier
