@@ -96,11 +96,8 @@ fun IntroScreen(appThemeState: AppThemeState,
         mutableStateOf(false)
     }
 
-    //For login
-    val existingUserPrivKey by profileViewModel.privKey.collectAsState()
-    val existingUserPubKey by profileViewModel.pubKey.collectAsState()
 
-    //For account creation
+    //For account creation, or for account login/import
     val newUserProfile by profileViewModel.newUserProfile.collectAsState()
 
     val themeIcon = remember {
@@ -135,9 +132,9 @@ fun IntroScreen(appThemeState: AppThemeState,
                 exit = fadeOut() + slideOutHorizontally()
             ) {
                 WelcomeScreen(appThemeState = appThemeState,
-                    privKey = { existingUserPrivKey },
+                    privKey = { newUserProfile.privKey },
                     updatePrivKey = profileViewModel::updatePrivKey,
-                    pubKey = { existingUserPubKey },
+                    pubKey = { newUserProfile.pubKey },
                     updatePubKey = profileViewModel::updatePubKey,
                     onLoginClick = onLoginClick,
                     onCreateProfileClick = { userIsNew = !userIsNew })

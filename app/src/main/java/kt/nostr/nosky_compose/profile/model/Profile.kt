@@ -91,6 +91,7 @@ class ProfileViewModel(
     fun updateProfileImageLink(updatedImageUri: String){
         internalProfile.update { currentProfile -> currentProfile.copy(profileImage = updatedImageUri) }
         profile.profileImage = newUserProfile.value.profileImage
+
         Log.d("NoskyApp", "updateProfileImageLink: ImageLink value: ${profile.profileImage}")
     }
 

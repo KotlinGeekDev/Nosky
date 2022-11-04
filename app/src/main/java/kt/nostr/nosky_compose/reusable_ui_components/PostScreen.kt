@@ -37,15 +37,22 @@ fun PostScreen(goBack: () -> Unit) {
     BackHandler {
         goBack()
     }
+    val userPost = remember {
+        Post(
+            textContent = "One of the user's very very long messages. " +
+                    "from 8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f"
+        )
+    }
 
     var isReplyClicked by remember {
         mutableStateOf(false)
     }
 
     if (isReplyClicked){
-        PostReply(closeDialog = { isReplyClicked =!isReplyClicked }) {
-
-        }
+        PostReply(
+            originalPost = userPost,
+            closeDialog = { isReplyClicked =!isReplyClicked }
+        ) { }
     }
 
     ConstraintLayout(Modifier.fillMaxSize()) {
@@ -86,10 +93,7 @@ fun PostScreen(goBack: () -> Unit) {
                     color = MaterialTheme.colors.onSurface.copy(alpha = 0.05f)
                 )) {
             PostView(
-                viewingPost = Post(
-                    textContext = "One of the user's very very long messages. " +
-                            "from 8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f"
-                ),
+                viewingPost = userPost,
                 containsImage = false,
                 onPostClick = {},
                 onReplyTap = { isReplyClicked = !isReplyClicked })

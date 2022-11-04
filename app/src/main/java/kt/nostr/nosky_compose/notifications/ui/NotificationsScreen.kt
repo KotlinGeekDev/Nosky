@@ -14,6 +14,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kt.nostr.nosky_compose.BottomNavigationBar
 import kt.nostr.nosky_compose.home.backend.Post
+import kt.nostr.nosky_compose.home.backend.opsList
 import kt.nostr.nosky_compose.reusable_ui_components.PostView
 import kt.nostr.nosky_compose.reusable_ui_components.TopBar
 import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
@@ -50,62 +51,6 @@ fun NotificationsScreen(navigator: NavController = rememberNavController()){
         }
     }
 }
-
-val opsList = listOf(
-    Post(
-        username = "Satoshi Nakamoto 1",
-        userKey = "8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f",
-        textContext = "One of the user's very very long messages.",
-        quotedPost = Post()
-    ),
-    Post(
-        username = "Satoshi Nakamoto 2",
-        userKey = "8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f",
-        textContext = "One of the user's very very long messages."
-    ),
-    Post(
-        username = "Satoshi Nakamoto 3",
-        userKey = "8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f",
-        textContext = "One of the user's very very long messages.",
-        quotedPost = Post(
-            username = "Satoshi Nakamoto 7",
-            userKey = "8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f",
-            textContext = "One of the user's very very long messages."
-        )
-    ),
-    Post(
-        username = "Satoshi Nakamoto 4",
-        userKey = "8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f",
-        textContext = "One of the user's very very long messages."
-    ),
-    Post(
-        username = "Satoshi Nakamoto 5",
-        userKey = "8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f",
-        textContext = "One of the user's very very long messages."
-    ),
-    Post(
-        username = "Satoshi Nakamoto 6",
-        userKey = "8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f",
-        textContext = "One of the user's very very long messages."
-    ),
-    Post(
-        username = "Satoshi Nakamoto 7",
-        userKey = "8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f",
-        textContext = "One of the user's very very long messages."
-    ),
-    Post(
-        username = "Satoshi Nakamoto 8",
-        userKey = "8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f",
-        textContext = "One of the user's very very long messages."
-    ),
-    Post(),
-    Post(),
-    Post(),
-    Post(),
-    Post(),
-    Post(),
-    Post()
-)
 
 @Stable
 class PostsList(val items: List<Post>)

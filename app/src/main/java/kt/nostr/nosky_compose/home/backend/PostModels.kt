@@ -16,7 +16,7 @@ import kotlin.random.Random
 data class Post(
     val username: String = "Nostr Username",
     val userKey: String = Random.nextBytes(32).toHexString(),
-    val textContext: String = "Nostr post content",
+    val textContent: String = "Nostr post content",
     val imageLinks: List<String> = emptyList(),
     val quotedPost: Post? = null,
     val replies: List<Post> = emptyList()
@@ -30,7 +30,7 @@ class PostViewModel(): ViewModel() {
 
 
     fun updateTextContent(text: String){
-        _internalPost.update { it.copy(textContext = text) }
+        _internalPost.update { it.copy(textContent = text) }
     }
 
     fun addImageLink(newImageLink: String){
@@ -46,11 +46,15 @@ class PostViewModel(): ViewModel() {
 
 
     fun urlsInText(): List<String> {
-        val listSubstrings = postContent.value.textContext.split(" ")
+        val listSubstrings = postContent.value.textContent.split(" ")
         val links = listSubstrings.filter { substring -> substring.isURL() }
-        return links
+        return links.filter {
+            it.endsWith(".jpg")
+                    || it.endsWith(".img")
+                    || it.endsWith(".webp")
+        }
     }
 
-    fun textIsLink(): Boolean = postContent.value.textContext.isURL()
+    fun textIsLink(): Boolean = postContent.value.textContent.isURL()
 }
 

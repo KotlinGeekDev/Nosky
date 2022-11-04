@@ -1,6 +1,10 @@
 package kt.nostr.nosky_compose.home.ui
 
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -9,25 +13,32 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kt.nostr.nosky_compose.BottomNavigationBar
+import kt.nostr.nosky_compose.home.backend.FeedViewModel
 import kt.nostr.nosky_compose.home.backend.Post
+import kt.nostr.nosky_compose.home.backend.opsList
 import kt.nostr.nosky_compose.navigation.NavigationItem
 import kt.nostr.nosky_compose.notifications.ui.PostsList
-import kt.nostr.nosky_compose.notifications.ui.opsList
 import kt.nostr.nosky_compose.reusable_ui_components.PostView
 import kt.nostr.nosky_compose.reusable_ui_components.ProfileView
 import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
 
+//TODO: Replace double AnimatedVisibility below with single AnimatedContent.
 
 @Composable
 fun Home(modifier: Modifier = Modifier,
          navigator: NavController = rememberNavController()) {
+
+    val feedViewModel: FeedViewModel = viewModel()
+    val feed by feedViewModel.feedContent.collectAsState()
 
 
     val scaffoldState = rememberScaffoldState()
@@ -43,25 +54,45 @@ fun Home(modifier: Modifier = Modifier,
         scaffoldState = scaffoldState,
         bottomBar = { BottomNavigationBar(navController = navigator, isNewNotification = false) },
         content = { contentPadding ->
-            if (wantsToPost) TestPopupScreen (
+            if (wantsToPost) TestPopupScreen(
                 onExit = {
                     wantsToPost = false
                 }
             )
 
             if (isProfileClicked)
-            ProfileView(profileSelected = isProfileClicked, navController = navigator,
-                goBack =  { isProfileClicked = isProfileClicked.not() })
-        else {
-            Column() {
-                FeedProfileImage(
-                    showProfile = { navigator.navigate(NavigationItem.Profile.route) }
-                )
-                Content(modifier = Modifier.padding(contentPadding),
-                    showProfile = { isProfileClicked = isProfileClicked.not() },
-                    showPost = { navigator.navigate("selected_post") })
+                ProfileView(profileSelected = isProfileClicked, navController = navigator,
+                    goBack = { isProfileClicked = isProfileClicked.not() })
+            else {
+                Column() {
+                    FeedProfileImage(
+                        showProfile = { navigator.navigate(NavigationItem.Profile.route) }
+                    )
+                    AnimatedVisibility(
+                        visible = feed.isEmpty(),
+                        enter = fadeIn(),
+                        exit = fadeOut()
+                    ) {
+                        Box(modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(Modifier.align(Alignment.Center))
+                        }
+                    }
+                    AnimatedVisibility(
+                        visible = feed.isNotEmpty(),
+                        enter = fadeIn() + slideInVertically(),
+                        exit = fadeOut()
+                    ) {
+                        Content(modifier = Modifier.padding(contentPadding),
+                            feed = feed,
+                            showProfile = { isProfileClicked = isProfileClicked.not() },
+                            showPost = { navigator.navigate("selected_post") })
+                    }
+
+                }
             }
-        } },
+        },
         floatingActionButton = {
             if (!isProfileClicked)
                 Fab(onTap = {
@@ -86,13 +117,14 @@ fun Home(modifier: Modifier = Modifier,
 
 @Composable
 fun Content(modifier: Modifier = Modifier,
+            feed: List<Post> = opsList,
             showProfile: () -> Unit,
             showPost: () -> Unit) {
 
 
     val list by remember() {
         derivedStateOf {
-            PostsList(opsList)
+            PostsList(feed)
         }
     }
     val listState = rememberLazyListState()
@@ -103,7 +135,7 @@ fun Content(modifier: Modifier = Modifier,
             items(count = list.items.size){ post ->
                 PostView(
                     viewingPost = Post(
-                        textContext = "One of the user's very very long messages. from" +
+                        textContent = "One of the user's very very long messages. from" +
                                 " 8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f"
                     ),
                     isUserVerified = post.mod(2) != 0,

@@ -27,6 +27,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -42,7 +43,7 @@ import ktnostr.currentUnixTimeStampFromInstant
  *  - Replace a lot of state-representing variables(e.g boosts and likes) and
  *    hoist them.
  *  - Contemplate navigation for if a quoted post is present.
- *  - Look to improve performance(when performance issues are noticed).
+ *
  */
 
 
@@ -51,7 +52,8 @@ fun PostView(modifier: Modifier = Modifier,
              viewingPost: Post = Post(
                  username = "Satoshi Nakamoto",
                  userKey = "8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f",
-                 textContext = "One of the user's very very long messages."
+                 textContent = "One of the user's very very long messages. containing a link to nostr.com",
+                 quotedPost = Post()
              ),
              isUserVerified: Boolean = true,
              containsImage: Boolean = false,
@@ -109,7 +111,7 @@ fun PostView(modifier: Modifier = Modifier,
                 userPubkey = viewingPost.userKey, isUserVerified, showProfile = showProfile
             )
             Spacer(modifier = Modifier.size(1.dp))
-            TweetAndImage(post = viewingPost.textContext, containsImage = containsImage)
+            TweetAndImage(post = viewingPost.textContent, containsImage = containsImage)
             if (viewingPost.quotedPost != null)
                 QuotedPost(modifier = Modifier
                     //.fillMaxWidth()
@@ -119,9 +121,9 @@ fun PostView(modifier: Modifier = Modifier,
                     )
                     .padding(all = 2.dp)
                     .fillMaxWidth(),
-//                    userName = viewingPost.quotedPost.username,
-//                    userPubkey = viewingPost.quotedPost.userKey,
-//                    post = viewingPost.quotedPost.textContext,
+                    userName = viewingPost.quotedPost.username,
+                    userPubkey = viewingPost.quotedPost.userKey,
+                    post = viewingPost.quotedPost.textContent,
                     containsImage = true,
                     onPostClick = { onPostClick() })
 
@@ -229,9 +231,11 @@ private fun NameAndUserName(
 private fun TweetAndImage(modifier: Modifier = Modifier,
                           post: String = "",
                           containsImage: Boolean = false) {
-    ThemedText(
+    LinkifyText(
         text = post,
-        style = TextStyle(fontSize = 14.sp)
+        style = TextStyle(fontSize = 14.sp),
+        color = MaterialTheme.colors.onSurface,
+        overflow = TextOverflow.Ellipsis
     )
     Spacer(modifier = Modifier.height(10.dp))
     if (containsImage) {
