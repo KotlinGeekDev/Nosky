@@ -1,6 +1,6 @@
 package kt.nostr.nosky_compose.home.ui
 
-import android.content.res.Configuration.UI_MODE_NIGHT_NO
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -27,6 +27,7 @@ import kt.nostr.nosky_compose.home.backend.Post
 import kt.nostr.nosky_compose.home.backend.opsList
 import kt.nostr.nosky_compose.navigation.NavigationItem
 import kt.nostr.nosky_compose.notifications.ui.PostsList
+import kt.nostr.nosky_compose.reusable_ui_components.DotsFlashing
 import kt.nostr.nosky_compose.reusable_ui_components.PostView
 import kt.nostr.nosky_compose.reusable_ui_components.ProfileView
 import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
@@ -40,8 +41,19 @@ fun Home(modifier: Modifier = Modifier,
     val feedViewModel: FeedViewModel = viewModel()
     val feed by feedViewModel.feedContent.collectAsState()
 
-
     val scaffoldState = rememberScaffoldState()
+
+    HomeView(homeFeed = feed, scaffoldState = scaffoldState, navigator = navigator)
+
+}
+
+@Composable
+fun HomeView(
+    modifier: Modifier = Modifier,
+    homeFeed: List<Post> = emptyList(),
+    scaffoldState: ScaffoldState = rememberScaffoldState(),
+    navigator: NavController = rememberNavController()) {
+
     var isProfileClicked by remember {
         mutableStateOf(false)
     }
@@ -54,8 +66,8 @@ fun Home(modifier: Modifier = Modifier,
         scaffoldState = scaffoldState,
         bottomBar = { BottomNavigationBar(navController = navigator, isNewNotification = false) },
         content = { contentPadding ->
-            if (wantsToPost) TestPopupScreen(
-                onExit = {
+            if (wantsToPost) NewPostView(
+                onClose = {
                     wantsToPost = false
                 }
             )
@@ -69,23 +81,32 @@ fun Home(modifier: Modifier = Modifier,
                         showProfile = { navigator.navigate(NavigationItem.Profile.route) }
                     )
                     AnimatedVisibility(
-                        visible = feed.isEmpty(),
+                        visible = homeFeed.isEmpty(),
                         enter = fadeIn(),
                         exit = fadeOut()
                     ) {
                         Box(modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
-                            CircularProgressIndicator(Modifier.align(Alignment.Center))
+                            //CircularProgressIndicator(Modifier.align(Alignment.Center))
+                            Row(
+                                modifier = Modifier.align(Alignment.Center),
+                                verticalAlignment = Alignment.Bottom
+                            ) {
+                                Text(text = "Loading feed")
+                                DotsFlashing(
+                                    modifier = Modifier.padding(bottom = 4.dp)
+                                )
+                            }
                         }
                     }
                     AnimatedVisibility(
-                        visible = feed.isNotEmpty(),
+                        visible = homeFeed.isNotEmpty(),
                         enter = fadeIn() + slideInVertically(),
                         exit = fadeOut()
                     ) {
                         Content(modifier = Modifier.padding(contentPadding),
-                            feed = feed,
+                            feed = homeFeed,
                             showProfile = { isProfileClicked = isProfileClicked.not() },
                             showPost = { navigator.navigate("selected_post") })
                     }
@@ -112,12 +133,13 @@ fun Home(modifier: Modifier = Modifier,
         },
         floatingActionButtonPosition = FabPosition.End
     )
+
 }
 
 
 @Composable
 fun Content(modifier: Modifier = Modifier,
-            feed: List<Post> = opsList,
+            feed: List<Post> = emptyList(),
             showProfile: () -> Unit,
             showPost: () -> Unit) {
 
@@ -132,15 +154,16 @@ fun Content(modifier: Modifier = Modifier,
     LazyColumn(state = listState,
             modifier = Modifier.then(modifier)){
 
-            items(count = list.items.size){ post ->
+            items(count = list.items.size){ postIndex ->
                 PostView(
-                    viewingPost = Post(
-                        textContent = "One of the user's very very long messages. from" +
-                                " 8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f"
-                    ),
-                    isUserVerified = post.mod(2) != 0,
-                    containsImage = post.mod(2) == 0,
-                    isRelayRecommendation = post == 0,
+                    viewingPost = list.items[postIndex],
+//                        .copy(
+//                        textContent = "One of the user's very very long messages. from" +
+//                                " 8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f"
+//                    ),
+                    isUserVerified = postIndex.mod(2) != 0,
+                    containsImage = postIndex.mod(2) == 0,
+                    isRelayRecommendation = postIndex == 0,
                  showProfile = showProfile, onPostClick = showPost)
                 //CustomDivider()
                 Spacer(modifier = Modifier.height(3.dp))
@@ -173,11 +196,12 @@ fun CustomDivider(modifier: Modifier = Modifier) {
 }
 
 
-@Preview(uiMode = UI_MODE_NIGHT_NO, showSystemUi = true)
+@Preview(showSystemUi = true)
+@Preview(showSystemUi = true, uiMode = UI_MODE_NIGHT_YES)
 @Composable
 fun HomePreview() {
-    NoskycomposeTheme(darkTheme = true) {
-        Home(navigator = rememberNavController())
+    NoskycomposeTheme() {
+        HomeView(homeFeed = opsList)
     }
 }
 
