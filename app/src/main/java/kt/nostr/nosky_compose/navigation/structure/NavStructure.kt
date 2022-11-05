@@ -13,7 +13,7 @@ import kotlinx.parcelize.Parcelize
 import kt.nostr.nosky_compose.direct_messages.ui.Discussions
 import kt.nostr.nosky_compose.home.ui.Home
 import kt.nostr.nosky_compose.notifications.ui.NotificationsScreen
-import kt.nostr.nosky_compose.reusable_components.ProfileView
+import kt.nostr.nosky_compose.reusable_ui_components.ProfileView
 import kt.nostr.nosky_compose.settings.backend.AppThemeState
 import kt.nostr.nosky_compose.settings.ui.SettingsScreen
 
@@ -36,14 +36,17 @@ class NoskyRootNode(
     @Composable
     override fun View(modifier: Modifier){
         Children(navModel = backStack)
+
     }
 
     override fun resolve(navTarget: Destination, buildContext: BuildContext): Node {
 
+
         return when(navTarget){
             Destination.Home -> node(buildContext){ Home() }
-            Destination.Profile -> node(buildContext){
+            is Destination.Profile -> node(buildContext){
                 ProfileView(
+                    isProfileMine = navTarget.isProfileMine,
                     goBack = { navigateUp() }
                 )
             }
@@ -52,6 +55,7 @@ class NoskyRootNode(
             Destination.Settings -> node(buildContext){
                 SettingsScreen(appThemeState = themeState, onStateChange = onThemeChange)
             }
+
         }
 
     }
@@ -64,7 +68,7 @@ sealed class Destination : Parcelable {
     object Home : Destination()
 
     @Parcelize
-    object Profile : Destination()
+    class Profile(val isProfileMine: Boolean = true) : Destination()
 
     @Parcelize
     object Notifications : Destination()
@@ -74,4 +78,16 @@ sealed class Destination : Parcelable {
 
     @Parcelize
     object Settings : Destination()
+
+
+}
+
+fun destinations(): Array<Destination> {
+    return arrayOf(
+        Destination.Home,
+        Destination.Profile(),
+        Destination.Notifications,
+        Destination.Messages,
+        Destination.Settings
+    )
 }
