@@ -60,7 +60,7 @@ fun PostView(modifier: Modifier = Modifier,
              isPostLiked: Boolean = false,
              isPostBoosted: Boolean = false,
              isRelayRecommendation: Boolean = false,
-             onPostClick: () -> Unit = {},
+             onPostClick: (Post) -> Unit = {},
              onReplyTap: () -> Unit = {},
              showProfile: (() -> Unit)? = null) {
     var likes by remember {
@@ -84,7 +84,7 @@ fun PostView(modifier: Modifier = Modifier,
 
     Row(modifier = Modifier
         .padding(all = 10.dp)
-        .clickable { onPostClick() }
+        .clickable { onPostClick(viewingPost) }
         .then(modifier)) {
         Column() {
             UserAvatar(
@@ -125,7 +125,7 @@ fun PostView(modifier: Modifier = Modifier,
                     userPubkey = viewingPost.quotedPost.userKey,
                     post = viewingPost.quotedPost.textContent,
                     containsImage = true,
-                    onPostClick = { onPostClick() })
+                    onPostClick = { onPostClick(viewingPost.quotedPost) })
 
             if (isRelayRecommendation) {
                //CustomRelayRecommendation()

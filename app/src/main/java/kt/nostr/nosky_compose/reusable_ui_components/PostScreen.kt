@@ -19,29 +19,33 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
-import androidx.navigation.compose.rememberNavController
+import com.bumble.appyx.navmodel.backstack.BackStack
 import kt.nostr.nosky_compose.BottomNavigationBar
 import kt.nostr.nosky_compose.home.backend.Post
 import kt.nostr.nosky_compose.home.ui.CustomDivider
 import kt.nostr.nosky_compose.home.ui.PostReply
+import kt.nostr.nosky_compose.navigation.structure.Destination
 import kt.nostr.nosky_compose.profile.ProfilePosts
 import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
 
 
-//TODO : Fix BottomNavigation controller issue.(Line 107)
+//TODO : Investigate BackStack, and look for a way to not depend on it.
 
 //TODO: Find a way to separate the state of the main post from the replies state.
 
 @Composable
-fun PostScreen(goBack: () -> Unit) {
+fun PostScreen(
+    currentPost: Post = Post(),
+    goBack: () -> Unit, navigator: BackStack<Destination>) {
     BackHandler {
         goBack()
     }
     val userPost = remember {
-        Post(
-            textContent = "One of the user's very very long messages. " +
-                    "from 8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f"
-        )
+//        Post(
+//            textContent = "One of the user's very very long messages. " +
+//                    "from 8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f"
+//        )
+        currentPost
     }
 
     var isReplyClicked by remember {
@@ -121,7 +125,7 @@ fun PostScreen(goBack: () -> Unit) {
             start.linkTo(parent.start)
             end.linkTo(parent.end)
             bottom.linkTo(parent.bottom)
-        }, navController = rememberNavController())
+        }, backStackNavigator = navigator)
     }
 
 
@@ -137,7 +141,9 @@ fun Replies(modifier: Modifier = Modifier) {
 fun ParticularPostPreview() {
     NoskycomposeTheme(darkTheme = true) {
         Surface {
-            PostScreen({})
+            PostScreen(goBack = {},
+                navigator = BackStack(Destination.ViewingPost(), null)
+            )
         }
     }
 }

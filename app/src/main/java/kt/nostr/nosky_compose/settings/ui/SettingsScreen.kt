@@ -24,11 +24,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.alorma.settings.composables.SettingsMenuLink
 import com.alorma.settings.composables.SettingsSwitch
+import com.bumble.appyx.navmodel.backstack.BackStack
 import kt.nostr.nosky_compose.BottomNavigationBar
+import kt.nostr.nosky_compose.navigation.structure.Destination
 import kt.nostr.nosky_compose.reusable_ui_components.TopBar
 import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
 import kt.nostr.nosky_compose.settings.backend.AppThemeState
@@ -37,7 +37,10 @@ import kt.nostr.nosky_compose.settings.backend.AppThemeState
 @Composable
 fun SettingsScreen(
     appThemeState: AppThemeState,
-    navController: NavController = rememberNavController(),
+    navController: BackStack<Destination> = BackStack(
+        initialElement = Destination.Home,
+        savedStateMap = null
+    ),
     onStateChange: (Boolean) -> Unit){
 
     var isOnMainPage by remember {
@@ -71,7 +74,7 @@ fun SettingsScreen(
         Box(modifier = Modifier.fillMaxSize()) {
             Scaffold(
                 topBar = { TopBar(tabTitle = "Settings") },
-                bottomBar = { BottomNavigationBar(navController = navController) }
+                bottomBar = { BottomNavigationBar(backStackNavigator = navController) }
             ) { contentPadding ->
                 Column(Modifier.padding(contentPadding)) {
                     ProfileSettingsView(
@@ -199,6 +202,11 @@ fun ProfileSettingsPreview(){
     }
 
     NoskycomposeTheme(appThemeState.isDark()) {
-        SettingsScreen(appThemeState, rememberNavController()) { appThemeState.switchTheme() }
+        SettingsScreen(appThemeState, navController = BackStack(
+            initialElement = Destination.Home,
+            savedStateMap = null)
+        ) {
+            appThemeState.switchTheme()
+        }
     }
 }

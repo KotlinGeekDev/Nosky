@@ -19,13 +19,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
+import com.bumble.appyx.navmodel.backstack.BackStack
+import com.bumble.appyx.navmodel.backstack.operation.push
+import com.bumble.appyx.navmodel.backstack.operation.singleTop
 import kt.nostr.nosky_compose.BottomNavigationBar
 import kt.nostr.nosky_compose.home.backend.FeedViewModel
 import kt.nostr.nosky_compose.home.backend.Post
 import kt.nostr.nosky_compose.home.backend.opsList
-import kt.nostr.nosky_compose.navigation.NavigationItem
+import kt.nostr.nosky_compose.navigation.structure.Destination
 import kt.nostr.nosky_compose.notifications.ui.PostsList
 import kt.nostr.nosky_compose.reusable_ui_components.DotsFlashing
 import kt.nostr.nosky_compose.reusable_ui_components.PostView
@@ -36,14 +37,23 @@ import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
 
 @Composable
 fun Home(modifier: Modifier = Modifier,
-         navigator: NavController = rememberNavController()) {
+         //showPost: (Post) -> Unit,
+         navigator: BackStack<Destination> = BackStack(
+             initialElement = Destination.Home,
+             savedStateMap = null
+         )
+) {
 
     val feedViewModel: FeedViewModel = viewModel()
     val feed by feedViewModel.feedContent.collectAsState()
 
     val scaffoldState = rememberScaffoldState()
 
-    HomeView(homeFeed = feed, scaffoldState = scaffoldState, navigator = navigator)
+    HomeView(
+        homeFeed = feed,
+        scaffoldState = scaffoldState,
+        onPostClicked = { post -> navigator.singleTop(Destination.ViewingPost(post)) },
+        navigator = navigator)
 
 }
 
@@ -52,7 +62,12 @@ fun HomeView(
     modifier: Modifier = Modifier,
     homeFeed: List<Post> = emptyList(),
     scaffoldState: ScaffoldState = rememberScaffoldState(),
-    navigator: NavController = rememberNavController()) {
+    onPostClicked: (post: Post) -> Unit = {},
+    navigator: BackStack<Destination> = BackStack(
+        initialElement = Destination.Home,
+        savedStateMap = null
+    )
+) {
 
     var isProfileClicked by remember {
         mutableStateOf(false)
@@ -64,7 +79,9 @@ fun HomeView(
 
     Scaffold(
         scaffoldState = scaffoldState,
-        bottomBar = { BottomNavigationBar(navController = navigator, isNewNotification = false) },
+        bottomBar = {
+            BottomNavigationBar(backStackNavigator = navigator, isNewNotification = false)
+        },
         content = { contentPadding ->
             if (wantsToPost) NewPostView(
                 onClose = {
@@ -78,7 +95,7 @@ fun HomeView(
             else {
                 Column() {
                     FeedProfileImage(
-                        showProfile = { navigator.navigate(NavigationItem.Profile.route) }
+                        showProfile = { navigator.push(Destination.Profile()) }
                     )
                     AnimatedVisibility(
                         visible = homeFeed.isEmpty(),
@@ -108,7 +125,10 @@ fun HomeView(
                         Content(modifier = Modifier.padding(contentPadding),
                             feed = homeFeed,
                             showProfile = { isProfileClicked = isProfileClicked.not() },
-                            showPost = { navigator.navigate("selected_post") })
+                            showPost = {
+                                onPostClicked(it)
+                                //navigator.navigate("selected_post")
+                            })
                     }
 
                 }
@@ -118,17 +138,7 @@ fun HomeView(
             if (!isProfileClicked)
                 Fab(onTap = {
                     wantsToPost = true
-//                    navigator.navigate("new_post"){
-//
-//                        navigator.currentDestination?.route?.let { route ->
-//
-//                            popUpTo(route){
-//                                saveState = true
-//                            }
-//                        }
-//
-//                        restoreState = true
-//                    }
+
                 })
         },
         floatingActionButtonPosition = FabPosition.End
@@ -141,7 +151,7 @@ fun HomeView(
 fun Content(modifier: Modifier = Modifier,
             feed: List<Post> = emptyList(),
             showProfile: () -> Unit,
-            showPost: () -> Unit) {
+            showPost: (Post) -> Unit) {
 
 
     val list by remember() {
