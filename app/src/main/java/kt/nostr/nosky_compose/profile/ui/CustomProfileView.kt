@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,7 +37,7 @@ import androidx.constraintlayout.compose.ConstraintSet
 import androidx.constraintlayout.compose.Dimension
 import androidx.constraintlayout.compose.layoutId
 import com.bumble.appyx.navmodel.backstack.BackStack
-import com.bumble.appyx.navmodel.backstack.operation.singleTop
+import com.bumble.appyx.navmodel.backstack.operation.push
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Envelope
@@ -133,7 +134,10 @@ fun ProfileView(modifier: Modifier = Modifier,
 
                 ProfilePosts(
                     listState = scrollState,
-                    onPostClick = { navController.singleTop(Destination.ViewingPost()) })
+                    onPostClick = {
+                        navController.push(Destination.ViewingPost(clickedPost = it))
+                    }
+                )
             }
         }
 
@@ -441,6 +445,11 @@ private fun FollowButton(modifier: Modifier = Modifier, isProfileMine: Boolean) 
     val buttonLabel by remember {
         derivedStateOf { if (isProfileMine) "Edit Profile" else "Following" }
     }
+    val icon by remember {
+        derivedStateOf {
+            if (isProfileMine) Icons.Default.MoreVert else FontAwesomeIcons.Solid.Envelope
+        }
+    }
 
     Row(
         modifier = Modifier.layoutId("follow"),
@@ -448,11 +457,12 @@ private fun FollowButton(modifier: Modifier = Modifier, isProfileMine: Boolean) 
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
-            imageVector = FontAwesomeIcons.Solid.Envelope,
+            imageVector = icon,
             contentDescription = "Send a direct message.",
             modifier = Modifier
                 .size(35.dp)
-                .border(width = 1.dp,
+                .border(
+                    width = 1.dp,
                     color = MaterialTheme.colors.primary,
                     shape = RoundedCornerShape(80.dp)
                 )

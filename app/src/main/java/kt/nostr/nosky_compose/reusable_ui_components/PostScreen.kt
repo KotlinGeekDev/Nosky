@@ -133,7 +133,7 @@ fun PostScreen(
 
 @Composable
 fun Replies(modifier: Modifier = Modifier) {
-    ProfilePosts(modifier = modifier, onPostClick = {})
+    ProfilePosts(modifier = modifier, onPostClick = {  })
 }
 
 @Preview

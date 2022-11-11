@@ -12,15 +12,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kt.nostr.nosky_compose.home.backend.Post
-import kt.nostr.nosky_compose.notifications.ui.PostsList
 import kt.nostr.nosky_compose.home.backend.opsList
+import kt.nostr.nosky_compose.notifications.ui.PostsList
 import kt.nostr.nosky_compose.reusable_ui_components.PostView
 
 @Composable
 fun ProfilePosts(modifier: Modifier = Modifier,
                  listOfPosts: List<Post> = opsList,
                  listState: LazyListState = rememberLazyListState(),
-                 onPostClick: () -> Unit) {
+                 onPostClick: (Post) -> Unit) {
 
     val list by remember() {
         derivedStateOf {

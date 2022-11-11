@@ -12,6 +12,10 @@ import com.bumble.appyx.core.node.Node
 import com.bumble.appyx.core.node.ParentNode
 import com.bumble.appyx.core.node.node
 import com.bumble.appyx.navmodel.backstack.BackStack
+import com.bumble.appyx.navmodel.backstack.active
+import com.bumble.appyx.navmodel.backstack.operation.pop
+import com.bumble.appyx.navmodel.backstack.operation.remove
+import com.bumble.appyx.navmodel.backstack.transitionhandler.rememberBackstackFader
 import kotlinx.parcelize.Parcelize
 import kt.nostr.nosky_compose.direct_messages.ui.DiscussionScreen
 import kt.nostr.nosky_compose.home.backend.Post
@@ -38,7 +42,7 @@ class NoskyRootNode(
 
     @Composable
     override fun View(modifier: Modifier){
-        Children(navModel = backStack)
+        Children(navModel = backStack, transitionHandler = rememberBackstackFader())
 
     }
 
@@ -56,16 +60,22 @@ class NoskyRootNode(
                 PostScreen(
                     currentPost = navTarget.clickedPost,
                     goBack = {
-                        navigateUp()
+                        //backStack.pop()
+                          backStack.remove(backStack.active!!.key)
+
+
                     },
                     navigator = backStack)
             }
             is Destination.Profile -> ProfileViewNode(buildContext,
-                isProfileSelected = navTarget.isProfileSelected, navigator = backStack)
-            Destination.Notifications -> node(buildContext){ NotificationsScreen() }
-            Destination.Messages -> DiscussionListViewNode(buildContext, navigator = backStack)
+                //isProfileSelected = navTarget.isProfileSelected,
+                navigator = backStack)
+            Destination.Notifications -> node(buildContext){
+                NotificationsScreen(navigator = backStack)
+            }
+            is Destination.Messages -> DiscussionListViewNode(buildContext, navigator = backStack)
             Destination.Discussion -> node(buildContext){
-                DiscussionScreen(navigator = backStack, goBack = { navigateUp() })
+                DiscussionScreen(navigator = backStack, goBack = { backStack.pop() })
             }
             Destination.Settings -> node(buildContext){
                 SettingsScreen(appThemeState = themeState,
@@ -94,7 +104,7 @@ sealed class Destination(val icon: ImageVector? = null, val title: String) : Par
     object Notifications : Destination(icon = Icons.Filled.Notifications, title = "Notifications")
 
     @Parcelize
-    object Messages : Destination(icon = Icons.Filled.Chat, title = "Messages")
+    class Messages : Destination(icon = Icons.Filled.Chat, title = "Messages")
 
     @Parcelize
     object Discussion : Destination(title = "")
@@ -105,12 +115,12 @@ sealed class Destination(val icon: ImageVector? = null, val title: String) : Par
 
 }
 
-fun bottomNavDestinations(): Array<Destination> {
-    return arrayOf(
+fun bottomNavTargets(): List<Destination> {
+    return listOf(
         Destination.Home,
         Destination.Profile(),
         Destination.Notifications,
-        Destination.Messages,
+        Destination.Messages(),
         Destination.Settings
     )
 }
