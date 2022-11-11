@@ -68,7 +68,7 @@ class NoskyRootNode(
                     navigator = backStack)
             }
             is Destination.Profile -> ProfileViewNode(buildContext,
-                //isProfileSelected = navTarget.isProfileSelected,
+                isProfileSelected = navTarget.isProfileSelected,
                 navigator = backStack)
             Destination.Notifications -> node(buildContext){
                 NotificationsScreen(navigator = backStack)

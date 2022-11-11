@@ -140,7 +140,14 @@ fun BottomNavigationBar(modifier: Modifier = Modifier,
                 //label = { Text(text = item.title, overflow = TextOverflow.Ellipsis, maxLines = 1) },
                 selectedContentColor = Color.White,
                 unselectedContentColor = Color.White.copy(0.4f),
-                selected = currentDestination?.title == item.title,
+                selected = when {
+                    currentDestination is Destination.Profile && item is Destination.Profile -> {
+                        !currentDestination.isProfileSelected
+                    }
+                    else -> {
+                        currentDestination?.title == item.title
+                    }
+                },
                 alwaysShowLabel = false,
                 onClick = {
                     backStackNavigator.singleTop(item)

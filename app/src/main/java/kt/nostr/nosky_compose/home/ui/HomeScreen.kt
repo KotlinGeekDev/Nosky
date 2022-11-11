@@ -30,7 +30,6 @@ import kt.nostr.nosky_compose.navigation.structure.Destination
 import kt.nostr.nosky_compose.notifications.ui.PostsList
 import kt.nostr.nosky_compose.reusable_ui_components.DotsFlashing
 import kt.nostr.nosky_compose.reusable_ui_components.PostView
-import kt.nostr.nosky_compose.reusable_ui_components.ProfileView
 import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
 
 //TODO: Replace double AnimatedVisibility below with single AnimatedContent.
@@ -69,9 +68,6 @@ fun HomeView(
     )
 ) {
 
-    var isProfileClicked by remember {
-        mutableStateOf(false)
-    }
 
     var wantsToPost by remember {
         mutableStateOf(false)
@@ -89,57 +85,53 @@ fun HomeView(
                 }
             )
 
-            if (isProfileClicked)
-                ProfileView(profileSelected = isProfileClicked, navController = navigator,
-                    goBack = { isProfileClicked = isProfileClicked.not() })
-            else {
-                Column() {
-                    FeedProfileImage(
-                        showProfile = { navigator.push(Destination.Profile()) }
-                    )
-                    AnimatedVisibility(
-                        visible = homeFeed.isEmpty(),
-                        enter = fadeIn(),
-                        exit = fadeOut()
+            Column() {
+                FeedProfileImage(
+                    showProfile = { navigator.push(Destination.Profile()) }
+                )
+                AnimatedVisibility(
+                    visible = homeFeed.isEmpty(),
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
+                    Box(modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Box(modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
+                        //CircularProgressIndicator(Modifier.align(Alignment.Center))
+                        Row(
+                            modifier = Modifier.align(Alignment.Center),
+                            verticalAlignment = Alignment.Bottom
                         ) {
-                            //CircularProgressIndicator(Modifier.align(Alignment.Center))
-                            Row(
-                                modifier = Modifier.align(Alignment.Center),
-                                verticalAlignment = Alignment.Bottom
-                            ) {
-                                Text(text = "Loading feed")
-                                DotsFlashing(
-                                    modifier = Modifier.padding(bottom = 4.dp)
-                                )
-                            }
+                            Text(text = "Loading feed")
+                            DotsFlashing(
+                                modifier = Modifier.padding(bottom = 4.dp)
+                            )
                         }
                     }
-                    AnimatedVisibility(
-                        visible = homeFeed.isNotEmpty(),
-                        enter = fadeIn() + slideInVertically(),
-                        exit = fadeOut()
-                    ) {
-                        Content(modifier = Modifier.padding(contentPadding),
-                            feed = homeFeed,
-                            showProfile = { isProfileClicked = isProfileClicked.not() },
-                            showPost = {
-                                onPostClicked(it)
-                                //navigator.navigate("selected_post")
-                            })
-                    }
-
                 }
+                AnimatedVisibility(
+                    visible = homeFeed.isNotEmpty(),
+                    enter = fadeIn() + slideInVertically(),
+                    exit = fadeOut()
+                ) {
+                    Content(modifier = Modifier.padding(contentPadding),
+                        feed = homeFeed,
+                        showProfile = {
+                            navigator.push(Destination.Profile(isProfileSelected = true))
+                        },
+                        showPost = {
+                            onPostClicked(it)
+                            //navigator.navigate("selected_post")
+                        })
+                }
+
             }
         },
         floatingActionButton = {
-            if (!isProfileClicked)
-                Fab(onTap = {
-                    wantsToPost = true
+            Fab(onTap = {
+                wantsToPost = true
 
-                })
+            })
         },
         floatingActionButtonPosition = FabPosition.End
     )
