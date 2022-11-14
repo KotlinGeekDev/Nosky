@@ -1,6 +1,7 @@
 package kt.nostr.nosky_compose.notifications.ui
 
 import android.content.res.Configuration
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -12,6 +13,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bumble.appyx.navmodel.backstack.BackStack
 import com.bumble.appyx.navmodel.backstack.operation.push
+import com.bumble.appyx.navmodel.backstack.operation.singleTop
 import kt.nostr.nosky_compose.BottomNavigationBar
 import kt.nostr.nosky_compose.home.backend.Post
 import kt.nostr.nosky_compose.home.backend.opsList
@@ -29,6 +31,14 @@ fun NotificationsScreen(
         savedStateMap = null
     )
 ){
+
+    BackHandler {
+        navigator.run {
+            elements.value.first().key.navTarget.let {
+                singleTop(it)
+            }
+        }
+    }
 
     val list by remember() {
 

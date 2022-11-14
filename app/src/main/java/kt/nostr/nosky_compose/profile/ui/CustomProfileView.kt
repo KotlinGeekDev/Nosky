@@ -38,6 +38,7 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.constraintlayout.compose.layoutId
 import com.bumble.appyx.navmodel.backstack.BackStack
 import com.bumble.appyx.navmodel.backstack.operation.push
+import com.bumble.appyx.navmodel.backstack.operation.singleTop
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Envelope
@@ -67,8 +68,17 @@ fun ProfileView(modifier: Modifier = Modifier,
             user
         }
     }
-    BackHandler(profileSelected) {
-        goBack()
+    BackHandler() {
+        if (profileSelected){
+            goBack()
+        } else {
+            navController.run {
+                elements.value.first().key.navTarget.let {
+                    singleTop(it)
+                }
+            }
+        }
+
     }
     var showFollowersProfiles by remember {
         mutableStateOf(false)

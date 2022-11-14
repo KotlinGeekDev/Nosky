@@ -3,6 +3,7 @@
 package kt.nostr.nosky_compose.direct_messages.ui
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bumble.appyx.navmodel.backstack.BackStack
 import com.bumble.appyx.navmodel.backstack.operation.push
+import com.bumble.appyx.navmodel.backstack.operation.singleTop
 import kt.nostr.nosky_compose.BottomNavigationBar
 import kt.nostr.nosky_compose.direct_messages.Models.Person
 import kt.nostr.nosky_compose.navigation.structure.Destination
@@ -32,6 +34,13 @@ import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
 @Composable
 fun Discussions(navController: BackStack<Destination>) {
 
+    BackHandler {
+        navController.run {
+            elements.value.first().key.navTarget.let {
+                singleTop(it)
+            }
+        }
+    }
 
     Scaffold(
         bottomBar = {
@@ -88,12 +97,15 @@ private fun DiscussionCard(modifier: Modifier = Modifier,
                     Icon(
                         imageVector = Icons.Default.AccountCircle,
                         contentDescription = "User Image Profile",
-                        modifier = Modifier.clip(CircleShape).size(56.dp)
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .size(56.dp)
                     )
 
-                Column(Modifier
-                    .padding(start = 5.dp)
-                    .weight(7f)) {
+                Column(
+                    Modifier
+                        .padding(start = 5.dp)
+                        .weight(7f)) {
                     Text(text = "User name $userName", style = MaterialTheme.typography.subtitle2,
                         fontSize = 18.sp, overflow = TextOverflow.Ellipsis, maxLines = 1)
 

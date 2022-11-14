@@ -1,5 +1,6 @@
 package kt.nostr.nosky_compose.settings.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -27,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import com.alorma.settings.composables.SettingsMenuLink
 import com.alorma.settings.composables.SettingsSwitch
 import com.bumble.appyx.navmodel.backstack.BackStack
+import com.bumble.appyx.navmodel.backstack.operation.singleTop
 import kt.nostr.nosky_compose.BottomNavigationBar
 import kt.nostr.nosky_compose.navigation.structure.Destination
 import kt.nostr.nosky_compose.reusable_ui_components.TopBar
@@ -41,7 +43,16 @@ fun SettingsScreen(
         initialElement = Destination.Home,
         savedStateMap = null
     ),
-    onStateChange: (Boolean) -> Unit){
+    onStateChange: (Boolean) -> Unit
+){
+
+    BackHandler {
+        navController.run {
+            elements.value.first().key.navTarget.let {
+                singleTop(it)
+            }
+        }
+    }
 
     var isOnMainPage by remember {
         mutableStateOf(false)
@@ -134,7 +145,7 @@ fun ProfileSettingsView(modifier: Modifier = Modifier, goToProfileSettingDetails
                     modifier = Modifier.clickable { goToProfileSettingDetails() }
                 )
             }
-        ){ }
+        ){ goToProfileSettingDetails() }
 
 }
 
@@ -157,7 +168,7 @@ fun RelaySettingsView(goToRelayDetails: () -> Unit) {
                 contentDescription = "Go to list of relays."
             )
         }
-    ) { }
+    ) { goToRelayDetails() }
 }
 
 @Composable
@@ -188,7 +199,9 @@ fun Description(goToAppDetails: () -> Unit){
             Icon(imageVector = Icons.Default.ArrowRight, contentDescription = "Show app details.")
             }
         }
-    ){}
+    ){
+        goToAppDetails()
+    }
 
 
 }
@@ -203,10 +216,10 @@ fun ProfileSettingsPreview(){
 
     NoskycomposeTheme(appThemeState.isDark()) {
         SettingsScreen(appThemeState, navController = BackStack(
-            initialElement = Destination.Home,
+            initialElement = Destination.Settings,
             savedStateMap = null)
         ) {
-            appThemeState.switchTheme()
+            appThemeState.switchTheme(it)
         }
     }
 }
