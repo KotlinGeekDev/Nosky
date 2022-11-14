@@ -24,7 +24,6 @@ import kt.nostr.nosky_compose.reusable_ui_components.PostScreen
 import kt.nostr.nosky_compose.settings.backend.AppThemeState
 import kt.nostr.nosky_compose.settings.ui.SettingsScreen
 
-//TODO: Complete this infrastructure and replace the current navigation infrastructure with it.
 
 class NoskyRootNode(
     rootBuildContext: BuildContext,

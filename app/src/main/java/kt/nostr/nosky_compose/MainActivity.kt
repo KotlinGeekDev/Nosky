@@ -42,6 +42,7 @@ class MainActivity : NodeComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         if (!preferenceManager.contains("profile_present")
             || !preferenceManager.getBoolean("profile_present", false)){
             startActivity(Intent(this, IntroActivity::class.java))
@@ -64,7 +65,7 @@ class MainActivity : NodeComponentActivity() {
             Screen(appIntegrationPoint = integrationPoint,
                 appThemeState,
                 onThemeChange = { value ->
-                appThemeState.switchTheme()
+                appThemeState.switchTheme(value)
                 this.preferenceManager.edit(commit = true) {
                     putBoolean("dark_theme", appThemeState.isDark())
                 }
@@ -90,8 +91,7 @@ fun Screen(appIntegrationPoint: IntegrationPoint,
                 NoskyRootNode(rootBuildContext = it,
                     themeState = theme, onThemeChange = onThemeChange)
             }
-            //AppNavigation(navController = rootNavController, appThemeState = theme, onThemeChange = onThemeChange)
-            //BottomNavigationBar(navController = navController)
+
 
         }
     }
@@ -107,19 +107,14 @@ fun BottomNavigationBar(modifier: Modifier = Modifier,
 
 
     val navItems = remember {
-//        listOf(
-//            NavigationItem.Home,
-//            NavigationItem.Profile,
-//            NavigationItem.Notifications,
-//            NavigationItem.Messages,
-//            NavigationItem.Settings
-//        )
+
         bottomNavTargets()
     }
 
     BottomNavigation(modifier = modifier) {
-        //val backStackEntry = backStackNavigator.active
+
         val currentDestination = backStackNavigator.activeElement
+
 
         navItems.forEach { item ->
             BottomNavigationItem(
@@ -151,21 +146,7 @@ fun BottomNavigationBar(modifier: Modifier = Modifier,
                 alwaysShowLabel = false,
                 onClick = {
                     backStackNavigator.singleTop(item)
-//                    navController.navigate(item.route){
-//
-//                        navController.graph.startDestinationRoute?.let { route ->
-//                            popUpTo(route){
-//                                saveState = false
-//
-//                            }
-//
-//                            restoreState = true
-//                        }
-//
-//                        launchSingleTop = true
-//                        restoreState = true
-//
-//                    }
+
                 }
             )
 

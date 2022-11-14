@@ -76,7 +76,7 @@ class IntroActivity : ComponentActivity() {
                             )
                             finish()
                         }, onThemeChange = {
-                            appThemeState.switchTheme()
+                            appThemeState.switchTheme(it)
                         })
             }
         }
@@ -90,7 +90,7 @@ class IntroActivity : ComponentActivity() {
 fun IntroScreen(appThemeState: AppThemeState,
                 profileViewModel: ProfileViewModel,
                 onLoginClick:() -> Unit,
-                onThemeChange:() -> Unit) {
+                onThemeChange:(Boolean) -> Unit) {
 
     var userIsNew by rememberSaveable {
         mutableStateOf(false)
@@ -146,7 +146,7 @@ fun IntroScreen(appThemeState: AppThemeState,
                     .align(Alignment.TopEnd)
                     .size(35.dp)
                     .padding(end = 5.dp, top = 10.dp)
-                    .clickable { onThemeChange() }, tint = Color.White)
+                    .clickable { onThemeChange(!appThemeState.isDark()) }, tint = Color.White)
         }
 
 
@@ -169,6 +169,8 @@ fun IntroScreenPreview() {
         IntroScreen (appThemeState = darkTheme,
             profileViewModel = testProfile,
             onLoginClick = { },
-            onThemeChange = { darkTheme.switchTheme() })
+            onThemeChange = {
+                darkTheme.switchTheme(it)
+            })
     }
 }
