@@ -38,7 +38,7 @@ android {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            debuggable false
+            //debuggable false
             signingConfig signingConfigs.release
         }
         debug {
@@ -78,7 +78,7 @@ dependencies {
     implementation "androidx.compose.material:material:$compose_version"
     implementation "androidx.compose.material:material-icons-extended:$compose_version"
     implementation("br.com.devsrsouza.compose.icons.android:font-awesome:1.0.0")
-    implementation 'androidx.palette:palette:1.0.0'
+    //implementation 'androidx.palette:palette:1.0.0'
     implementation "com.google.accompanist:accompanist-placeholder-material:0.25.1"
     implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
     implementation "androidx.constraintlayout:constraintlayout:2.1.4"
@@ -94,13 +94,6 @@ dependencies {
 //    //----Alternative Navigation ----
     implementation "com.bumble.appyx:core:1.0-alpha09"
 
-
-//    //Navigator
-//    implementation "cafe.adriel.voyager:voyager-navigator:$voyager_version"
-//    //BottomSheetNavigator
-//    implementation "cafe.adriel.voyager:voyager-bottom-sheet-navigator:$voyager_version"
-//    //Transitions
-//    implementation "cafe.adriel.voyager:voyager-transitions:$voyager_version"
 
     //Encrypted Shared Prefs
     //implementation "androidx.security:security-crypto:1.0.0"

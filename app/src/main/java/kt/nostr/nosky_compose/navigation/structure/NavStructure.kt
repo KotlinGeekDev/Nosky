@@ -19,6 +19,9 @@ import com.bumble.appyx.navmodel.backstack.transitionhandler.rememberBackstackFa
 import kotlinx.parcelize.Parcelize
 import kt.nostr.nosky_compose.direct_messages.ui.DiscussionScreen
 import kt.nostr.nosky_compose.home.backend.Post
+import kt.nostr.nosky_compose.navigation.DiscussionListViewNode
+import kt.nostr.nosky_compose.navigation.FeedViewNode
+import kt.nostr.nosky_compose.navigation.ProfileViewNode
 import kt.nostr.nosky_compose.notifications.ui.NotificationsScreen
 import kt.nostr.nosky_compose.reusable_ui_components.PostScreen
 import kt.nostr.nosky_compose.settings.backend.AppThemeState
@@ -78,7 +81,7 @@ class NoskyRootNode(
             }
             Destination.Settings -> node(buildContext){
                 SettingsScreen(appThemeState = themeState,
-                    navController = backStack,
+                    navigator = backStack,
                     onStateChange = onThemeChange)
             }
         }

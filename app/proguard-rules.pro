@@ -19,6 +19,9 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+-keep class fr.acinq.** { *; }
+
 # For making Compose happy
--dontwarn java.beans.ConstructorProperties
--dontwarn java.beans.Transient
+#-dontwarn java.beans.ConstructorProperties
+#-dontwarn java.beans.Transient

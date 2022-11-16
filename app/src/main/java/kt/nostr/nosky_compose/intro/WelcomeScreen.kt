@@ -124,6 +124,7 @@ fun WelcomeScreen(appThemeState: AppThemeState,
             verticalAlignment = Alignment.Bottom,
             horizontalArrangement = Arrangement.SpaceAround) {
             TextButton(onClick = onLoginClick,
+                enabled = privKey().isNotBlank() && pubKey().isNotBlank(),
                 colors = ButtonDefaults.outlinedButtonColors(
                     backgroundColor = backgroundColor())) {
                 Text(text = "Login", color = Color.White)

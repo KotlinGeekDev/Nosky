@@ -30,6 +30,7 @@ import com.alorma.settings.composables.SettingsSwitch
 import com.bumble.appyx.navmodel.backstack.BackStack
 import com.bumble.appyx.navmodel.backstack.operation.singleTop
 import kt.nostr.nosky_compose.BottomNavigationBar
+import kt.nostr.nosky_compose.BuildConfig
 import kt.nostr.nosky_compose.navigation.structure.Destination
 import kt.nostr.nosky_compose.reusable_ui_components.TopBar
 import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
@@ -39,7 +40,7 @@ import kt.nostr.nosky_compose.settings.backend.AppThemeState
 @Composable
 fun SettingsScreen(
     appThemeState: AppThemeState,
-    navController: BackStack<Destination> = BackStack(
+    navigator: BackStack<Destination> = BackStack(
         initialElement = Destination.Home,
         savedStateMap = null
     ),
@@ -47,7 +48,7 @@ fun SettingsScreen(
 ){
 
     BackHandler {
-        navController.run {
+        navigator.run {
             elements.value.first().key.navTarget.let {
                 singleTop(it)
             }
@@ -85,7 +86,7 @@ fun SettingsScreen(
         Box(modifier = Modifier.fillMaxSize()) {
             Scaffold(
                 topBar = { TopBar(tabTitle = "Settings") },
-                bottomBar = { BottomNavigationBar(backStackNavigator = navController) }
+                bottomBar = { BottomNavigationBar(backStackNavigator = navigator) }
             ) { contentPadding ->
                 Column(Modifier.padding(contentPadding)) {
                     ProfileSettingsView(
@@ -106,7 +107,7 @@ fun SettingsScreen(
             }
 
             TextField(
-                value = "App version : ${kt.nostr.nosky_compose.BuildConfig.VERSION_NAME}-alpha",
+                value = "App version : ${BuildConfig.VERSION_NAME}-${BuildConfig.BUILD_TYPE}",
                 onValueChange = {},
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -215,7 +216,7 @@ fun ProfileSettingsPreview(){
     }
 
     NoskycomposeTheme(appThemeState.isDark()) {
-        SettingsScreen(appThemeState, navController = BackStack(
+        SettingsScreen(appThemeState, navigator = BackStack(
             initialElement = Destination.Settings,
             savedStateMap = null)
         ) {
