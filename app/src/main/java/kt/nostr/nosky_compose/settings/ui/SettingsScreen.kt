@@ -1,5 +1,6 @@
 package kt.nostr.nosky_compose.settings.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -24,11 +25,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.alorma.settings.composables.SettingsMenuLink
 import com.alorma.settings.composables.SettingsSwitch
+import com.bumble.appyx.navmodel.backstack.BackStack
+import com.bumble.appyx.navmodel.backstack.operation.singleTop
 import kt.nostr.nosky_compose.BottomNavigationBar
+import kt.nostr.nosky_compose.BuildConfig
+import kt.nostr.nosky_compose.navigation.structure.Destination
 import kt.nostr.nosky_compose.reusable_ui_components.TopBar
 import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
 import kt.nostr.nosky_compose.settings.backend.AppThemeState
@@ -37,8 +40,20 @@ import kt.nostr.nosky_compose.settings.backend.AppThemeState
 @Composable
 fun SettingsScreen(
     appThemeState: AppThemeState,
-    navController: NavController = rememberNavController(),
-    onStateChange: (Boolean) -> Unit){
+    navigator: BackStack<Destination> = BackStack(
+        initialElement = Destination.Home,
+        savedStateMap = null
+    ),
+    onStateChange: (Boolean) -> Unit
+){
+
+    BackHandler {
+        navigator.run {
+            elements.value.first().key.navTarget.let {
+                singleTop(it)
+            }
+        }
+    }
 
     var isOnMainPage by remember {
         mutableStateOf(false)
@@ -71,7 +86,7 @@ fun SettingsScreen(
         Box(modifier = Modifier.fillMaxSize()) {
             Scaffold(
                 topBar = { TopBar(tabTitle = "Settings") },
-                bottomBar = { BottomNavigationBar(navController = navController) }
+                bottomBar = { BottomNavigationBar(backStackNavigator = navigator) }
             ) { contentPadding ->
                 Column(Modifier.padding(contentPadding)) {
                     ProfileSettingsView(
@@ -92,7 +107,7 @@ fun SettingsScreen(
             }
 
             TextField(
-                value = "App version : ${kt.nostr.nosky_compose.BuildConfig.VERSION_NAME}-alpha",
+                value = "App version : ${BuildConfig.VERSION_NAME}-${BuildConfig.BUILD_TYPE}",
                 onValueChange = {},
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -131,7 +146,7 @@ fun ProfileSettingsView(modifier: Modifier = Modifier, goToProfileSettingDetails
                     modifier = Modifier.clickable { goToProfileSettingDetails() }
                 )
             }
-        ){ }
+        ){ goToProfileSettingDetails() }
 
 }
 
@@ -154,7 +169,7 @@ fun RelaySettingsView(goToRelayDetails: () -> Unit) {
                 contentDescription = "Go to list of relays."
             )
         }
-    ) { }
+    ) { goToRelayDetails() }
 }
 
 @Composable
@@ -185,7 +200,9 @@ fun Description(goToAppDetails: () -> Unit){
             Icon(imageVector = Icons.Default.ArrowRight, contentDescription = "Show app details.")
             }
         }
-    ){}
+    ){
+        goToAppDetails()
+    }
 
 
 }
@@ -199,6 +216,11 @@ fun ProfileSettingsPreview(){
     }
 
     NoskycomposeTheme(appThemeState.isDark()) {
-        SettingsScreen(appThemeState, rememberNavController()) { appThemeState.switchTheme() }
+        SettingsScreen(appThemeState, navigator = BackStack(
+            initialElement = Destination.Settings,
+            savedStateMap = null)
+        ) {
+            appThemeState.switchTheme(it)
+        }
     }
 }

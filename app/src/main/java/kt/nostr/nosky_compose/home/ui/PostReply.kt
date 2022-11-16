@@ -52,6 +52,7 @@ fun PostReply(
 //              }
 //        },
         title = {
+
              QuotedPost(
                  modifier = Modifier
                      .fillMaxWidth()

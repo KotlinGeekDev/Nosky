@@ -16,14 +16,14 @@ import androidx.compose.ui.unit.sp
 import kt.nostr.nosky_compose.direct_messages.Models.MessageItem
 import kt.nostr.nosky_compose.reusable_ui_components.GrayText
 import kt.nostr.nosky_compose.reusable_ui_components.LinkifyText
-import ktnostr.currentUnixTimeStampFromInstant
+import ktnostr.currentSystemUnixTimeStamp
 import ktnostr.formattedDateTime
 
 
 @Composable
 fun MessageBubble(message: MessageItem) {
     val timeStamp = remember {
-        formattedDateTime(currentUnixTimeStampFromInstant() - (60 * 60 *24*2))
+        formattedDateTime(currentSystemUnixTimeStamp() - (60 * 60 *24*2))
     }
     Column(modifier = Modifier
         .fillMaxWidth()

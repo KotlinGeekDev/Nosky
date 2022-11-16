@@ -19,31 +19,40 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
+import com.bumble.appyx.navmodel.backstack.BackStack
+import com.bumble.appyx.navmodel.backstack.operation.push
+import com.bumble.appyx.navmodel.backstack.operation.singleTop
 import kt.nostr.nosky_compose.BottomNavigationBar
 import kt.nostr.nosky_compose.home.backend.FeedViewModel
 import kt.nostr.nosky_compose.home.backend.Post
 import kt.nostr.nosky_compose.home.backend.opsList
-import kt.nostr.nosky_compose.navigation.NavigationItem
+import kt.nostr.nosky_compose.navigation.structure.Destination
 import kt.nostr.nosky_compose.notifications.ui.PostsList
 import kt.nostr.nosky_compose.reusable_ui_components.DotsFlashing
 import kt.nostr.nosky_compose.reusable_ui_components.PostView
-import kt.nostr.nosky_compose.reusable_ui_components.ProfileView
 import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
 
 //TODO: Replace double AnimatedVisibility below with single AnimatedContent.
 
 @Composable
 fun Home(modifier: Modifier = Modifier,
-         navigator: NavController = rememberNavController()) {
+         //showPost: (Post) -> Unit,
+         navigator: BackStack<Destination> = BackStack(
+             initialElement = Destination.Home,
+             savedStateMap = null
+         )
+) {
 
     val feedViewModel: FeedViewModel = viewModel()
     val feed by feedViewModel.feedContent.collectAsState()
 
     val scaffoldState = rememberScaffoldState()
 
-    HomeView(homeFeed = feed, scaffoldState = scaffoldState, navigator = navigator)
+    HomeView(
+        homeFeed = feed,
+        scaffoldState = scaffoldState,
+        onPostClicked = { post -> navigator.singleTop(Destination.ViewingPost(post)) },
+        navigator = navigator)
 
 }
 
@@ -52,11 +61,13 @@ fun HomeView(
     modifier: Modifier = Modifier,
     homeFeed: List<Post> = emptyList(),
     scaffoldState: ScaffoldState = rememberScaffoldState(),
-    navigator: NavController = rememberNavController()) {
+    onPostClicked: (post: Post) -> Unit = {},
+    navigator: BackStack<Destination> = BackStack(
+        initialElement = Destination.Home,
+        savedStateMap = null
+    )
+) {
 
-    var isProfileClicked by remember {
-        mutableStateOf(false)
-    }
 
     var wantsToPost by remember {
         mutableStateOf(false)
@@ -64,7 +75,9 @@ fun HomeView(
 
     Scaffold(
         scaffoldState = scaffoldState,
-        bottomBar = { BottomNavigationBar(navController = navigator, isNewNotification = false) },
+        bottomBar = {
+            BottomNavigationBar(backStackNavigator = navigator, isNewNotification = false)
+        },
         content = { contentPadding ->
             if (wantsToPost) NewPostView(
                 onClose = {
@@ -72,64 +85,53 @@ fun HomeView(
                 }
             )
 
-            if (isProfileClicked)
-                ProfileView(profileSelected = isProfileClicked, navController = navigator,
-                    goBack = { isProfileClicked = isProfileClicked.not() })
-            else {
-                Column() {
-                    FeedProfileImage(
-                        showProfile = { navigator.navigate(NavigationItem.Profile.route) }
-                    )
-                    AnimatedVisibility(
-                        visible = homeFeed.isEmpty(),
-                        enter = fadeIn(),
-                        exit = fadeOut()
+            Column() {
+                FeedProfileImage(
+                    showProfile = { navigator.push(Destination.Profile()) }
+                )
+                AnimatedVisibility(
+                    visible = homeFeed.isEmpty(),
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
+                    Box(modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Box(modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
+                        //CircularProgressIndicator(Modifier.align(Alignment.Center))
+                        Row(
+                            modifier = Modifier.align(Alignment.Center),
+                            verticalAlignment = Alignment.Bottom
                         ) {
-                            //CircularProgressIndicator(Modifier.align(Alignment.Center))
-                            Row(
-                                modifier = Modifier.align(Alignment.Center),
-                                verticalAlignment = Alignment.Bottom
-                            ) {
-                                Text(text = "Loading feed")
-                                DotsFlashing(
-                                    modifier = Modifier.padding(bottom = 4.dp)
-                                )
-                            }
+                            Text(text = "Loading feed")
+                            DotsFlashing(
+                                modifier = Modifier.padding(bottom = 4.dp)
+                            )
                         }
                     }
-                    AnimatedVisibility(
-                        visible = homeFeed.isNotEmpty(),
-                        enter = fadeIn() + slideInVertically(),
-                        exit = fadeOut()
-                    ) {
-                        Content(modifier = Modifier.padding(contentPadding),
-                            feed = homeFeed,
-                            showProfile = { isProfileClicked = isProfileClicked.not() },
-                            showPost = { navigator.navigate("selected_post") })
-                    }
-
                 }
+                AnimatedVisibility(
+                    visible = homeFeed.isNotEmpty(),
+                    enter = fadeIn() + slideInVertically(),
+                    exit = fadeOut()
+                ) {
+                    Content(modifier = Modifier.padding(contentPadding),
+                        feed = homeFeed,
+                        showProfile = {
+                            navigator.push(Destination.Profile(isProfileSelected = true))
+                        },
+                        showPost = {
+                            onPostClicked(it)
+                            //navigator.navigate("selected_post")
+                        })
+                }
+
             }
         },
         floatingActionButton = {
-            if (!isProfileClicked)
-                Fab(onTap = {
-                    wantsToPost = true
-//                    navigator.navigate("new_post"){
-//
-//                        navigator.currentDestination?.route?.let { route ->
-//
-//                            popUpTo(route){
-//                                saveState = true
-//                            }
-//                        }
-//
-//                        restoreState = true
-//                    }
-                })
+            Fab(onTap = {
+                wantsToPost = true
+
+            })
         },
         floatingActionButtonPosition = FabPosition.End
     )
@@ -141,7 +143,7 @@ fun HomeView(
 fun Content(modifier: Modifier = Modifier,
             feed: List<Post> = emptyList(),
             showProfile: () -> Unit,
-            showPost: () -> Unit) {
+            showPost: (Post) -> Unit) {
 
 
     val list by remember() {

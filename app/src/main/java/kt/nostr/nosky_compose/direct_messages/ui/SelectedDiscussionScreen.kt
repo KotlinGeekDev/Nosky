@@ -19,11 +19,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
+import com.bumble.appyx.navmodel.backstack.BackStack
 import kt.nostr.nosky_compose.BottomNavigationBar
 import kt.nostr.nosky_compose.direct_messages.Models.MessageItem
 import kt.nostr.nosky_compose.direct_messages.Models.messageList
+import kt.nostr.nosky_compose.navigation.structure.Destination
 import kt.nostr.nosky_compose.reusable_ui_components.AppTopBar
 import kt.nostr.nosky_compose.reusable_ui_components.ThemedText
 import kt.nostr.nosky_compose.reusable_ui_components.VerifiedUserIcon
@@ -31,7 +31,7 @@ import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
 
 
 @Composable
-fun DiscussionScreen(navigator: NavController) {
+fun DiscussionScreen(navigator: BackStack<Destination>, goBack: () -> Unit = {}) {
 
 
     Scaffold(topBar = {
@@ -55,7 +55,8 @@ fun DiscussionScreen(navigator: NavController) {
             }
 
         }) {
-            navigator.navigateUp()
+//            navigator.handleUpNavigation()
+            goBack()
         }
     }, floatingActionButton = {
         FloatingActionButton(
@@ -66,7 +67,7 @@ fun DiscussionScreen(navigator: NavController) {
         }
     },
         bottomBar = {
-            BottomNavigationBar(navController = navigator)
+            BottomNavigationBar(backStackNavigator = navigator)
         }
     ) { paddingConstraints ->
 
@@ -86,6 +87,9 @@ fun DiscussionScreen(navigator: NavController) {
 @Composable
 fun DiscussionScreenPreview(){
     NoskycomposeTheme() {
-        DiscussionScreen(rememberNavController())
+        DiscussionScreen(navigator = BackStack(
+            initialElement = Destination.Home,
+            savedStateMap = null
+        ))
     }
 }

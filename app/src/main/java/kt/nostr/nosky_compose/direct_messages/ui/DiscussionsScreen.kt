@@ -3,6 +3,7 @@
 package kt.nostr.nosky_compose.direct_messages.ui
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,20 +22,29 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
+import com.bumble.appyx.navmodel.backstack.BackStack
+import com.bumble.appyx.navmodel.backstack.operation.push
+import com.bumble.appyx.navmodel.backstack.operation.singleTop
 import kt.nostr.nosky_compose.BottomNavigationBar
 import kt.nostr.nosky_compose.direct_messages.Models.Person
+import kt.nostr.nosky_compose.navigation.structure.Destination
 import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
 
 
 @Composable
-fun Discussions(navController: NavController = rememberNavController()) {
+fun Discussions(navController: BackStack<Destination>) {
 
+    BackHandler {
+        navController.run {
+            elements.value.first().key.navTarget.let {
+                singleTop(it)
+            }
+        }
+    }
 
     Scaffold(
         bottomBar = {
-            BottomNavigationBar(navController = navController,
+            BottomNavigationBar(backStackNavigator = navController,
             //    isNewNotification = false
             )
         }
@@ -42,19 +52,22 @@ fun Discussions(navController: NavController = rememberNavController()) {
         LazyColumn(Modifier.padding(paddingValues = padding)){
 
             items(15){ index ->
-                DiscussionCard(userName = index.toString(), isLatestMessageMine = index.mod(2) == 0,
+                DiscussionCard(userName = index.toString(),
+                    isLatestMessageMine = index.mod(2) == 0,
                     onDiscussionClick = {
-                    navController.navigate("message"){
 
-                        navController.currentDestination?.route?.let { route ->
-
-                            popUpTo(route){
-                                saveState = true
-                            }
-                        }
-
-                        restoreState = true
-                    }
+                        navController.push(Destination.Discussion)
+//                    navController.navigate("message"){
+//
+//                        navController.currentDestination?.route?.let { route ->
+//
+//                            popUpTo(route){
+//                                saveState = true
+//                            }
+//                        }
+//
+//                        restoreState = true
+//                    }
                 })
                 Divider(thickness = Dp.Hairline)
             }
@@ -84,12 +97,15 @@ private fun DiscussionCard(modifier: Modifier = Modifier,
                     Icon(
                         imageVector = Icons.Default.AccountCircle,
                         contentDescription = "User Image Profile",
-                        modifier = Modifier.clip(CircleShape).size(56.dp)
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .size(56.dp)
                     )
 
-                Column(Modifier
-                    .padding(start = 5.dp)
-                    .weight(7f)) {
+                Column(
+                    Modifier
+                        .padding(start = 5.dp)
+                        .weight(7f)) {
                     Text(text = "User name $userName", style = MaterialTheme.typography.subtitle2,
                         fontSize = 18.sp, overflow = TextOverflow.Ellipsis, maxLines = 1)
 
@@ -132,6 +148,9 @@ private fun DiscussionCardPreview() {
 @Composable
 private fun DiscussionsPreview() {
     NoskycomposeTheme {
-        Discussions(rememberNavController())
+        Discussions(navController = BackStack(
+            initialElement = Destination.Home,
+            savedStateMap = null
+        ))
     }
 }

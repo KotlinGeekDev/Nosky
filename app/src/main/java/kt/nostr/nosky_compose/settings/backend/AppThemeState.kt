@@ -13,8 +13,8 @@ class AppThemeState(darkModeEnabled: Boolean) {
     val themeState = mutableThemeState
 
     fun isDark(): Boolean = mutableThemeState.value
-    fun switchTheme() {
-        mutableThemeState.value = !mutableThemeState.value
+    fun switchTheme(darkMode: Boolean) {
+        mutableThemeState.value = darkMode
     }
 
 

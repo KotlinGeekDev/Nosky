@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,13 +36,15 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
 import androidx.constraintlayout.compose.Dimension
 import androidx.constraintlayout.compose.layoutId
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
+import com.bumble.appyx.navmodel.backstack.BackStack
+import com.bumble.appyx.navmodel.backstack.operation.push
+import com.bumble.appyx.navmodel.backstack.operation.singleTop
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Envelope
 import kt.nostr.nosky_compose.BottomNavigationBar
 import kt.nostr.nosky_compose.R
+import kt.nostr.nosky_compose.navigation.structure.Destination
 import kt.nostr.nosky_compose.profile.ProfilePosts
 import kt.nostr.nosky_compose.profile.model.Profile
 import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
@@ -55,7 +58,7 @@ fun ProfileView(modifier: Modifier = Modifier,
                     bio = "A pseudonymous dev", following = 10, followers = 1_001),
                 profileSelected: Boolean = false,
                 isProfileMine: Boolean = !profileSelected,
-                navController: NavController = rememberNavController(),
+                navController: BackStack<Destination>,
                 goBack: () -> Unit) {
 
 
@@ -65,8 +68,17 @@ fun ProfileView(modifier: Modifier = Modifier,
             user
         }
     }
-    BackHandler(profileSelected) {
-        goBack()
+    BackHandler() {
+        if (profileSelected){
+            goBack()
+        } else {
+            navController.run {
+                elements.value.first().key.navTarget.let {
+                    singleTop(it)
+                }
+            }
+        }
+
     }
     var showFollowersProfiles by remember {
         mutableStateOf(false)
@@ -107,7 +119,7 @@ fun ProfileView(modifier: Modifier = Modifier,
 
         Scaffold(
             bottomBar = {
-                BottomNavigationBar(navController = navController)
+                BottomNavigationBar(backStackNavigator = navController)
             }
         ) { padding ->
             Column(
@@ -132,7 +144,10 @@ fun ProfileView(modifier: Modifier = Modifier,
 
                 ProfilePosts(
                     listState = scrollState,
-                    onPostClick = { navController.navigate("selected_post") })
+                    onPostClick = {
+                        navController.push(Destination.ViewingPost(clickedPost = it))
+                    }
+                )
             }
         }
 
@@ -334,7 +349,7 @@ fun ProfileDetails(
         constrain(content){
             height = Dimension.preferredValue(if (isProfileMine) 160.dp else profileDescHeight)
             width = Dimension.preferredWrapContent
-            top.linkTo(parent.top, margin = if (isProfileMine) 100.dp else profileNameTopMargin)
+            top.linkTo(parent.top, margin = if (isProfileMine) 124.dp else profileNameTopMargin)
             start.linkTo(parent.start, margin = if (isProfileMine) 0.dp else profileNameLeftMargin)
             if (offsetProvider() >= 0.6f && !isProfileMine) end.linkTo(followButton.start)
 
@@ -440,6 +455,11 @@ private fun FollowButton(modifier: Modifier = Modifier, isProfileMine: Boolean) 
     val buttonLabel by remember {
         derivedStateOf { if (isProfileMine) "Edit Profile" else "Following" }
     }
+    val icon by remember {
+        derivedStateOf {
+            if (isProfileMine) Icons.Default.MoreVert else FontAwesomeIcons.Solid.Envelope
+        }
+    }
 
     Row(
         modifier = Modifier.layoutId("follow"),
@@ -447,11 +467,12 @@ private fun FollowButton(modifier: Modifier = Modifier, isProfileMine: Boolean) 
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
-            imageVector = FontAwesomeIcons.Solid.Envelope,
+            imageVector = icon,
             contentDescription = "Send a direct message.",
             modifier = Modifier
                 .size(35.dp)
-                .border(width = 1.dp,
+                .border(
+                    width = 1.dp,
                     color = MaterialTheme.colors.primary,
                     shape = RoundedCornerShape(80.dp)
                 )
@@ -496,8 +517,11 @@ private fun Banner(modifier: Modifier = Modifier) {
 fun CustomProfileViewPreview() {
     NoskycomposeTheme {
         ProfileView(
-            profileSelected = true,
+            profileSelected = false,
             //profileSelected = true, isProfileMine = false,
-            navController = rememberNavController(), goBack = {})
+            navController = BackStack(
+                initialElement = Destination.Home,
+                savedStateMap = null
+            ), goBack = {})
     }
 }

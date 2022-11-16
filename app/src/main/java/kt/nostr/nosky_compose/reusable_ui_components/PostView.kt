@@ -35,7 +35,7 @@ import kt.nostr.nosky_compose.R
 import kt.nostr.nosky_compose.home.backend.Post
 import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
 import kt.nostr.nosky_compose.utility_functions.datetime.timeAgoFrom
-import ktnostr.currentUnixTimeStampFromInstant
+import ktnostr.currentSystemUnixTimeStamp
 
 /**
  * TODO:
@@ -60,7 +60,7 @@ fun PostView(modifier: Modifier = Modifier,
              isPostLiked: Boolean = false,
              isPostBoosted: Boolean = false,
              isRelayRecommendation: Boolean = false,
-             onPostClick: () -> Unit = {},
+             onPostClick: (Post) -> Unit = {},
              onReplyTap: () -> Unit = {},
              showProfile: (() -> Unit)? = null) {
     var likes by remember {
@@ -84,7 +84,7 @@ fun PostView(modifier: Modifier = Modifier,
 
     Row(modifier = Modifier
         .padding(all = 10.dp)
-        .clickable { onPostClick() }
+        .clickable { onPostClick(viewingPost) }
         .then(modifier)) {
         Column() {
             UserAvatar(
@@ -125,7 +125,7 @@ fun PostView(modifier: Modifier = Modifier,
                     userPubkey = viewingPost.quotedPost.userKey,
                     post = viewingPost.quotedPost.textContent,
                     containsImage = true,
-                    onPostClick = { onPostClick() })
+                    onPostClick = { onPostClick(viewingPost.quotedPost) })
 
             if (isRelayRecommendation) {
                //CustomRelayRecommendation()
@@ -190,7 +190,7 @@ private fun NameAndUserName(
     userPubkey: String = "",
     isUserVerified: Boolean = false,
     showProfile: (() -> Unit)? = null,
-    publicationTime: Long = currentUnixTimeStampFromInstant() - (60 * 60 *24*2)
+    publicationTime: Long = currentSystemUnixTimeStamp() - (60 * 60 *24*2)
 ) {
     val userProfile by remember {
         derivedStateOf { Pair(userName, userPubkey ) }
@@ -240,13 +240,13 @@ private fun TweetAndImage(modifier: Modifier = Modifier,
     Spacer(modifier = Modifier.height(10.dp))
     if (containsImage) {
         Image(
-            painter = painterResource(id = R.drawable.ic_launcher_foreground),
+            painter = painterResource(id = R.drawable.nosky_logo_modified),
             contentDescription = "",
             modifier = Modifier
                 .height(170.dp)
                 .fillMaxWidth()
                 .clip(shape = RoundedCornerShape(2.dp)),
-            contentScale = ContentScale.Crop
+            contentScale = ContentScale.Fit
         )
     }
 

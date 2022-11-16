@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.sp
 import kt.nostr.nosky_compose.R
 import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
 import kt.nostr.nosky_compose.utility_functions.datetime.timeAgoFrom
-import ktnostr.currentUnixTimeStampFromInstant
+import ktnostr.currentSystemUnixTimeStamp
 
 @Composable
 fun QuotedPost(modifier: Modifier = Modifier,
@@ -123,7 +123,7 @@ private fun NameAndUserName(
     userPubkey: String = "",
     isUserVerified: Boolean = false,
     showProfile: (() -> Unit)? = null,
-    publicationTime: Long = currentUnixTimeStampFromInstant() - (60 * 60 *24*2)) {
+    publicationTime: Long = currentSystemUnixTimeStamp() - (60 * 60 *24*2)) {
     val userProfile by remember {
         derivedStateOf { Pair(userName, userPubkey ) }
     }
