@@ -62,7 +62,7 @@ class MainActivity : NodeComponentActivity() {
                 AppThemeState(themePreference)
             }
 
-            Screen(appIntegrationPoint = integrationPoint,
+            Screen(appIntegrationPoint = appyxIntegrationPoint,
                 appThemeState,
                 onThemeChange = { value ->
                 appThemeState.switchTheme(value)

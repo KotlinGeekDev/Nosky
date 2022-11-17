@@ -72,18 +72,18 @@ android {
 dependencies {
 
     //For supporting new Java APIs on older devices
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.0'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.2.0'
 
-
+    implementation 'com.github.Giszmo.NostrPostr:nostrpostrlib:46e9208bdb'
     //implementation 'com.github.AnonymousGeekDev.kostr:kostr-core:0.1-pre-alpha-6'
     implementation 'com.github.AnonymousGeekDev.kostr:kostr-android:0.1-pre-alpha-6'
-    implementation 'androidx.core:core-ktx:1.8.0'
+    implementation 'androidx.core:core-ktx:1.9.0'
     implementation "androidx.compose.ui:ui:$compose_version"
     implementation "androidx.compose.material:material:$compose_version"
     implementation "androidx.compose.material:material-icons-extended:$compose_version"
     implementation("br.com.devsrsouza.compose.icons.android:font-awesome:1.0.0")
     //implementation 'androidx.palette:palette:1.0.0'
-    implementation "com.google.accompanist:accompanist-placeholder-material:0.25.1"
+    implementation 'com.google.accompanist:accompanist-placeholder-material:0.27.0'
     implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
     implementation "androidx.constraintlayout:constraintlayout:2.1.4"
     // To use constraintlayout in compose
@@ -97,7 +97,7 @@ dependencies {
     implementation 'androidx.activity:activity-compose:1.6.1'
 
 //    //----Alternative Navigation ----
-    implementation "com.bumble.appyx:core:1.0-alpha09"
+    implementation 'com.bumble.appyx:core:1.0.0'
 
 
     //Encrypted Shared Prefs
@@ -108,7 +108,7 @@ dependencies {
     implementation "com.squareup.okio:okio:3.0.0"
 
     //Permissions management
-    implementation "com.google.accompanist:accompanist-permissions:0.25.1"
+    implementation 'com.google.accompanist:accompanist-permissions:0.27.0'
 
     //Networking
     implementation "com.squareup.okhttp3:okhttp:4.10.0"
@@ -117,9 +117,12 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion"
     //---For the Settings screen
     implementation 'com.github.alorma:compose-settings:0.4.0'
-    implementation 'com.github.alorma:compose-settings-storage-preferences:0.7.2'
-    implementation 'com.github.alorma:compose-settings-ui:0.7.2'
-    implementation 'androidx.fragment:fragment-ktx:1.5.3'
+    implementation 'com.github.alorma:compose-settings-storage-preferences:0.13.0'
+    implementation 'com.github.alorma:compose-settings-ui:0.13.0'
+    implementation 'androidx.fragment:fragment-ktx:1.5.4'
+
+    //FAB speed dial
+    implementation 'com.leinardi.android:speed-dial.compose:2.0.0-alpha01'
 
     implementation 'androidx.appcompat:appcompat:1.5.1'
 
@@ -127,13 +130,16 @@ dependencies {
     implementation "androidx.compose.ui:ui-util:$compose_version"
 
     //Mainly for Nostr crypto
-    implementation 'fr.acinq.secp256k1:secp256k1-kmp-jvm:0.6.4'
-    implementation 'fr.acinq.secp256k1:secp256k1-kmp-jni-android:0.6.4'
+    implementation 'fr.acinq.secp256k1:secp256k1-kmp-jvm:0.7.0'
+    implementation 'fr.acinq.secp256k1:secp256k1-kmp-jni-android:0.7.0'
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.4'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.0'
     androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
     debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
+
+    implementation 'com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava'
+
 }
 
