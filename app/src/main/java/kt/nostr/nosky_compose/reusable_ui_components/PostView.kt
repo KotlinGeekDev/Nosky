@@ -52,7 +52,7 @@ fun PostView(modifier: Modifier = Modifier,
              viewingPost: Post = Post(
                  username = "Satoshi Nakamoto",
                  userKey = "8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f",
-                 textContent = "One of the user's very very long messages. containing a link to nostr.com",
+                 textContent = "One of the @user user's very very long messages with tag #new. containing a link to nostr.com",
                  quotedPost = Post()
              ),
              isUserVerified: Boolean = true,

@@ -24,7 +24,7 @@ SOFTWARE.
 */
 package kt.nostr.nosky_compose.reusable_ui_components
 
-import android.os.Build
+import android.annotation.SuppressLint
 import android.text.SpannableString
 import android.text.style.URLSpan
 import android.text.util.Linkify
@@ -46,6 +46,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
+import kt.nostr.nosky_compose.utility_functions.hashTagsPattern
+import kt.nostr.nosky_compose.utility_functions.mentionsPattern
+import kt.nostr.nosky_compose.utility_functions.textTransformFilter
+import kt.nostr.nosky_compose.utility_functions.urlPattern
 
 @Composable
 fun LinkifyText(
@@ -205,14 +209,26 @@ private data class LinkInfo(
 )
 
 private class SpannableStr(source: CharSequence): SpannableString(source) {
+
     companion object {
+
+        @SuppressLint("WrongConstant")
         fun getLinkInfos(text: String): List<LinkInfo> {
             val spannableStr = SpannableStr(text)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                Linkify.addLinks(spannableStr, Linkify.ALL) { str: String -> URLSpan(str)  }
-            } else {
-                Linkify.addLinks(spannableStr, Linkify.ALL)
-            }
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+//                Linkify.addLinks(spannableStr, mentionsPattern, null, null, textTransformFilter)
+//                Linkify.addLinks(spannableStr, hashTagsPattern, null, null, textTransformFilter)
+//                Linkify.addLinks(spannableStr, urlPattern, null, null, textTransformFilter)
+//                Linkify.addLinks(spannableStr, Linkify.ALL) { str: String -> URLSpan(str)  }
+//            } else {
+//                Linkify.addLinks(spannableStr, mentionsPattern, null, null, textTransformFilter)
+//                Linkify.addLinks(spannableStr, hashTagsPattern, null, null, textTransformFilter)
+//                Linkify.addLinks(spannableStr, urlPattern, null, null, textTransformFilter)
+//                //Linkify.addLinks(spannableStr, Linkify.ALL)
+//            }
+            Linkify.addLinks(spannableStr, mentionsPattern, null, null, textTransformFilter)
+            Linkify.addLinks(spannableStr, hashTagsPattern, null, null, textTransformFilter)
+            Linkify.addLinks(spannableStr, urlPattern, null, null, textTransformFilter)
             return spannableStr.linkInfos
         }
     }
