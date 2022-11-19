@@ -83,6 +83,13 @@ fun NewProfileScreen(themeState: AppThemeState,
         { if (themeState.isDark()) MaterialTheme.colors.primary else Color.White }
     }
 
+    val newProfileBorderColor: @Composable () -> Color = remember {
+        { if (userName().isNotBlank() && pubkey.isNotBlank()) Color.White
+                else
+                    Color.White.copy(alpha = 0.38f)
+        }
+    }
+
     ConstraintLayout(modifier = Modifier
         .background(backgroundColor())
         .fillMaxSize()
@@ -177,19 +184,21 @@ fun NewProfileScreen(themeState: AppThemeState,
                 )
                 Spacer(modifier = Modifier.height(5.dp))
                 Button(onClick = { generatePubkey() }) {
-                    Text(text = "Generate profile")
+                    Text(text = "Generate identity")
                 }
             }
         }
 
         //For the bottom buttons
         Column(
-            modifier = Modifier.constrainAs(bottomContent) {
-                top.linkTo(formContent.bottom, margin = 60.dp)
-                //bottom.linkTo(parent.bottom, margin = 80.dp)
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-            }.padding(start = 20.dp),
+            modifier = Modifier
+                .constrainAs(bottomContent) {
+                    top.linkTo(formContent.bottom, margin = 60.dp)
+                    //bottom.linkTo(parent.bottom, margin = 80.dp)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                }
+                .padding(start = 20.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -198,13 +207,15 @@ fun NewProfileScreen(themeState: AppThemeState,
                 modifier = Modifier
                     //.widthIn(max = TextFieldDefaults.MinWidth)
                     .fillMaxWidth(0.5f),
+                enabled = userName().isNotBlank() && pubkey.isNotBlank(),
                 shape = MaterialTheme.shapes.medium,
-                border = BorderStroke(2.dp, Color.White),
+                border = BorderStroke(2.dp, newProfileBorderColor()),
                 colors = ButtonDefaults.outlinedButtonColors(
-                    backgroundColor = backgroundColor()
+                    backgroundColor = backgroundColor(),
+                    contentColor = Color.White
                 )
             ) {
-                Text(text = "Create Profile", color = Color.White)
+                Text(text = "Create Profile")
             }
             Spacer(modifier = Modifier.fillMaxWidth(0.5f))
             TextButton(onClick = { onLoginClicked() },

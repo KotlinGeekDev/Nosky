@@ -89,6 +89,7 @@ fun HomeView(
                 FeedProfileImage(
                     showProfile = { navigator.push(Destination.Profile()) }
                 )
+
                 AnimatedVisibility(
                     visible = homeFeed.isEmpty(),
                     enter = fadeIn(),

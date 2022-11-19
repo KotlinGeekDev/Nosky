@@ -15,7 +15,7 @@
         android:theme="@style/Theme.Noskycompose">
         <activity
             android:name=".IntroActivity"
-            android:configChanges="orientation|screenSize|layoutDirection|uiMode"
+            android:configChanges="orientation|screenSize|layoutDirection|uiMode|keyboard|keyboardHidden"
             android:windowSoftInputMode="adjustResize">
         </activity>
         <activity

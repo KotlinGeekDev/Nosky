@@ -21,7 +21,3 @@
 #-renamesourcefileattribute SourceFile
 
 -keep class fr.acinq.** { *; }
-
-# For making Compose happy
-#-dontwarn java.beans.ConstructorProperties
-#-dontwarn java.beans.Transient

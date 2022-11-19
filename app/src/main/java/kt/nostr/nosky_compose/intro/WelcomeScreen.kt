@@ -1,5 +1,6 @@
 package kt.nostr.nosky_compose.intro
 
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -116,18 +117,22 @@ fun WelcomeScreen(appThemeState: AppThemeState,
 
         //Bottom content
         Row(modifier = Modifier.constrainAs(bottomContent){
-            top.linkTo(formContent.bottom)
-            bottom.linkTo(parent.bottom, margin = 50.dp)
+            top.linkTo(formContent.bottom, margin = 60.dp)
+            //bottom.linkTo(parent.bottom, margin = 50.dp)
             start.linkTo(parent.start)
             end.linkTo(parent.end)
         },
             verticalAlignment = Alignment.Bottom,
             horizontalArrangement = Arrangement.SpaceAround) {
-            TextButton(onClick = onLoginClick,
+            OutlinedButton(onClick = onLoginClick,
                 enabled = privKey().isNotBlank() && pubKey().isNotBlank(),
                 colors = ButtonDefaults.outlinedButtonColors(
-                    backgroundColor = backgroundColor())) {
-                Text(text = "Login", color = Color.White)
+                    backgroundColor = backgroundColor(),
+                    contentColor = Color.White,
+                    //disabledContentColor = Color.White.copy(alpha = 0.5f)
+                )
+            ) {
+                Text(text = "Login")
             }
             Spacer(modifier = Modifier.fillMaxWidth(0.3f))
             Column {
@@ -230,7 +235,7 @@ private val keyboardOptions = KeyboardOptions(
     imeAction = ImeAction.Next
 )
 
-@Preview
+@Preview(uiMode = UI_MODE_NIGHT_YES)
 @Composable
 private fun WelcomeScreenPreview() {
     val appThemeState = AppThemeState(false)

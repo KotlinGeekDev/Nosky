@@ -83,10 +83,7 @@ class IntroActivity : ComponentActivity() {
                             finish()
                         }, onThemeChange = {
                             appThemeState.switchTheme(it)
-                            systemTheme.apply {
-                                if (it) this.nightMode = UiModeManager.MODE_NIGHT_YES
-                                 else nightMode = UiModeManager.MODE_NIGHT_NO
-                            }
+//
                         })
                 }
             }

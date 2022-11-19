@@ -219,7 +219,7 @@ private class SpannableStr(source: CharSequence): SpannableString(source) {
             Linkify.addLinks(spannableStr, mentionsPattern, null, null, textTransformFilter)
             Linkify.addLinks(spannableStr, hashTagsPattern, null, null, textTransformFilter)
             Linkify.addLinks(spannableStr, urlPattern, null, null, textTransformFilter)
-            
+
             return spannableStr.linkInfos
         }
     }
