@@ -2,6 +2,7 @@ package kt.nostr.nosky_compose.settings.backend
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.Saver
 
@@ -10,7 +11,7 @@ class AppThemeState(darkModeEnabled: Boolean) {
     private var mutableThemeState: MutableState<Boolean> = mutableStateOf(darkModeEnabled)
 
 
-    val themeState = mutableThemeState
+    val themeState: State<Boolean> = mutableThemeState
 
     fun isDark(): Boolean = mutableThemeState.value
     fun switchTheme(darkMode: Boolean) {

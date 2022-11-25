@@ -1,17 +1,14 @@
 package kt.nostr.nosky_compose
 
-import android.app.UiModeManager
-import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.os.Bundle
-import android.preference.PreferenceManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -28,40 +25,36 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.content.edit
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kt.nostr.nosky_compose.intro.NewProfileScreen
 import kt.nostr.nosky_compose.intro.WelcomeScreen
+import kt.nostr.nosky_compose.profile.EmptyDataStore
 import kt.nostr.nosky_compose.profile.model.ProfileViewModel
 import kt.nostr.nosky_compose.reusable_ui_components.theme.BlackSurface
 import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
 import kt.nostr.nosky_compose.reusable_ui_components.theme.Purple500
 import kt.nostr.nosky_compose.settings.backend.AppThemeState
+import kt.nostr.nosky_compose.settings.backend.SettingsDataStore
 import kt.nostr.nosky_compose.settings.backend.ThemeStateSaver
 
 class IntroActivity : ComponentActivity() {
 
-    private val preferenceManager: SharedPreferences by lazy {
-        PreferenceManager.getDefaultSharedPreferences(this.applicationContext)
-    }
+    private lateinit var settingsDataStore: SettingsDataStore
 
     private lateinit var profileViewModel: ProfileViewModel
+
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val systemTheme = getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
-        val darkMode = systemTheme.nightMode == UiModeManager.MODE_NIGHT_YES
-
-
 
         setContent {
+            settingsDataStore = SettingsDataStore(this.applicationContext)
             profileViewModel = viewModel(factory = ProfileViewModel.create())
 
 
-            //val darkMode = isSystemInDarkTheme()
+            val darkMode = isSystemInDarkTheme()
             val appThemeState = rememberSaveable(saver = ThemeStateSaver) {
                 AppThemeState(darkMode)
             }
@@ -72,19 +65,19 @@ class IntroActivity : ComponentActivity() {
                     IntroScreen(appThemeState = appThemeState,
                         profileViewModel = profileViewModel,
                         onLoginClick = {
-                            preferenceManager.edit {
-                                putBoolean("profile_present", true)
-                                putBoolean("dark_theme", appThemeState.isDark())
-                            }
+                            profileViewModel.saveProfile()
+                            settingsDataStore.saveDarkThemePreference(appThemeState.isDark())
+
                             startActivity(
                                 Intent(this@IntroActivity, MainActivity::class.java)
-                                //.putExtra(PROFILE_DATA, Profile(pubKey, privKey))
                             )
                             finish()
-                        }, onThemeChange = {
+                        },
+                        //onProfileCreated = ,
+                        onThemeChange = {
                             appThemeState.switchTheme(it)
-//
-                        })
+                        }
+                    )
                 }
             }
         }
@@ -93,11 +86,12 @@ class IntroActivity : ComponentActivity() {
 
 }
 
-//@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
+
 @Composable
 fun IntroScreen(appThemeState: AppThemeState,
                 profileViewModel: ProfileViewModel,
-                onLoginClick:() -> Unit,
+                onLoginClick: () -> Unit,
+                onProfileCreated: () -> Unit = onLoginClick,
                 onThemeChange:(Boolean) -> Unit) {
 
     var userIsNew by rememberSaveable {
@@ -132,11 +126,11 @@ fun IntroScreen(appThemeState: AppThemeState,
                 onImageLinkUpdate = profileViewModel::updateProfileImageLink,
                 pubkey = newUserProfile.pubKey,
                 generatePubkey = { profileViewModel.generateProfile() },
-                onLoginClicked = {
+                goToLogin = {
                     profileViewModel.deleteResetProfile()
                     userIsNew = !userIsNew
                 },
-                onProfileCreated = {})
+                onProfileCreated = onProfileCreated)
         }
 
         AnimatedVisibility(visible = !userIsNew, enter = fadeIn() + slideInHorizontally(),
@@ -173,7 +167,7 @@ fun IntroScreenPreview() {
         AppThemeState(false)
     }
     val testProfile by remember {
-        mutableStateOf(ProfileViewModel(SavedStateHandle()))
+        mutableStateOf(ProfileViewModel(EmptyDataStore))
     }
 
     NoskycomposeTheme(darkTheme = darkTheme.isDark()) {

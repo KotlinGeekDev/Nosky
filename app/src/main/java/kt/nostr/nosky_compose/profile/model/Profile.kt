@@ -1,9 +1,11 @@
 package kt.nostr.nosky_compose.profile.model
 
 import android.os.Parcelable
-import android.util.Log
 import androidx.compose.runtime.Stable
-import androidx.lifecycle.*
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.acinq.secp256k1.Secp256k1
@@ -13,8 +15,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
+import kt.nostr.nosky_compose.NoskyApplication
+import kt.nostr.nosky_compose.profile.ProfileDataStore
+import kt.nostr.nosky_compose.profile.ProfileStore
 import ktnostr.crypto.toHexString
 import java.security.SecureRandom
+
 
 /**
  * TODO: Add getProfile function which will se savedStateHandle and test it.
@@ -30,11 +36,11 @@ data class Profile(
     val bio: String = "",
     val followers: Int = 0,
     val following: Int = 0): Parcelable {
-    override fun toString(): String = "Profile($pubKey)"
+    override fun toString(): String = "Profile(pubkey=$pubKey, username=$userName, bio=$bio)"
 }
 
 class ProfileViewModel(
-    private val savedStateHandle: SavedStateHandle
+    private val profileStore: ProfileStore
 ): ViewModel() {
 
     //private val cryptoContext = CryptoUtils.get()
@@ -44,6 +50,8 @@ class ProfileViewModel(
 //
 //    private val internalPrivKey = MutableStateFlow("")
 //    val privKey = internalPrivKey.asStateFlow()
+
+
 
 
     private val internalProfile = MutableStateFlow(Profile())
@@ -57,24 +65,20 @@ class ProfileViewModel(
     fun updatePrivKey(newKey: String){
 
         internalProfile.update { currentProfile -> currentProfile.copy(privKey = newKey) }
-        Log.d("NoskyApp", "updatePrivKey -> value: ${newUserProfile.value.privKey} ")
     }
 
     fun updatePubKey(newKey: String){
 
         internalProfile.update { currentProfile -> currentProfile.copy(pubKey = newKey) }
-        Log.d("NoskyApp", "updatePubKey -> value: ${newUserProfile.value.pubKey} ")
 
     }
 
     fun updateUserName(updatedName: String){
         internalProfile.update { currentProfile -> currentProfile.copy(userName = updatedName) }
-        Log.d("NoskyApp", "updateUserName -> value: ${newUserProfile.value.userName} ")
     }
 
     fun updateBio(updatedBio: String){
         internalProfile.update { currentProfile -> currentProfile.copy(bio = updatedBio) }
-        Log.d("NoskyApp", "updateBio -> value: ${newUserProfile.value.bio} ")
     }
 
     fun updateProfileImageLink(updatedImageUri: String){
@@ -82,7 +86,6 @@ class ProfileViewModel(
             currentProfile.copy(profileImage = updatedImageUri)
         }
 
-        Log.d("NoskyApp","updateProfileImageLink -> value: ${newUserProfile.value.profileImage}")
     }
 
     fun generateProfile() {
@@ -95,8 +98,6 @@ class ProfileViewModel(
             internalProfile.update { profile -> profile.copy(pubKey = pubKey.toHexString()) }
         }
 
-        println("userProfile secKey: ${newUserProfile.value.privKey}")
-        println("userProfile pubKey: ${newUserProfile.value.pubKey}")
 
     }
 
@@ -109,27 +110,39 @@ class ProfileViewModel(
     }
 
     fun deleteResetProfile(){
-        internalProfile.update { profile -> profile.copy(pubKey = "", privKey = "") }
+        internalProfile.update { profile ->
+            profile.copy(
+                pubKey = "",
+                privKey = "",
+                userName = "",
+                profileImage = "",
+                bio = ""
+            )
+        }
+    }
+
+    fun saveProfile(){
+        profileStore.saveProfile(newUserProfile.value)
     }
 
     fun getLoggedInProfile(): Profile {
-        val loggedInProfile = savedStateHandle.getStateFlow("profile_data", Profile())
-        return loggedInProfile.value
+        val loggedInProfile = profileStore.getProfile()
+        return loggedInProfile
     }
 
     override fun onCleared() {
         super.onCleared()
         println("ViewModel cleared.")
-        savedStateHandle["profile_data"] = newUserProfile.value
+
     }
 
 
     companion object {
         fun create(): ViewModelProvider.Factory = viewModelFactory {
             initializer {
-
-                val savedStateHandle = createSavedStateHandle()
-                ProfileViewModel(savedStateHandle)
+                val contextProvider = this[APPLICATION_KEY] as NoskyApplication
+                val profileStore = ProfileDataStore(contextProvider.applicationContext)
+                ProfileViewModel(profileStore)
             }
         }
     }
