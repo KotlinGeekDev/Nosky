@@ -20,4 +20,4 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
--keep class fr.acinq.** { *; }
+-keep class fr.acinq.secp256k1.jni.** { *; }

@@ -10,6 +10,17 @@ def keyStoreProps = new Properties()
 keyStoreProps.load(new FileInputStream(keyStorePropsFile))
 
 android {
+
+    splits {
+        abi {
+           enable true
+            reset()
+            include "x86", "x86_64", "armeabi-v7a", "arm64-v8a"
+
+            universalApk false
+        }
+    }
+
     signingConfigs {
         release {
         storeFile file(keyStoreProps['storeFile'])
@@ -27,6 +38,7 @@ android {
         versionCode 1
         versionName "1.0"
 
+
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary true
@@ -41,6 +53,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             //debuggable false
             signingConfig signingConfigs.release
+
         }
         debug {
             minifyEnabled false
@@ -64,6 +77,10 @@ android {
     }
     packagingOptions {
         excludes += 'com.google.guava.*'
+
+//        jniLibs {
+//            useLegacyPackaging false
+//        }
         resources {
             excludes += '/META-INF/{AL2.0,LGPL2.1}'
         }
@@ -80,13 +97,15 @@ dependencies {
     implementation 'com.github.AnonymousGeekDev.kostr:kostr-android:0.1-pre-alpha-6'
     implementation 'androidx.core:core-ktx:1.9.0'
     implementation "androidx.compose.ui:ui:$compose_version"
+    implementation "androidx.compose.ui:ui-tooling:$compose_version"
+    implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
     implementation "androidx.compose.material:material:$compose_version"
     implementation "androidx.compose.material:material-icons-extended:$compose_version"
     implementation("br.com.devsrsouza.compose.icons.android:font-awesome:1.0.0")
     //implementation 'androidx.palette:palette:1.0.0'
     implementation 'com.google.accompanist:accompanist-placeholder-material:0.27.0'
-    implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
-    implementation "androidx.constraintlayout:constraintlayout:2.1.4"
+
+
     // To use constraintlayout in compose
     implementation "androidx.constraintlayout:constraintlayout-compose:1.0.1"
 
@@ -131,14 +150,13 @@ dependencies {
     implementation "androidx.compose.ui:ui-util:$compose_version"
 
     //Mainly for Nostr crypto
-    implementation 'fr.acinq.secp256k1:secp256k1-kmp-jvm:0.7.0'
-    implementation 'fr.acinq.secp256k1:secp256k1-kmp-jni-android:0.7.0'
+    implementation 'fr.acinq.secp256k1:secp256k1-kmp-jvm:0.6.4'
+    implementation 'fr.acinq.secp256k1:secp256k1-kmp-jni-android:0.6.4'
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.4'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.0'
     androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
-    debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
 
     //For solving a duplicate class Gradle error(until the NostrPostr library updates its deps).
     implementation 'com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava'
