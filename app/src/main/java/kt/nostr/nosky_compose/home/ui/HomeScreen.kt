@@ -46,6 +46,11 @@ fun Home(modifier: Modifier = Modifier,
     val feedViewModel: FeedViewModel = viewModel()
     val feed by feedViewModel.feedContent.collectAsState()
 
+    DisposableEffect(key1 = feed){
+        feedViewModel.getUpdateFeed()
+        onDispose {  }
+    }
+
     val scaffoldState = rememberScaffoldState()
 
     HomeView(

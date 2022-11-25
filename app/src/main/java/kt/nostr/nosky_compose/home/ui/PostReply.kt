@@ -3,10 +3,7 @@ package kt.nostr.nosky_compose.home.ui
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -65,32 +62,33 @@ fun PostReply(
         },
         text = {
 
-            CustomDivider()
-            OutlinedTextField(
-                value = replyContent,
-                onValueChange = { replyContent = it },
-                modifier = Modifier
-                    //.fillMaxHeight(0.8f)
-                    //.padding(top = 20.dp)
-                    .background(Color.Transparent)
-                    .border(
-                        width = 1.dp,
-                        color = MaterialTheme.colors.surface,
-                        shape = RoundedCornerShape(8.dp)
-                    ),
-                placeholder = {
-                    Text(
-                        text = "What's on your mind?",
-                        color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
-                        maxLines = 1
-                    )
-                },
-                colors = TextFieldDefaults
-                    .outlinedTextFieldColors(
-                        unfocusedBorderColor = Color.Transparent,
-                        focusedBorderColor = Color.Transparent
-                    )
-            )
+            Column {
+                CustomDivider()
+                OutlinedTextField(
+                    value = replyContent,
+                    onValueChange = { replyContent = it },
+                    modifier = Modifier
+                        .fillMaxHeight(0.4f)
+                        .background(Color.Transparent)
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colors.surface,
+                            shape = RoundedCornerShape(8.dp)
+                        ).fillMaxWidth(),
+                    placeholder = {
+                        Text(
+                            text = "What's on your mind?",
+                            color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
+                            maxLines = 1
+                        )
+                    },
+                    colors = TextFieldDefaults
+                        .outlinedTextFieldColors(
+                            unfocusedBorderColor = Color.Transparent,
+                            focusedBorderColor = Color.Transparent
+                        )
+                )
+            }
         })
 
 

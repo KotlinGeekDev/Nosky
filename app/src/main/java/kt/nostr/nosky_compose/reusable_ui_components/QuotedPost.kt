@@ -168,10 +168,10 @@ private fun TweetAndImage(modifier: Modifier = Modifier,
     )
     Spacer(modifier = Modifier.height(10.dp))
     if (containsImage) {
-        Image(painter = painterResource(id = R.drawable.nosky_logo),
+        Image(painter = painterResource(id = R.drawable.ic_launcher_foreground),
             contentDescription = "",
             modifier = Modifier
-                .height(100.dp)
+                //.height(100.dp)
                 .fillMaxWidth()
                 .clip(shape = RoundedCornerShape(2.dp)),
             contentScale = ContentScale.Fit

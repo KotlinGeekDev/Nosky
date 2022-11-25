@@ -53,7 +53,7 @@ fun NewProfileScreen(themeState: AppThemeState,
                      onImageLinkUpdate: (String) -> Unit = {},
                      pubkey: String,
                      generatePubkey: () -> Unit,
-                     onLoginClicked:() -> Unit,
+                     goToLogin:() -> Unit,
                      onProfileCreated:() -> Unit) {
 
     val scrollState = rememberScrollState()
@@ -218,7 +218,7 @@ fun NewProfileScreen(themeState: AppThemeState,
                 Text(text = "Create Profile")
             }
             Spacer(modifier = Modifier.fillMaxWidth(0.5f))
-            TextButton(onClick = { onLoginClicked() },
+            TextButton(onClick = { goToLogin() },
                 border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))) {
                 Text(
                     text = "Want to login instead?",
@@ -361,7 +361,7 @@ private fun NewProfileScreenPreview() {
             onImageLinkUpdate = { profileImage.value = it },
             pubkey = "",
             generatePubkey = {},
-            onLoginClicked = {},
+            goToLogin = {},
             onProfileCreated = {})
     }
 }

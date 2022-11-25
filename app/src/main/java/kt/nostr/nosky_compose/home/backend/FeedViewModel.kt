@@ -12,9 +12,9 @@ class FeedViewModel(): ViewModel() {
     private val _feedContent = MutableStateFlow<List<Post>>(emptyList())
     val feedContent = _feedContent.asStateFlow()
 
-    init {
-        getUpdateFeed()
-    }
+//    init {
+//        getUpdateFeed()
+//    }
 
     //TODO : Replace with a call to NostrService.
     fun getUpdateFeed(){

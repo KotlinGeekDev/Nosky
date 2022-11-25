@@ -1,4 +1,4 @@
-package kt.nostr.nosky_compose.reusable_ui_components
+package kt.nostr.nosky_compose.profile.ui
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.activity.compose.BackHandler
@@ -47,6 +47,8 @@ import kt.nostr.nosky_compose.R
 import kt.nostr.nosky_compose.navigation.structure.Destination
 import kt.nostr.nosky_compose.profile.ProfilePosts
 import kt.nostr.nosky_compose.profile.model.Profile
+import kt.nostr.nosky_compose.reusable_ui_components.ProfileListView
+import kt.nostr.nosky_compose.reusable_ui_components.UserInfo
 import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
 import kotlin.math.min
 
