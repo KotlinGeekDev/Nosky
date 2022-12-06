@@ -8,12 +8,9 @@ For more about Nostr, see [here](https://github.com/nostr-protocol/nostr)
 ## Donations
 If you want to donate to the project:
 
-Bitcoin Address: bc1qek6z3t8sd7d22ev7shvjl9366py3kt2aj8rl5p85qpzxnzgs2s5qk5xh5d
+[Bitcoin Address](bitcoin:bc1q5zkvs6r58fhe5f0y4hpz8agthjgmvkqnpl2m0t): bc1q5zkvs6r58fhe5f0y4hpz8agthjgmvkqnpl2m0t
 
-Lightning Address - <a href="lightning:nullktdev@ln.tips">⚡nullktdev@ln.tips</a>
+Lightning Address - [⚡nullktdev@ln.tips](lightning:nullktdev@ln.tips)
 
-Lightning Invoice
-
-![First Lightning invoice](./lightning_invoice_2.jpeg)
 
 
