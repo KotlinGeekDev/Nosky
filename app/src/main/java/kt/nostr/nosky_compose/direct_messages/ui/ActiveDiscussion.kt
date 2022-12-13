@@ -32,8 +32,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import kt.nostr.nosky_compose.direct_messages.Models.messageList
-import kt.nostr.nosky_compose.reusable_ui_components.theme.BottomSheetShapes
-import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
+import kt.nostr.nosky_compose.common_components.theme.BottomSheetShapes
+import kt.nostr.nosky_compose.common_components.theme.NoskycomposeTheme
 
 
 /**

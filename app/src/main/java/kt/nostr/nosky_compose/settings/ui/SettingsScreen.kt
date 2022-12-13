@@ -32,8 +32,8 @@ import com.bumble.appyx.navmodel.backstack.operation.singleTop
 import kt.nostr.nosky_compose.BottomNavigationBar
 import kt.nostr.nosky_compose.BuildConfig
 import kt.nostr.nosky_compose.navigation.structure.Destination
-import kt.nostr.nosky_compose.reusable_ui_components.TopBar
-import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
+import kt.nostr.nosky_compose.common_components.ui.TopBar
+import kt.nostr.nosky_compose.common_components.theme.NoskycomposeTheme
 import kt.nostr.nosky_compose.settings.backend.AppThemeState
 
 

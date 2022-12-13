@@ -1,4 +1,4 @@
-package kt.nostr.nosky_compose.reusable_ui_components
+package kt.nostr.nosky_compose.common_components.ui
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable

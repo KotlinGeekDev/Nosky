@@ -1,4 +1,4 @@
-package kt.nostr.nosky_compose.reusable_ui_components
+package kt.nostr.nosky_compose.common_components.ui
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.activity.compose.BackHandler
@@ -26,9 +26,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kt.nostr.nosky_compose.R
+import kt.nostr.nosky_compose.common_components.theme.NoskycomposeTheme
 import kt.nostr.nosky_compose.home.ui.CustomDivider
 import kt.nostr.nosky_compose.profile.model.Profile
-import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
 
 //TODO: Move list to being a parameter, move list state out.
 

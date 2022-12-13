@@ -1,4 +1,4 @@
-package kt.nostr.nosky_compose.reusable_ui_components
+package kt.nostr.nosky_compose.common_components.ui
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
@@ -13,16 +13,13 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Comment
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Reply
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.colorspace.ColorSpaces
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -31,11 +28,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.palette.graphics.Palette
+import com.skydoves.landscapist.ShimmerParams
+import com.skydoves.landscapist.coil.CoilImage
+import com.skydoves.landscapist.palette.BitmapPalette
 import kt.nostr.nosky_compose.R
+import kt.nostr.nosky_compose.common_components.theme.NoskycomposeTheme
 import kt.nostr.nosky_compose.home.backend.Post
-import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
 import kt.nostr.nosky_compose.utility_functions.datetime.timeAgoFrom
-import ktnostr.currentSystemUnixTimeStamp
+import kt.nostr.nosky_compose.utility_functions.misc.currentSystemUnixTimeStamp
 
 /**
  * TODO:
@@ -76,11 +77,6 @@ fun PostView(modifier: Modifier = Modifier,
         mutableStateOf(isPostBoosted)
     }
 
-    val color = remember {
-        Color(0.4392157F, 0.5019608F, 0.72156864F, 1.0F, ColorSpaces.Srgb)
-    }
-
-    val targetColor by animateColorAsState(targetValue = color)
 
     Row(modifier = Modifier
         .padding(all = 10.dp)
@@ -88,8 +84,7 @@ fun PostView(modifier: Modifier = Modifier,
         .then(modifier)) {
         Column() {
             UserAvatar(
-                modifier = Modifier.border(3.dp, color = targetColor, CircleShape),
-                userImage = painterResource(id = R.drawable.nosky_logo),
+                userImage = R.drawable.nosky_logo,
                 showProfile = showProfile
             )
             Spacer(modifier = Modifier.height(5.dp))
@@ -161,15 +156,25 @@ fun PostView(modifier: Modifier = Modifier,
 
 @Composable
 private fun UserAvatar(modifier: Modifier = Modifier,
-                   userImage: Painter = rememberVectorPainter(image = Icons.Default.Person),
+                   userImage: Any = R.drawable.nosky_logo,
                    showProfile:(() -> Unit)? = null) {
 
-    Image(
-        painter = userImage,
-        contentDescription = "",
+    var bitmapPalette by remember {
+        mutableStateOf<Palette?>(null)
+    }
+
+
+    val targetColor by animateColorAsState(
+        targetValue =
+        Color(bitmapPalette?.lightMutedSwatch?.rgb ?: Color.Blue.toArgb())
+    )
+
+    CoilImage(
+        imageModel = userImage,
         modifier = Modifier
             .size(50.dp)
             .clip(shape = RoundedCornerShape(25.dp))
+            .border(3.dp, color = targetColor, CircleShape)
             .then(modifier)
             //.background(Color.Cyan)
             .aspectRatio(1f)
@@ -179,8 +184,35 @@ private fun UserAvatar(modifier: Modifier = Modifier,
                 }
             },
         contentScale = ContentScale.Fit,
-        //colorFilter = ColorFilter.tint(LocalContentColor.current.copy(alpha = LocalContentAlpha.current))
+        contentDescription = "",
+        shimmerParams = ShimmerParams(
+            baseColor = MaterialTheme.colors.surface,
+            highlightColor = Color.Gray
+        ),
+        bitmapPalette = BitmapPalette(
+            imageModel = userImage,
+            paletteLoadedListener = {
+                bitmapPalette = it
+            })
     )
+
+//    Image(
+//        painter = userImage as Painter,
+//        contentDescription = "",
+//        modifier = Modifier
+//            .size(50.dp)
+//            .clip(shape = RoundedCornerShape(25.dp))
+//            .then(modifier)
+//            //.background(Color.Cyan)
+//            .aspectRatio(1f)
+//            .clickable {
+//                if (showProfile != null) {
+//                    showProfile()
+//                }
+//            },
+//        contentScale = ContentScale.Fit,
+//        //colorFilter = ColorFilter.tint(LocalContentColor.current.copy(alpha = LocalContentAlpha.current))
+//    )
 
 }
 

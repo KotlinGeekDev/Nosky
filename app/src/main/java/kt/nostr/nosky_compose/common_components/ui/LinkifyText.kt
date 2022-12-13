@@ -22,7 +22,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-package kt.nostr.nosky_compose.reusable_ui_components
+package kt.nostr.nosky_compose.common_components.ui
 
 import android.annotation.SuppressLint
 import android.text.SpannableString

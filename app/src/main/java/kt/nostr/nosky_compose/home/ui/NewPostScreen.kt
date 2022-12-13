@@ -17,7 +17,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
+import kt.nostr.nosky_compose.common_components.theme.NoskycomposeTheme
 
 
 @Composable

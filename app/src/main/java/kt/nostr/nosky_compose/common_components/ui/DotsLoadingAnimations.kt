@@ -1,6 +1,6 @@
 //Credits: Code taken from: https://gist.github.com/EugeneTheDev/a27664cb7e7899f964348b05883cbccd
 
-package kt.nostr.nosky_compose.reusable_ui_components
+package kt.nostr.nosky_compose.common_components.ui
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background

@@ -1,8 +1,5 @@
-@file:OptIn(ExperimentalFoundationApi::class)
+package kt.nostr.nosky_compose.common_components.ui
 
-package kt.nostr.nosky_compose.reusable_ui_components
-
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource

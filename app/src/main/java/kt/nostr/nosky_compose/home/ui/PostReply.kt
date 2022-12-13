@@ -12,8 +12,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kt.nostr.nosky_compose.home.backend.Post
-import kt.nostr.nosky_compose.reusable_ui_components.QuotedPost
-import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
+import kt.nostr.nosky_compose.common_components.ui.QuotedPost
+import kt.nostr.nosky_compose.common_components.theme.NoskycomposeTheme
 
 @Composable
 fun PostReply(

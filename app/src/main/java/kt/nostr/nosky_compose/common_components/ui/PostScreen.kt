@@ -1,4 +1,4 @@
-package kt.nostr.nosky_compose.reusable_ui_components
+package kt.nostr.nosky_compose.common_components.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -21,12 +21,12 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import com.bumble.appyx.navmodel.backstack.BackStack
 import kt.nostr.nosky_compose.BottomNavigationBar
+import kt.nostr.nosky_compose.common_components.theme.NoskycomposeTheme
 import kt.nostr.nosky_compose.home.backend.Post
 import kt.nostr.nosky_compose.home.ui.CustomDivider
 import kt.nostr.nosky_compose.home.ui.PostReply
 import kt.nostr.nosky_compose.navigation.structure.Destination
-import kt.nostr.nosky_compose.profile.ProfilePosts
-import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
+import kt.nostr.nosky_compose.profile.ui.ProfilePosts
 
 
 //TODO : Investigate BackStack, and look for a way to not depend on it.

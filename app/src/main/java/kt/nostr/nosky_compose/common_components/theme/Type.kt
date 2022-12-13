@@ -1,4 +1,4 @@
-package kt.nostr.nosky_compose.reusable_ui_components.theme
+package kt.nostr.nosky_compose.common_components.theme
 
 import androidx.compose.material.Typography
 import androidx.compose.ui.text.TextStyle
