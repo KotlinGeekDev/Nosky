@@ -40,7 +40,6 @@ import kt.nostr.nosky_compose.utility_functions.misc.currentSystemUnixTimeStamp
 
 /**
  * TODO:
- *  - Replace Image composables with CoilImage or other URL-supporting Image composables.
  *  - Replace a lot of state-representing variables(e.g boosts and likes) and
  *    hoist them.
  *  - Contemplate navigation for if a quoted post is present.

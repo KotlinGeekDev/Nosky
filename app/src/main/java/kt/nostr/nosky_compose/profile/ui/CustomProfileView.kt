@@ -443,8 +443,11 @@ internal fun Avatar(modifier: Modifier = Modifier, profileImageUrl: String = "")
             .then(modifier),
         contentScale = ContentScale.Fit,
         contentDescription = "Profile Image",
-        shimmerParams = ShimmerParams(baseColor = MaterialTheme.colors.surface, highlightColor = Color.Gray),
-        bitmapPalette = BitmapPalette(imageModel = profileImageUrl,
+        shimmerParams = ShimmerParams(
+            baseColor = MaterialTheme.colors.surface,
+            highlightColor = Color.Gray),
+        bitmapPalette = BitmapPalette(
+            imageModel = profileImageUrl,
             paletteLoadedListener = {
                 bitmapPalette = it
             })

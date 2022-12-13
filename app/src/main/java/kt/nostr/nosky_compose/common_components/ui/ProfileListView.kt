@@ -4,7 +4,6 @@ import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -18,13 +17,16 @@ import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.colorspace.ColorSpaces
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.palette.graphics.Palette
+import com.skydoves.landscapist.ShimmerParams
+import com.skydoves.landscapist.coil.CoilImage
+import com.skydoves.landscapist.palette.BitmapPalette
 import kt.nostr.nosky_compose.R
 import kt.nostr.nosky_compose.common_components.theme.NoskycomposeTheme
 import kt.nostr.nosky_compose.home.ui.CustomDivider
@@ -84,13 +86,20 @@ fun ListOfProfiles(modifier: Modifier = Modifier, userList: List<Profile>) {
 @Composable
 fun UserProfile(userName: String,
                 userBio: String,
+                userProfileImageLink: String = "",
                 isUserVerified: Boolean = true) {
 
-    val color = remember {
-        Color(0.4392157F, 0.5019608F, 0.72156864F, 1.0F, ColorSpaces.Srgb)
+    var palette by remember {
+        mutableStateOf<Palette?>(null)
     }
 
-    val targetColor by animateColorAsState(targetValue = color)
+    val profileImage: Any = remember {
+        userProfileImageLink.ifBlank { R.drawable.nosky_logo }
+    }
+
+    val targetColor by animateColorAsState(
+        targetValue = Color(palette?.lightMutedSwatch?.rgb ?: Color.Blue.toArgb())
+    )
 
     Row(
         Modifier
@@ -100,9 +109,10 @@ fun UserProfile(userName: String,
     ) {
         Box(modifier = Modifier.clip(RoundedCornerShape(5.dp)),
             contentAlignment = Alignment.Center){
-            Image(painter = painterResource(id = R.drawable.nosky_logo),
-                contentDescription = "App Logo",
-                Modifier
+
+            CoilImage(
+                imageModel = profileImage,
+                modifier = Modifier
                     .clip(CircleShape)
                     .size(65.dp)
                     .background(Color.Cyan)
@@ -110,7 +120,20 @@ fun UserProfile(userName: String,
                         border = BorderStroke(width = 3.dp, color = targetColor),
                         shape = CircleShape
                     )
-                    .aspectRatio(1f))
+                    .aspectRatio(1f),
+                contentDescription = "Profile image of $userName",
+                shimmerParams = ShimmerParams(
+                    baseColor = MaterialTheme.colors.surface,
+                    highlightColor = Color.Gray
+                ),
+                bitmapPalette = BitmapPalette(
+                    imageModel = profileImage,
+                    paletteLoadedListener = {
+                        palette = it
+                    }
+                )
+            )
+
         }
         Spacer(modifier = Modifier.width(5.dp))
         Column(Modifier.weight(3f)) {
