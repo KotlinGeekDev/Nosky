@@ -7,7 +7,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.Scaffold
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -15,12 +18,13 @@ import com.bumble.appyx.navmodel.backstack.BackStack
 import com.bumble.appyx.navmodel.backstack.operation.push
 import com.bumble.appyx.navmodel.backstack.operation.singleTop
 import kt.nostr.nosky_compose.BottomNavigationBar
-import kt.nostr.nosky_compose.home.backend.Post
+import kt.nostr.nosky_compose.common_components.models.PostList
+import kt.nostr.nosky_compose.common_components.theme.NoskycomposeTheme
+import kt.nostr.nosky_compose.common_components.ui.PostView
+import kt.nostr.nosky_compose.common_components.ui.TopBar
 import kt.nostr.nosky_compose.home.backend.opsList
 import kt.nostr.nosky_compose.navigation.structure.Destination
-import kt.nostr.nosky_compose.reusable_ui_components.PostView
-import kt.nostr.nosky_compose.reusable_ui_components.TopBar
-import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
+import kt.nostr.nosky_compose.profile.model.Profile
 
 
 
@@ -43,7 +47,7 @@ fun NotificationsScreen(
     val list by remember() {
 
         derivedStateOf {
-            PostsList(opsList)
+            PostList(opsList)
         }
     }
 
@@ -57,7 +61,9 @@ fun NotificationsScreen(
     ) { paddingConstraints ->
 
         LazyColumn(Modifier.padding(paddingConstraints)){
-            items(count = list.items.size, key = { index: Int -> index }){ index  ->
+            items(count = list.items.size,
+                key = { index: Int -> index }
+            ){ index  ->
                 PostView(
                     viewingPost = list.items[index],
                     isUserVerified = index.mod(2) != 0,
@@ -65,7 +71,14 @@ fun NotificationsScreen(
                         navigator.push(Destination.ViewingPost(clickedPost = it))
                     },
                     showProfile = {
-                        navigator.push(Destination.Profile(isProfileSelected = true))
+                        navigator.push(
+                            Destination.MyProfile(
+                                Profile(
+                                    pubKey = list.items[index].userKey,
+                                    userName = list.items[index].username
+                                )
+                            )
+                        )
                     }
                 )
                 Spacer(modifier = Modifier.height(5.dp))
@@ -73,9 +86,6 @@ fun NotificationsScreen(
         }
     }
 }
-
-@Stable
-class PostsList(val items: List<Post>)
 
 
 @Preview(

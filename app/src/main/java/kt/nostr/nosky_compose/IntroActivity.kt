@@ -29,10 +29,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import kt.nostr.nosky_compose.intro.NewProfileScreen
 import kt.nostr.nosky_compose.intro.WelcomeScreen
 import kt.nostr.nosky_compose.profile.EmptyDataStore
-import kt.nostr.nosky_compose.profile.model.ProfileViewModel
-import kt.nostr.nosky_compose.reusable_ui_components.theme.BlackSurface
-import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
-import kt.nostr.nosky_compose.reusable_ui_components.theme.Purple500
+import kt.nostr.nosky_compose.profile.model.LocalProfileViewModel
+import kt.nostr.nosky_compose.common_components.theme.BlackSurface
+import kt.nostr.nosky_compose.common_components.theme.NoskycomposeTheme
+import kt.nostr.nosky_compose.common_components.theme.Purple500
 import kt.nostr.nosky_compose.settings.backend.AppThemeState
 import kt.nostr.nosky_compose.settings.backend.SettingsDataStore
 import kt.nostr.nosky_compose.settings.backend.ThemeStateSaver
@@ -41,7 +41,7 @@ class IntroActivity : ComponentActivity() {
 
     private lateinit var settingsDataStore: SettingsDataStore
 
-    private lateinit var profileViewModel: ProfileViewModel
+    private lateinit var localProfileViewModel: LocalProfileViewModel
 
 
 
@@ -51,7 +51,7 @@ class IntroActivity : ComponentActivity() {
 
         setContent {
             settingsDataStore = SettingsDataStore(this.applicationContext)
-            profileViewModel = viewModel(factory = ProfileViewModel.create())
+            localProfileViewModel = viewModel(factory = LocalProfileViewModel.create())
 
 
             val darkMode = isSystemInDarkTheme()
@@ -63,9 +63,9 @@ class IntroActivity : ComponentActivity() {
             NoskycomposeTheme(appThemeState.themeState.value) {
                 Surface {
                     IntroScreen(appThemeState = appThemeState,
-                        profileViewModel = profileViewModel,
+                        localProfileViewModel = localProfileViewModel,
                         onLoginClick = {
-                            profileViewModel.saveProfile()
+                            localProfileViewModel.saveProfile()
                             settingsDataStore.saveDarkThemePreference(appThemeState.isDark())
 
                             startActivity(
@@ -89,7 +89,7 @@ class IntroActivity : ComponentActivity() {
 
 @Composable
 fun IntroScreen(appThemeState: AppThemeState,
-                profileViewModel: ProfileViewModel,
+                localProfileViewModel: LocalProfileViewModel,
                 onLoginClick: () -> Unit,
                 onProfileCreated: () -> Unit = onLoginClick,
                 onThemeChange:(Boolean) -> Unit) {
@@ -100,7 +100,7 @@ fun IntroScreen(appThemeState: AppThemeState,
 
 
     //For account creation, or for account login/import
-    val newUserProfile by profileViewModel.newUserProfile.collectAsState()
+    val newUserProfile by localProfileViewModel.newUserProfile.collectAsState()
 
     val themeIcon = remember {
         { if (appThemeState.isDark()) Icons.Default.LightMode else Icons.Default.DarkMode }
@@ -119,15 +119,15 @@ fun IntroScreen(appThemeState: AppThemeState,
         ) {
             NewProfileScreen(themeState = appThemeState,
                 userName = { newUserProfile::userName.get() },
-                onUserNameUpdate = profileViewModel::updateUserName,
+                onUserNameUpdate = localProfileViewModel::updateUserName,
                 userBio = { newUserProfile.bio },
-                onUserBioUpdate = profileViewModel::updateBio,
+                onUserBioUpdate = localProfileViewModel::updateBio,
                 profileImageLink = { newUserProfile.profileImage },
-                onImageLinkUpdate = profileViewModel::updateProfileImageLink,
+                onImageLinkUpdate = localProfileViewModel::updateProfileImageLink,
                 pubkey = newUserProfile.pubKey,
-                generatePubkey = { profileViewModel.generateProfile() },
+                generatePubkey = { localProfileViewModel.generateProfile() },
                 goToLogin = {
-                    profileViewModel.deleteResetProfile()
+                    localProfileViewModel.deleteResetProfile()
                     userIsNew = !userIsNew
                 },
                 onProfileCreated = onProfileCreated)
@@ -138,9 +138,9 @@ fun IntroScreen(appThemeState: AppThemeState,
         ) {
             WelcomeScreen(appThemeState = appThemeState,
                 privKey = { newUserProfile.privKey },
-                updatePrivKey = profileViewModel::updatePrivKey,
+                updatePrivKey = localProfileViewModel::updatePrivKey,
                 pubKey = { newUserProfile.pubKey },
-                updatePubKey = profileViewModel::updatePubKey,
+                updatePubKey = localProfileViewModel::updatePubKey,
                 onLoginClick = onLoginClick,
                 onCreateProfileClick = { userIsNew = !userIsNew })
         }
@@ -167,12 +167,12 @@ fun IntroScreenPreview() {
         AppThemeState(false)
     }
     val testProfile by remember {
-        mutableStateOf(ProfileViewModel(EmptyDataStore))
+        mutableStateOf(LocalProfileViewModel(EmptyDataStore))
     }
 
     NoskycomposeTheme(darkTheme = darkTheme.isDark()) {
         IntroScreen (appThemeState = darkTheme,
-            profileViewModel = testProfile,
+            localProfileViewModel = testProfile,
             onLoginClick = { },
             onThemeChange = {
                 darkTheme.switchTheme(it)

@@ -16,15 +16,11 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 import kt.nostr.nosky_compose.NoskyApplication
-import kt.nostr.nosky_compose.profile.ProfileDataStore
-import kt.nostr.nosky_compose.profile.ProfileStore
-import ktnostr.crypto.toHexString
+import kt.nostr.nosky_compose.profile.LocalProfileDataStore
+import kt.nostr.nosky_compose.profile.ProfileProvider
+import kt.nostr.nosky_compose.utility_functions.misc.toHexString
 import java.security.SecureRandom
 
-
-/**
- * TODO: Add getProfile function which will se savedStateHandle and test it.
- */
 
 @Stable
 @Parcelize
@@ -39,11 +35,12 @@ data class Profile(
     override fun toString(): String = "Profile(pubkey=$pubKey, username=$userName, bio=$bio)"
 }
 
-class ProfileViewModel(
-    private val profileStore: ProfileStore
+class LocalProfileViewModel(
+    private val profileStore: ProfileProvider
 ): ViewModel() {
 
-    //private val cryptoContext = CryptoUtils.get()
+    //Re-enable when the context cleanup issue in kostr-android is solved.
+//    private val cryptoContext = CryptoUtils.get()
 
 //    private val internalPubKey = MutableStateFlow("")
 //    val pubKey = internalPubKey.asStateFlow()
@@ -54,8 +51,11 @@ class ProfileViewModel(
 
 
 
+
+
     private val internalProfile = MutableStateFlow(Profile())
     val newUserProfile = internalProfile.asStateFlow()
+
 
 //    val stateProfile = combine(flow = pubKey, flow2 = privKey){ newPub, newPriv ->
 //        Profile(pubKey = newPub, privKey = newPriv)
@@ -63,6 +63,7 @@ class ProfileViewModel(
 
 
     fun updatePrivKey(newKey: String){
+
 
         internalProfile.update { currentProfile -> currentProfile.copy(privKey = newKey) }
     }
@@ -125,9 +126,24 @@ class ProfileViewModel(
         profileStore.saveProfile(newUserProfile.value)
     }
 
-    fun getLoggedInProfile(): Profile {
+    private fun getLoggedInProfile(): Profile {
         val loggedInProfile = profileStore.getProfile()
         return loggedInProfile
+    }
+
+    fun updateProfile(){
+       val loggedProfile = getLoggedInProfile()
+        internalProfile.update { profile ->
+            with(loggedProfile){
+                profile.copy(
+                    pubKey = pubKey,
+                    privKey = privKey,
+                    userName = userName,
+                    profileImage = profileImage,
+                    bio = bio
+                )
+            }
+        }
     }
 
     override fun onCleared() {
@@ -141,8 +157,8 @@ class ProfileViewModel(
         fun create(): ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val contextProvider = this[APPLICATION_KEY] as NoskyApplication
-                val profileStore = ProfileDataStore(contextProvider.applicationContext)
-                ProfileViewModel(profileStore)
+                val profileStore = LocalProfileDataStore(contextProvider.applicationContext)
+                LocalProfileViewModel(profileStore)
             }
         }
     }

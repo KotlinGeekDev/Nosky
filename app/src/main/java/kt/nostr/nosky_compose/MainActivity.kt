@@ -14,6 +14,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.view.WindowCompat
 import com.bumble.appyx.core.integration.NodeHost
 import com.bumble.appyx.core.integrationpoint.IntegrationPoint
 import com.bumble.appyx.core.integrationpoint.IntegrationPointStub
@@ -21,11 +22,11 @@ import com.bumble.appyx.core.integrationpoint.NodeComponentActivity
 import com.bumble.appyx.navmodel.backstack.BackStack
 import com.bumble.appyx.navmodel.backstack.activeElement
 import com.bumble.appyx.navmodel.backstack.operation.singleTop
+import kt.nostr.nosky_compose.common_components.theme.NoskycomposeTheme
 import kt.nostr.nosky_compose.navigation.structure.Destination
 import kt.nostr.nosky_compose.navigation.structure.NoskyRootNode
 import kt.nostr.nosky_compose.navigation.structure.bottomNavTargets
-import kt.nostr.nosky_compose.profile.ProfileDataStore
-import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
+import kt.nostr.nosky_compose.profile.LocalProfileDataStore
 import kt.nostr.nosky_compose.settings.backend.AppThemeState
 import kt.nostr.nosky_compose.settings.backend.SettingsDataStore
 import kt.nostr.nosky_compose.settings.backend.ThemeStateSaver
@@ -34,7 +35,7 @@ import kt.nostr.nosky_compose.settings.backend.ThemeStateSaver
 class MainActivity : NodeComponentActivity() {
 
     private val profileDataProvider by lazy {
-        ProfileDataStore(this.applicationContext)
+        LocalProfileDataStore(this.applicationContext)
     }
 
     private val themeSettings by lazy {
@@ -49,6 +50,7 @@ class MainActivity : NodeComponentActivity() {
             finish()
         }
 
+        WindowCompat.setDecorFitsSystemWindows(window, true)
 
         setContent {
 
@@ -129,8 +131,8 @@ fun BottomNavigationBar(modifier: Modifier = Modifier,
                 selectedContentColor = Color.White,
                 unselectedContentColor = Color.White.copy(0.4f),
                 selected = when {
-                    currentDestination is Destination.Profile && item is Destination.Profile -> {
-                        !currentDestination.isProfileSelected
+                    currentDestination is Destination.MyProfile && item is Destination.MyProfile -> {
+                        currentDestination.profile == null
                     }
                     else -> {
                         currentDestination?.title == item.title

@@ -23,7 +23,8 @@ import kt.nostr.nosky_compose.navigation.DiscussionListViewNode
 import kt.nostr.nosky_compose.navigation.FeedViewNode
 import kt.nostr.nosky_compose.navigation.ProfileViewNode
 import kt.nostr.nosky_compose.notifications.ui.NotificationsScreen
-import kt.nostr.nosky_compose.reusable_ui_components.PostScreen
+import kt.nostr.nosky_compose.profile.model.Profile
+import kt.nostr.nosky_compose.common_components.ui.PostScreen
 import kt.nostr.nosky_compose.settings.backend.AppThemeState
 import kt.nostr.nosky_compose.settings.ui.SettingsScreen
 
@@ -69,8 +70,8 @@ class NoskyRootNode(
                     },
                     navigator = backStack)
             }
-            is Destination.Profile -> ProfileViewNode(buildContext,
-                isProfileSelected = navTarget.isProfileSelected,
+            is Destination.MyProfile -> ProfileViewNode(buildContext,
+                profile = navTarget.profile,
                 navigator = backStack)
             Destination.Notifications -> node(buildContext){
                 NotificationsScreen(navigator = backStack)
@@ -99,7 +100,7 @@ sealed class Destination(val icon: ImageVector? = null, val title: String) : Par
     class ViewingPost(val clickedPost: Post = Post()) : Destination(title = "")
 
     @Parcelize
-    class Profile(val isProfileSelected: Boolean = false) :
+    class MyProfile(val profile: Profile? = null) :
         Destination(icon = Icons.Filled.Person, title = "Profile")
 
     @Parcelize
@@ -120,7 +121,7 @@ sealed class Destination(val icon: ImageVector? = null, val title: String) : Par
 fun bottomNavTargets(): List<Destination> {
     return listOf(
         Destination.Home,
-        Destination.Profile(),
+        Destination.MyProfile(),
         Destination.Notifications,
         Destination.Messages(),
         Destination.Settings
