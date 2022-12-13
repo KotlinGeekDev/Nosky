@@ -1,4 +1,4 @@
-package kt.nostr.nosky_compose.profile
+package kt.nostr.nosky_compose.profile.ui
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -11,10 +11,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import kt.nostr.nosky_compose.common_components.models.PostList
+import kt.nostr.nosky_compose.common_components.ui.PostView
 import kt.nostr.nosky_compose.home.backend.Post
 import kt.nostr.nosky_compose.home.backend.opsList
-import kt.nostr.nosky_compose.notifications.ui.PostsList
-import kt.nostr.nosky_compose.reusable_ui_components.PostView
 
 @Composable
 fun ProfilePosts(modifier: Modifier = Modifier,
@@ -24,16 +24,16 @@ fun ProfilePosts(modifier: Modifier = Modifier,
 
     val list by remember() {
         derivedStateOf {
-            PostsList(listOfPosts)
+            PostList(listOfPosts)
         }
     }
 
     LazyColumn(state = listState, modifier = Modifier.padding(top = 10.dp).then(modifier)) {
-        itemsIndexed(items = list.items, key = { index: Int, _: Post -> index }) { index, post ->
+        itemsIndexed(items = list.items, key = { index: Int, post: Post -> index }) { index, post ->
             PostView(
                 viewingPost = post.copy(
                     textContent = "One of the user's very very long messages. " +
-                            "from 8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f"
+                            "from ${post.userKey}"
                 ),
                 isUserVerified = index.mod(2) != 0,
                 containsImage = index.mod(2) == 0,

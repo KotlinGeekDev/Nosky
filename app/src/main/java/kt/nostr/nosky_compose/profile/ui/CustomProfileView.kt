@@ -24,11 +24,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.colorspace.ColorSpaces
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
@@ -36,20 +35,25 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
 import androidx.constraintlayout.compose.Dimension
 import androidx.constraintlayout.compose.layoutId
+import androidx.palette.graphics.Palette
 import com.bumble.appyx.navmodel.backstack.BackStack
 import com.bumble.appyx.navmodel.backstack.operation.push
 import com.bumble.appyx.navmodel.backstack.operation.singleTop
+import com.skydoves.landscapist.ShimmerParams
+import com.skydoves.landscapist.coil.CoilImage
+import com.skydoves.landscapist.palette.BitmapPalette
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Envelope
 import kt.nostr.nosky_compose.BottomNavigationBar
 import kt.nostr.nosky_compose.R
+import kt.nostr.nosky_compose.common_components.theme.NoskycomposeTheme
+import kt.nostr.nosky_compose.common_components.ui.ProfileListView
+import kt.nostr.nosky_compose.common_components.ui.UserInfo
+import kt.nostr.nosky_compose.home.backend.Post
+import kt.nostr.nosky_compose.home.backend.opsList
 import kt.nostr.nosky_compose.navigation.structure.Destination
-import kt.nostr.nosky_compose.profile.ProfilePosts
 import kt.nostr.nosky_compose.profile.model.Profile
-import kt.nostr.nosky_compose.reusable_ui_components.ProfileListView
-import kt.nostr.nosky_compose.reusable_ui_components.UserInfo
-import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
 import kotlin.math.min
 
 
@@ -58,8 +62,8 @@ fun ProfileView(modifier: Modifier = Modifier,
                 user: Profile = Profile(userName = "Satoshi Nakamoto",
                     pubKey = "8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f",
                     bio = "A pseudonymous dev", following = 10, followers = 1_001),
-                profileSelected: Boolean = false,
-                isProfileMine: Boolean = !profileSelected,
+                userPostsList: List<Post> = opsList,
+                isProfileMine: Boolean = true,
                 navController: BackStack<Destination>,
                 goBack: () -> Unit) {
 
@@ -71,7 +75,7 @@ fun ProfileView(modifier: Modifier = Modifier,
         }
     }
     BackHandler() {
-        if (profileSelected){
+        if (!isProfileMine){
             goBack()
         } else {
             navController.run {
@@ -82,6 +86,7 @@ fun ProfileView(modifier: Modifier = Modifier,
         }
 
     }
+
     var showFollowersProfiles by remember {
         mutableStateOf(false)
     }
@@ -133,7 +138,7 @@ fun ProfileView(modifier: Modifier = Modifier,
                 ) {
                     ProfileDetails(
                         user = internalUser,
-                        profileSelected = profileSelected,
+                        profileSelected = !isProfileMine,
                         isProfileMine = isProfileMine,
                         showFollowing = {
                             showFollowingProfiles = !showFollowingProfiles
@@ -145,6 +150,7 @@ fun ProfileView(modifier: Modifier = Modifier,
                 }
 
                 ProfilePosts(
+                    listOfPosts = userPostsList,
                     listState = scrollState,
                     onPostClick = {
                         navController.push(Destination.ViewingPost(clickedPost = it))
@@ -408,17 +414,25 @@ private fun ProfileDescription(modifier: Modifier = Modifier,
 
 @Composable
 internal fun Avatar(modifier: Modifier = Modifier, profileImageUrl: String = "") {
-    //CoilImage(imageModel = user.bio, shimmerParams = ShimmerParams(), success = {})
 
-    val color = remember {
-        Color(0.4392157F, 0.5019608F, 0.72156864F, 1.0F, ColorSpaces.Srgb)
+
+    val profileImage: Any = remember {
+        profileImageUrl.ifBlank { R.drawable.nosky_logo }
+    }
+    var bitmapPalette by remember {
+        mutableStateOf<Palette?>(null)
     }
 
-    val targetColor by animateColorAsState(targetValue = color)
+//    ResourcesCompat.getDrawable(
+//        context.resources, R.drawable.nosky_logo, context.theme)
 
-    Image(
-        painterResource(id = R.drawable.nosky_logo),
-        contentDescription = "Profile Image",
+    val targetColor by animateColorAsState(
+        targetValue =
+            Color(bitmapPalette?.lightMutedSwatch?.rgb ?: Color.Blue.toArgb())
+    )
+
+    CoilImage(
+        imageModel = profileImage,
         modifier = Modifier
             .clip(shape = RoundedCornerShape(40.dp))
             .layoutId("avatar")
@@ -427,8 +441,15 @@ internal fun Avatar(modifier: Modifier = Modifier, profileImageUrl: String = "")
                 shape = CircleShape
             )
             .then(modifier),
-        contentScale = ContentScale.Fit
+        contentScale = ContentScale.Fit,
+        contentDescription = "Profile Image",
+        shimmerParams = ShimmerParams(baseColor = MaterialTheme.colors.surface, highlightColor = Color.Gray),
+        bitmapPalette = BitmapPalette(imageModel = profileImageUrl,
+            paletteLoadedListener = {
+                bitmapPalette = it
+            })
     )
+
 }
 
 @Composable
@@ -519,7 +540,7 @@ private fun Banner(modifier: Modifier = Modifier) {
 fun CustomProfileViewPreview() {
     NoskycomposeTheme {
         ProfileView(
-            profileSelected = false,
+            userPostsList = opsList,
             //profileSelected = true, isProfileMine = false,
             navController = BackStack(
                 initialElement = Destination.Home,

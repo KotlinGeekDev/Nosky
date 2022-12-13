@@ -1,6 +1,6 @@
 package kt.nostr.nosky_compose.utility_functions.datetime
 
-import ktnostr.currentSystemUnixTimeStamp
+import kt.nostr.nosky_compose.utility_functions.misc.currentSystemUnixTimeStamp
 
 fun timeAgoFrom(timestamp: Long): String {
 

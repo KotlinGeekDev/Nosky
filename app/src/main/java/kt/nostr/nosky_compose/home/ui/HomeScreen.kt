@@ -8,6 +8,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -23,14 +24,15 @@ import com.bumble.appyx.navmodel.backstack.BackStack
 import com.bumble.appyx.navmodel.backstack.operation.push
 import com.bumble.appyx.navmodel.backstack.operation.singleTop
 import kt.nostr.nosky_compose.BottomNavigationBar
+import kt.nostr.nosky_compose.common_components.ui.DotsFlashing
+import kt.nostr.nosky_compose.common_components.ui.PostView
+import kt.nostr.nosky_compose.common_components.theme.NoskycomposeTheme
 import kt.nostr.nosky_compose.home.backend.FeedViewModel
 import kt.nostr.nosky_compose.home.backend.Post
 import kt.nostr.nosky_compose.home.backend.opsList
 import kt.nostr.nosky_compose.navigation.structure.Destination
-import kt.nostr.nosky_compose.notifications.ui.PostsList
-import kt.nostr.nosky_compose.reusable_ui_components.DotsFlashing
-import kt.nostr.nosky_compose.reusable_ui_components.PostView
-import kt.nostr.nosky_compose.reusable_ui_components.theme.NoskycomposeTheme
+import kt.nostr.nosky_compose.common_components.models.PostList
+import kt.nostr.nosky_compose.profile.model.Profile
 
 //TODO: Replace double AnimatedVisibility below with single AnimatedContent.
 
@@ -78,8 +80,14 @@ fun HomeView(
         mutableStateOf(false)
     }
 
+
     Scaffold(
         scaffoldState = scaffoldState,
+        topBar = {
+            FeedProfileImage(
+                showProfile = { navigator.push(Destination.MyProfile()) }
+            )
+        },
         bottomBar = {
             BottomNavigationBar(backStackNavigator = navigator, isNewNotification = false)
         },
@@ -91,9 +99,6 @@ fun HomeView(
             )
 
             Column() {
-                FeedProfileImage(
-                    showProfile = { navigator.push(Destination.Profile()) }
-                )
 
                 AnimatedVisibility(
                     visible = homeFeed.isEmpty(),
@@ -122,9 +127,7 @@ fun HomeView(
                 ) {
                     Content(modifier = Modifier.padding(contentPadding),
                         feed = homeFeed,
-                        showProfile = {
-                            navigator.push(Destination.Profile(isProfileSelected = true))
-                        },
+                        navigator = navigator,
                         showPost = {
                             onPostClicked(it)
                             //navigator.navigate("selected_post")
@@ -148,13 +151,13 @@ fun HomeView(
 @Composable
 fun Content(modifier: Modifier = Modifier,
             feed: List<Post> = emptyList(),
-            showProfile: () -> Unit,
+            navigator: BackStack<Destination>,
             showPost: (Post) -> Unit) {
 
 
     val list by remember() {
         derivedStateOf {
-            PostsList(feed)
+            PostList(feed)
         }
     }
     val listState = rememberLazyListState()
@@ -162,18 +165,20 @@ fun Content(modifier: Modifier = Modifier,
     LazyColumn(state = listState,
             modifier = Modifier.then(modifier)){
 
-            items(count = list.items.size){ postIndex ->
+            itemsIndexed(items = list.items, key = { index, post -> index}){ postIndex, post ->
                 PostView(
-                    viewingPost = list.items[postIndex],
-//                        .copy(
-//                        textContent = "One of the user's very very long messages. from" +
-//                                " 8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f"
-//                    ),
+                    viewingPost = post,
                     isUserVerified = postIndex.mod(2) != 0,
                     containsImage = postIndex.mod(2) == 0,
                     isRelayRecommendation = postIndex == 0,
-                 showProfile = showProfile, onPostClick = showPost)
-                //CustomDivider()
+                    showProfile = {
+                         navigator.push(
+                             Destination.MyProfile(
+                                 profile = Profile(pubKey = post.userKey, userName = post.username)
+                             )
+                         )
+                    },
+                    onPostClick = showPost)
                 Spacer(modifier = Modifier.height(3.dp))
             }
         }

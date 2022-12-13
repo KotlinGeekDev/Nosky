@@ -4,6 +4,5 @@ import android.app.Application
 
 class NoskyApplication: Application() {
 
-
 }
 

@@ -84,7 +84,7 @@ fun PostView(modifier: Modifier = Modifier,
         .then(modifier)) {
         Column() {
             UserAvatar(
-                userImage = R.drawable.nosky_logo,
+                //userImage = R.drawable.nosky_logo,
                 showProfile = showProfile
             )
             Spacer(modifier = Modifier.height(5.dp))
@@ -156,17 +156,15 @@ fun PostView(modifier: Modifier = Modifier,
 
 @Composable
 private fun UserAvatar(modifier: Modifier = Modifier,
-                   userImage: Any = R.drawable.nosky_logo,
+                   userImage: Any = R.drawable.ic_launcher_foreground,
                    showProfile:(() -> Unit)? = null) {
 
     var bitmapPalette by remember {
         mutableStateOf<Palette?>(null)
     }
 
-
     val targetColor by animateColorAsState(
-        targetValue =
-        Color(bitmapPalette?.lightMutedSwatch?.rgb ?: Color.Blue.toArgb())
+        targetValue = Color(bitmapPalette?.lightMutedSwatch?.rgb ?: Color.Blue.toArgb())
     )
 
     CoilImage(
@@ -271,15 +269,24 @@ private fun TweetAndImage(modifier: Modifier = Modifier,
     )
     Spacer(modifier = Modifier.height(10.dp))
     if (containsImage) {
-        Image(
-            painter = painterResource(id = R.drawable.ic_launcher_foreground),
-            contentDescription = "",
+        CoilImage(
+            imageModel = R.drawable.ic_launcher_foreground,
             modifier = Modifier
                 //.height(170.dp)
                 .fillMaxWidth()
                 .clip(shape = RoundedCornerShape(2.dp)),
+            contentDescription = "",
             contentScale = ContentScale.Fit
         )
+//        Image(
+//            painter = painterResource(id = R.drawable.ic_launcher_foreground),
+//            contentDescription = "",
+//            modifier = Modifier
+//                //.height(170.dp)
+//                .fillMaxWidth()
+//                .clip(shape = RoundedCornerShape(2.dp)),
+//            contentScale = ContentScale.Fit
+//        )
     }
 
 }

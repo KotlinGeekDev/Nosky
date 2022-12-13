@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.parcelize.Parcelize
 import kt.nostr.nosky_compose.utility_functions.isURL
-import ktnostr.crypto.toHexString
+import kt.nostr.nosky_compose.utility_functions.misc.toHexString
 import kotlin.random.Random
 
 @Stable
@@ -46,7 +46,7 @@ class PostViewModel(): ViewModel() {
 
 
     fun urlsInText(): List<String> {
-        val listSubstrings = postContent.value.textContent.split(" ")
+        val listSubstrings = postContent.value.textContent.split(" ", ",")
         val links = listSubstrings.filter { substring -> substring.isURL() }
         return links.filter {
             it.endsWith(".jpg")
