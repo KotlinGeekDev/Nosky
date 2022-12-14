@@ -24,9 +24,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.palette.graphics.Palette
-import com.skydoves.landscapist.ShimmerParams
+import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.coil.CoilImage
-import com.skydoves.landscapist.palette.BitmapPalette
+import com.skydoves.landscapist.components.rememberImageComponent
+import com.skydoves.landscapist.palette.PalettePlugin
+import com.skydoves.landscapist.placeholder.shimmer.ShimmerPlugin
 import kt.nostr.nosky_compose.R
 import kt.nostr.nosky_compose.common_components.theme.NoskycomposeTheme
 import kt.nostr.nosky_compose.home.ui.CustomDivider
@@ -111,7 +113,7 @@ fun UserProfile(userName: String,
             contentAlignment = Alignment.Center){
 
             CoilImage(
-                imageModel = profileImage,
+                imageModel = { profileImage },
                 modifier = Modifier
                     .clip(CircleShape)
                     .size(65.dp)
@@ -121,17 +123,21 @@ fun UserProfile(userName: String,
                         shape = CircleShape
                     )
                     .aspectRatio(1f),
-                contentDescription = "Profile image of $userName",
-                shimmerParams = ShimmerParams(
-                    baseColor = MaterialTheme.colors.surface,
-                    highlightColor = Color.Gray
+                imageOptions = ImageOptions(
+                    contentDescription = "Profile image of $userName"
                 ),
-                bitmapPalette = BitmapPalette(
-                    imageModel = profileImage,
-                    paletteLoadedListener = {
-                        palette = it
-                    }
-                )
+                component = rememberImageComponent {
+                    +ShimmerPlugin(
+                        baseColor = MaterialTheme.colors.surface,
+                        highlightColor = Color.Gray
+                    )
+                    +PalettePlugin(
+                        imageModel = profileImage,
+                        paletteLoadedListener = {
+                            palette = it
+                        }
+                    )
+                }
             )
 
         }

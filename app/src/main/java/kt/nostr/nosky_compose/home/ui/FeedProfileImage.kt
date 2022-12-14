@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.coil.CoilImage
 import kt.nostr.nosky_compose.R
 import kt.nostr.nosky_compose.common_components.theme.NoskycomposeTheme
@@ -52,7 +53,7 @@ fun FeedProfileImage(loggedInProfileImage: String = "", showProfile: () -> Unit)
 //                    .clickable(onClick = showProfile))
 
             CoilImage(
-                imageModel = profileImage,
+                imageModel = { profileImage },
                 modifier = Modifier
                     .clip(CircleShape)
                     .size(50.dp)
@@ -61,7 +62,9 @@ fun FeedProfileImage(loggedInProfileImage: String = "", showProfile: () -> Unit)
                     .aspectRatio(1f)
                     .align(Alignment.CenterStart)
                     .clickable(onClick = showProfile),
-                contentDescription = "App Logo"
+                imageOptions = ImageOptions(
+                    contentDescription = "App Logo"
+                )
             )
 
             ThemedText(modifier = Modifier.align(Alignment.Center),

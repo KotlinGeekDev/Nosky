@@ -35,13 +35,15 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
 import androidx.constraintlayout.compose.Dimension
 import androidx.constraintlayout.compose.layoutId
-import androidx.palette.graphics.Palette
 import com.bumble.appyx.navmodel.backstack.BackStack
 import com.bumble.appyx.navmodel.backstack.operation.push
 import com.bumble.appyx.navmodel.backstack.operation.singleTop
-import com.skydoves.landscapist.ShimmerParams
+import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.coil.CoilImage
-import com.skydoves.landscapist.palette.BitmapPalette
+import com.skydoves.landscapist.components.rememberImageComponent
+import com.skydoves.landscapist.palette.PalettePlugin
+import com.skydoves.landscapist.palette.rememberPaletteState
+import com.skydoves.landscapist.placeholder.shimmer.ShimmerPlugin
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Envelope
@@ -419,9 +421,7 @@ internal fun Avatar(modifier: Modifier = Modifier, profileImageUrl: String = "")
     val profileImage: Any = remember {
         profileImageUrl.ifBlank { R.drawable.nosky_logo }
     }
-    var bitmapPalette by remember {
-        mutableStateOf<Palette?>(null)
-    }
+    var bitmapPalette by rememberPaletteState(value = null)
 
 //    ResourcesCompat.getDrawable(
 //        context.resources, R.drawable.nosky_logo, context.theme)
@@ -432,7 +432,7 @@ internal fun Avatar(modifier: Modifier = Modifier, profileImageUrl: String = "")
     )
 
     CoilImage(
-        imageModel = profileImage,
+        imageModel = { profileImage },
         modifier = Modifier
             .clip(shape = RoundedCornerShape(40.dp))
             .layoutId("avatar")
@@ -441,16 +441,23 @@ internal fun Avatar(modifier: Modifier = Modifier, profileImageUrl: String = "")
                 shape = CircleShape
             )
             .then(modifier),
-        contentScale = ContentScale.Fit,
-        contentDescription = "Profile Image",
-        shimmerParams = ShimmerParams(
-            baseColor = MaterialTheme.colors.surface,
-            highlightColor = Color.Gray),
-        bitmapPalette = BitmapPalette(
-            imageModel = profileImageUrl,
-            paletteLoadedListener = {
-                bitmapPalette = it
-            })
+        imageOptions = ImageOptions(
+            contentScale = ContentScale.Fit,
+            contentDescription = "Profile Image"
+        ),
+        component = rememberImageComponent {
+            +ShimmerPlugin(
+                baseColor = MaterialTheme.colors.surface,
+                highlightColor = Color.Gray
+            )
+            +PalettePlugin(
+                imageModel = profileImageUrl,
+                paletteLoadedListener = {
+                    bitmapPalette = it
+                }
+            )
+        }
+
     )
 
 }

@@ -23,9 +23,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.palette.graphics.Palette
-import com.skydoves.landscapist.ShimmerParams
+import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.coil.CoilImage
-import com.skydoves.landscapist.palette.BitmapPalette
+import com.skydoves.landscapist.components.rememberImageComponent
+import com.skydoves.landscapist.palette.PalettePlugin
+import com.skydoves.landscapist.placeholder.shimmer.ShimmerPlugin
 import kt.nostr.nosky_compose.R
 import kt.nostr.nosky_compose.common_components.theme.NoskycomposeTheme
 import kt.nostr.nosky_compose.utility_functions.datetime.timeAgoFrom
@@ -92,7 +94,7 @@ private fun Avatar(modifier: Modifier = Modifier,
     )
 
     CoilImage(
-        imageModel = userImage,
+        imageModel = { userImage },
         modifier = Modifier
             .size(32.dp)
             .clip(shape = RoundedCornerShape(25.dp))
@@ -105,17 +107,22 @@ private fun Avatar(modifier: Modifier = Modifier,
                     showProfile()
                 }
             },
-        //contentScale = ContentScale.Crop,
-        contentDescription = "",
-        shimmerParams = ShimmerParams(
-            baseColor = MaterialTheme.colors.surface,
-            highlightColor = Color.Gray
+        imageOptions = ImageOptions(
+            //contentScale = ContentScale.Crop,
+            contentDescription = ""
         ),
-        bitmapPalette = BitmapPalette(
-            imageModel = userImage,
-            paletteLoadedListener = {
-                bitmapPalette = it
-            })
+        component = rememberImageComponent {
+            +ShimmerPlugin(
+                baseColor = MaterialTheme.colors.surface,
+                highlightColor = Color.Gray
+            )
+            +PalettePlugin(
+                imageModel = userImage,
+                paletteLoadedListener = {
+                    bitmapPalette = it
+                }
+            )
+        }
     )
 
 //    Image(

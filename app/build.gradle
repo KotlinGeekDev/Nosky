@@ -94,9 +94,12 @@ dependencies {
 
     //implementation 'com.github.Giszmo.NostrPostr:nostrpostrlib:46e9208bdb'
     //Here temporarily
-    implementation 'com.github.KotlinGeekDev.NostrPostr:nostrpostrlib:7c9d706be6'
+    implementation 'com.github.KotlinGeekDev.NostrPostr:nostrpostrlib:e6e4c05b75'
 
-    implementation 'com.github.KotlinGeekDev.kostr:kostr-android:0.1-pre-alpha-8'
+    implementation ('com.github.KotlinGeekDev.kostr:kostr-android:0.1-pre-alpha-8'){
+        exclude group:'fr.acinq.secp256k1', module: 'secp256k1-kmp-jni-jvm-mingw'
+        exclude group:'fr.acinq.secp256k1', module: 'secp256k1-kmp-jni-jvm-darwin'
+    }
     implementation 'androidx.core:core-ktx:1.9.0'
     implementation "androidx.compose.ui:ui:$compose_version"
     implementation "androidx.compose.ui:ui-tooling:$compose_version"
@@ -112,7 +115,9 @@ dependencies {
     implementation "androidx.constraintlayout:constraintlayout-compose:1.0.1"
 
     // Image loading
-    implementation "com.github.skydoves:landscapist-coil:1.6.1"
+    implementation "com.github.skydoves:landscapist-coil:2.1.0"
+    implementation "com.github.skydoves:landscapist-placeholder:2.1.0"
+    implementation "com.github.skydoves:landscapist-palette:2.1.0"
 
     implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1'
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.5.1'
@@ -127,7 +132,7 @@ dependencies {
 
 
     //File API
-    implementation "com.squareup.okio:okio:3.0.0"
+    implementation "com.squareup.okio:okio:3.2.0"
 
     //Permissions management
     implementation 'com.google.accompanist:accompanist-permissions:0.27.0'
