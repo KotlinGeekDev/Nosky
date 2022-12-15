@@ -94,7 +94,7 @@ dependencies {
 
     //implementation 'com.github.Giszmo.NostrPostr:nostrpostrlib:46e9208bdb'
     //Here temporarily
-    implementation 'com.github.KotlinGeekDev.NostrPostr:nostrpostrlib:e6e4c05b75'
+    implementation 'com.github.KotlinGeekDev.NostrPostr:nostrpostrlib:a29a69c373'
 
     implementation ('com.github.KotlinGeekDev.kostr:kostr-android:0.1-pre-alpha-8'){
         exclude group:'fr.acinq.secp256k1', module: 'secp256k1-kmp-jni-jvm-mingw'
