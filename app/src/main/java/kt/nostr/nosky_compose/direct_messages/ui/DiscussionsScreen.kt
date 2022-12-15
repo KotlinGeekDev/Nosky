@@ -23,12 +23,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bumble.appyx.navmodel.backstack.BackStack
-import com.bumble.appyx.navmodel.backstack.operation.push
 import com.bumble.appyx.navmodel.backstack.operation.singleTop
 import kt.nostr.nosky_compose.BottomNavigationBar
+import kt.nostr.nosky_compose.common_components.theme.NoskycomposeTheme
 import kt.nostr.nosky_compose.direct_messages.Models.Person
 import kt.nostr.nosky_compose.navigation.structure.Destination
-import kt.nostr.nosky_compose.common_components.theme.NoskycomposeTheme
 
 
 @Composable
@@ -56,7 +55,9 @@ fun Discussions(navController: BackStack<Destination>) {
                     isLatestMessageMine = index.mod(2) == 0,
                     onDiscussionClick = {
 
-                        navController.push(Destination.Discussion)
+//                        navController.push(
+//                            Destination.Discussion
+//                        )
 //                    navController.navigate("message"){
 //
 //                        navController.currentDestination?.route?.let { route ->
