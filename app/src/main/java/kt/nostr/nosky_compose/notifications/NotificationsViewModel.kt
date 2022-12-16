@@ -20,20 +20,21 @@ sealed class NotificationsUiState() {
 class NotificationsViewModel(): ViewModel(){
 
     private val _uiState: MutableStateFlow<NotificationsUiState> =
-        MutableStateFlow(NotificationsUiState.Empty)
+        MutableStateFlow(NotificationsUiState.Loading)
     val uiState = _uiState.asStateFlow()
 
     private val notificationsCache: MutableList<Post> = mutableListOf()
 
     fun fetchNotifications() {
-        _uiState.value = NotificationsUiState.Loading
+
         viewModelScope.launch {
+            _uiState.value = NotificationsUiState.Loading
             delay(3000)
             notificationsCache.addAll(opsList)
             if (notificationsCache.isEmpty()){
                 _uiState.update { NotificationsUiState.Empty }
             } else {
-                _uiState.update { NotificationsUiState.Success(opsList) }
+                _uiState.update { NotificationsUiState.Success(notificationsCache) }
             }
 
         }

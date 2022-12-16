@@ -1,6 +1,5 @@
 package kt.nostr.nosky_compose.common_components.ui
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
@@ -19,7 +18,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -30,10 +28,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.coil.CoilImage
-import com.skydoves.landscapist.components.rememberImageComponent
-import com.skydoves.landscapist.palette.PalettePlugin
-import com.skydoves.landscapist.palette.rememberPaletteState
-import com.skydoves.landscapist.placeholder.shimmer.ShimmerPlugin
 import kt.nostr.nosky_compose.R
 import kt.nostr.nosky_compose.common_components.theme.NoskycomposeTheme
 import kt.nostr.nosky_compose.home.backend.Post
@@ -110,7 +104,6 @@ fun PostView(modifier: Modifier = Modifier,
             TweetAndImage(post = viewingPost.textContent, containsImage = containsImage)
             if (viewingPost.quotedPost != null)
                 QuotedPost(modifier = Modifier
-                    //.fillMaxWidth()
                     .border(
                         border = BorderStroke(2.dp, MaterialTheme.colors.onSurface),
                         shape = RoundedCornerShape(15.dp)
@@ -160,18 +153,13 @@ private fun UserAvatar(modifier: Modifier = Modifier,
                    userImage: Any = R.drawable.ic_launcher_foreground,
                    showProfile:(() -> Unit)? = null) {
 
-    var bitmapPalette by rememberPaletteState(value = null)
-
-    val targetColor by animateColorAsState(
-        targetValue = Color(bitmapPalette?.lightMutedSwatch?.rgb ?: Color.Blue.toArgb())
-    )
 
     CoilImage(
         imageModel = { userImage },
         modifier = Modifier
             .size(50.dp)
             .clip(shape = RoundedCornerShape(25.dp))
-            .border(3.dp, color = targetColor, CircleShape)
+            .border(3.dp, color = Color.Gray, CircleShape)
             .then(modifier)
             //.background(Color.Cyan)
             .aspectRatio(1f)
@@ -183,38 +171,9 @@ private fun UserAvatar(modifier: Modifier = Modifier,
         imageOptions = ImageOptions(
             contentScale = ContentScale.Fit,
             contentDescription = ""
-        ),
-        component = rememberImageComponent {
-            +ShimmerPlugin(
-                baseColor = MaterialTheme.colors.surface,
-                highlightColor = Color.Gray
-            )
-            +PalettePlugin(
-                imageModel = userImage,
-                paletteLoadedListener = {
-                    bitmapPalette = it
-                }
-            )
-        }
-    )
+        )
 
-//    Image(
-//        painter = userImage as Painter,
-//        contentDescription = "",
-//        modifier = Modifier
-//            .size(50.dp)
-//            .clip(shape = RoundedCornerShape(25.dp))
-//            .then(modifier)
-//            //.background(Color.Cyan)
-//            .aspectRatio(1f)
-//            .clickable {
-//                if (showProfile != null) {
-//                    showProfile()
-//                }
-//            },
-//        contentScale = ContentScale.Fit,
-//        //colorFilter = ColorFilter.tint(LocalContentColor.current.copy(alpha = LocalContentAlpha.current))
-//    )
+    )
 
 }
 
@@ -237,7 +196,6 @@ private fun NameAndUserName(
         derivedStateOf { timeAgoFrom(publicationTime) }
     }
     Row(
-        //horizontalArrangement = ,
         verticalAlignment = Alignment.CenterVertically
     ) {
         ThemedText(
@@ -284,15 +242,6 @@ private fun TweetAndImage(modifier: Modifier = Modifier,
                 contentScale = ContentScale.Fit
             )
         )
-//        Image(
-//            painter = painterResource(id = R.drawable.ic_launcher_foreground),
-//            contentDescription = "",
-//            modifier = Modifier
-//                //.height(170.dp)
-//                .fillMaxWidth()
-//                .clip(shape = RoundedCornerShape(2.dp)),
-//            contentScale = ContentScale.Fit
-//        )
     }
 
 }

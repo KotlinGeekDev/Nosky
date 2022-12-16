@@ -2,7 +2,6 @@ package kt.nostr.nosky_compose.profile.ui
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
@@ -25,7 +24,6 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
@@ -40,10 +38,6 @@ import com.bumble.appyx.navmodel.backstack.operation.push
 import com.bumble.appyx.navmodel.backstack.operation.singleTop
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.coil.CoilImage
-import com.skydoves.landscapist.components.rememberImageComponent
-import com.skydoves.landscapist.palette.PalettePlugin
-import com.skydoves.landscapist.palette.rememberPaletteState
-import com.skydoves.landscapist.placeholder.shimmer.ShimmerPlugin
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Envelope
@@ -120,7 +114,11 @@ fun ProfileView(modifier: Modifier = Modifier,
 
         val scrollOffset: Float by remember {
             derivedStateOf {
-                min(1f, scrollState.firstVisibleItemIndex*200/delta)
+                if (isProfileMine){
+                    0f
+                } else {
+                    min(1f, scrollState.firstVisibleItemIndex*200/delta)
+                }
                // min(nestedScrollState.value/delta, 1f)
 
             }
@@ -415,21 +413,16 @@ private fun ProfileDescription(modifier: Modifier = Modifier,
 
 
 @Composable
-internal fun Avatar(modifier: Modifier = Modifier, profileImageUrl: String = "") {
+internal fun Avatar(modifier: Modifier = Modifier, profileImageUrl: () -> String = { ""}) {
 
 
     val profileImage: Any = remember {
-        profileImageUrl.ifBlank { R.drawable.nosky_logo }
+        profileImageUrl().ifBlank { R.drawable.nosky_logo }
     }
-    var bitmapPalette by rememberPaletteState(value = null)
 
 //    ResourcesCompat.getDrawable(
 //        context.resources, R.drawable.nosky_logo, context.theme)
 
-    val targetColor by animateColorAsState(
-        targetValue =
-            Color(bitmapPalette?.lightMutedSwatch?.rgb ?: Color.Blue.toArgb())
-    )
 
     CoilImage(
         imageModel = { profileImage },
@@ -437,26 +430,14 @@ internal fun Avatar(modifier: Modifier = Modifier, profileImageUrl: String = "")
             .clip(shape = RoundedCornerShape(40.dp))
             .layoutId("avatar")
             .border(
-                border = BorderStroke(width = 3.dp, color = targetColor),
+                border = BorderStroke(width = 3.dp, color = Color.Gray),
                 shape = CircleShape
             )
             .then(modifier),
         imageOptions = ImageOptions(
             contentScale = ContentScale.Fit,
             contentDescription = "Profile Image"
-        ),
-        component = rememberImageComponent {
-            +ShimmerPlugin(
-                baseColor = MaterialTheme.colors.surface,
-                highlightColor = Color.Gray
-            )
-            +PalettePlugin(
-                imageModel = profileImageUrl,
-                paletteLoadedListener = {
-                    bitmapPalette = it
-                }
-            )
-        }
+        )
 
     )
 

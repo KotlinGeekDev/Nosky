@@ -1,20 +1,20 @@
 package kt.nostr.nosky_compose.common_components.ui
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -22,12 +22,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.palette.graphics.Palette
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.coil.CoilImage
-import com.skydoves.landscapist.components.rememberImageComponent
-import com.skydoves.landscapist.palette.PalettePlugin
-import com.skydoves.landscapist.placeholder.shimmer.ShimmerPlugin
 import kt.nostr.nosky_compose.R
 import kt.nostr.nosky_compose.common_components.theme.NoskycomposeTheme
 import kt.nostr.nosky_compose.utility_functions.datetime.timeAgoFrom
@@ -83,22 +79,13 @@ private fun Avatar(modifier: Modifier = Modifier,
                    userImage: Any = R.drawable.ic_launcher_foreground,
                    showProfile:(() -> Unit)? = null) {
 
-    var bitmapPalette by remember {
-        mutableStateOf<Palette?>(null)
-    }
-
-
-    val targetColor by animateColorAsState(
-        targetValue =
-        Color(bitmapPalette?.lightMutedSwatch?.rgb ?: Color.Blue.toArgb())
-    )
 
     CoilImage(
         imageModel = { userImage },
         modifier = Modifier
             .size(32.dp)
             .clip(shape = RoundedCornerShape(25.dp))
-            .border(3.dp, color = targetColor, CircleShape)
+            .border(3.dp, color = Color.Gray, CircleShape)
             .then(modifier)
             //.background(Color.Cyan)
             .aspectRatio(1f)
@@ -110,38 +97,8 @@ private fun Avatar(modifier: Modifier = Modifier,
         imageOptions = ImageOptions(
             //contentScale = ContentScale.Crop,
             contentDescription = ""
-        ),
-        component = rememberImageComponent {
-            +ShimmerPlugin(
-                baseColor = MaterialTheme.colors.surface,
-                highlightColor = Color.Gray
-            )
-            +PalettePlugin(
-                imageModel = userImage,
-                paletteLoadedListener = {
-                    bitmapPalette = it
-                }
-            )
-        }
+        )
     )
-
-//    Image(
-//        painter = userImage as Painter,
-//        contentDescription = "",
-//        modifier = Modifier
-//            .size(32.dp)
-//            .clip(shape = RoundedCornerShape(25.dp))
-//            .then(modifier)
-//            //.background(Color.Cyan)
-//            .aspectRatio(1f)
-//            .clickable {
-//                if (showProfile != null) {
-//                    showProfile()
-//                }
-//            },
-//        //contentScale = ContentScale.Crop,
-//        //colorFilter = ColorFilter.tint(LocalContentColor.current.copy(alpha = LocalContentAlpha.current))
-//    )
 
 }
 

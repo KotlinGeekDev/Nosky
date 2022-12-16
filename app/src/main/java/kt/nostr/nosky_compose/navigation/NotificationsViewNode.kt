@@ -25,6 +25,7 @@ class NotificationsViewNode(buildContext: BuildContext,
 
         val notificationsViewModel = viewModel<NotificationsViewModel>()
         val uiState by notificationsViewModel.uiState.collectAsState()
+        //notificationsViewModel.fetchNotifications()
         DisposableEffect(key1 = uiState){
             notificationsViewModel.fetchNotifications()
             onDispose { notificationsViewModel.viewModelScope.cancel() }

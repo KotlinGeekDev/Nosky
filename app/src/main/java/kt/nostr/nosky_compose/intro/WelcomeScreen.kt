@@ -25,16 +25,18 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import kt.nostr.nosky_compose.R
-import kt.nostr.nosky_compose.common_components.ui.ThemedText
 import kt.nostr.nosky_compose.common_components.theme.NoskycomposeTheme
 import kt.nostr.nosky_compose.common_components.theme.Purple500
 import kt.nostr.nosky_compose.common_components.theme.Purple700
+import kt.nostr.nosky_compose.common_components.ui.ThemedText
 import kt.nostr.nosky_compose.settings.backend.AppThemeState
 
 
@@ -105,6 +107,7 @@ fun WelcomeScreen(appThemeState: AppThemeState,
                 data = privKey(),
                 fieldKeyboardOptions = keyboardOptions,
                 fieldKeyboardActions = privKeyFieldActions,
+                visualTransformation = PasswordVisualTransformation(),
                 onDataUpdate = { updatePrivKey(it) }
             )
             Spacer(modifier = Modifier.height(20.dp))
@@ -192,6 +195,9 @@ private fun KeyEntryField(
         KeyboardOptions() },
     fieldKeyboardActions: KeyboardActions = remember {
         KeyboardActions() },
+    visualTransformation: VisualTransformation = remember {
+        VisualTransformation.None
+    },
     onDataUpdate: (String) -> Unit
     ) {
 
@@ -215,6 +221,7 @@ private fun KeyEntryField(
                 modifier = Modifier.clickable {},
                 tint = Color.White
             ) },
+            visualTransformation = visualTransformation,
             keyboardOptions = fieldKeyboardOptions,
             keyboardActions = fieldKeyboardActions,
             singleLine = true,
