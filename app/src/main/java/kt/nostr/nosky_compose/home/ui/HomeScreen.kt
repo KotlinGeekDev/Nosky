@@ -19,19 +19,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.bumble.appyx.navmodel.backstack.BackStack
 import com.bumble.appyx.navmodel.backstack.operation.push
 import com.bumble.appyx.navmodel.backstack.operation.singleTop
+import kotlinx.coroutines.cancel
 import kt.nostr.nosky_compose.BottomNavigationBar
+import kt.nostr.nosky_compose.common_components.models.PostList
+import kt.nostr.nosky_compose.common_components.theme.NoskycomposeTheme
 import kt.nostr.nosky_compose.common_components.ui.DotsFlashing
 import kt.nostr.nosky_compose.common_components.ui.PostView
-import kt.nostr.nosky_compose.common_components.theme.NoskycomposeTheme
 import kt.nostr.nosky_compose.home.backend.FeedViewModel
 import kt.nostr.nosky_compose.home.backend.Post
 import kt.nostr.nosky_compose.home.backend.opsList
 import kt.nostr.nosky_compose.navigation.structure.Destination
-import kt.nostr.nosky_compose.common_components.models.PostList
 import kt.nostr.nosky_compose.profile.model.Profile
 
 //TODO: Replace double AnimatedVisibility below with single AnimatedContent.
@@ -50,8 +52,9 @@ fun Home(modifier: Modifier = Modifier,
 
     DisposableEffect(key1 = feed){
         feedViewModel.getUpdateFeed()
-        onDispose {  }
+        onDispose { feedViewModel.viewModelScope.cancel() }
     }
+
 
     val scaffoldState = rememberScaffoldState()
 
@@ -85,11 +88,11 @@ fun HomeView(
         scaffoldState = scaffoldState,
         topBar = {
             FeedProfileImage(
-                showProfile = { navigator.push(Destination.MyProfile()) }
+                showProfile = { navigator.push(Destination.ProfileInfo()) }
             )
         },
         bottomBar = {
-            BottomNavigationBar(backStackNavigator = navigator, isNewNotification = false)
+            BottomNavigationBar(backStackNavigator = navigator, isNewNotification = true)
         },
         content = { contentPadding ->
             if (wantsToPost) NewPostView(
@@ -165,16 +168,20 @@ fun Content(modifier: Modifier = Modifier,
     LazyColumn(state = listState,
             modifier = Modifier.then(modifier)){
 
-            itemsIndexed(items = list.items, key = { index, post -> index}){ postIndex, post ->
+            itemsIndexed(items = list.items, key = { index, post -> post.postId}){ postIndex, post ->
                 PostView(
                     viewingPost = post,
-                    isUserVerified = postIndex.mod(2) != 0,
-                    containsImage = postIndex.mod(2) == 0,
-                    isRelayRecommendation = postIndex == 0,
+                    isUserVerified = false,
+                    //containsImage = postIndex.mod(2) == 0,
+                    //isRelayRecommendation = postIndex == 0,
                     showProfile = {
                          navigator.push(
-                             Destination.MyProfile(
-                                 profile = Profile(pubKey = post.userKey, userName = post.username)
+                             Destination.ProfileInfo(
+                                 profile = Profile(
+                                     pubKey = post.user.pubKey,
+                                     userName = post.user.username,
+                                     profileImage = post.user.image,
+                                    bio = post.user.bio)
                              )
                          )
                     },

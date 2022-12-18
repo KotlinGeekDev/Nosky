@@ -131,7 +131,7 @@ fun BottomNavigationBar(modifier: Modifier = Modifier,
                 selectedContentColor = Color.White,
                 unselectedContentColor = Color.White.copy(0.4f),
                 selected = when {
-                    currentDestination is Destination.MyProfile && item is Destination.MyProfile -> {
+                    currentDestination is Destination.ProfileInfo && item is Destination.ProfileInfo -> {
                         currentDestination.profile == null
                     }
                     else -> {

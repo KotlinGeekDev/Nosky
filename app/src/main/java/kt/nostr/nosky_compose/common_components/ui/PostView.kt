@@ -1,7 +1,7 @@
 package kt.nostr.nosky_compose.common_components.ui
 
+import android.os.Build
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -13,24 +13,34 @@ import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Comment
 import androidx.compose.material.icons.filled.Reply
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.ImageLoader
+import coil.decode.GifDecoder
+import coil.decode.ImageDecoderDecoder
+import coil.decode.SvgDecoder
+import coil.decode.VideoFrameDecoder
+import coil.request.CachePolicy
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.coil.CoilImage
 import kt.nostr.nosky_compose.R
 import kt.nostr.nosky_compose.common_components.theme.NoskycomposeTheme
 import kt.nostr.nosky_compose.home.backend.Post
+import kt.nostr.nosky_compose.home.backend.User
 import kt.nostr.nosky_compose.utility_functions.datetime.timeAgoFrom
 import kt.nostr.nosky_compose.utility_functions.misc.currentSystemUnixTimeStamp
 
@@ -46,12 +56,14 @@ import kt.nostr.nosky_compose.utility_functions.misc.currentSystemUnixTimeStamp
 @Composable
 fun PostView(modifier: Modifier = Modifier,
              viewingPost: Post = Post(
-                 username = "Satoshi Nakamoto",
-                 userKey = "8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f",
+                 user = User(
+                     username = "Satoshi Nakamoto",
+                     pubKey = "8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f"
+                 ),
                  textContent = "One of the @user user's very very long messages with tag #new. containing a link to nostr.com",
                  quotedPost = Post()
              ),
-             isUserVerified: Boolean = true,
+             isUserVerified: Boolean = false,
              containsImage: Boolean = false,
              isPostLiked: Boolean = false,
              isPostBoosted: Boolean = false,
@@ -59,18 +71,18 @@ fun PostView(modifier: Modifier = Modifier,
              onPostClick: (Post) -> Unit = {},
              onReplyTap: () -> Unit = {},
              showProfile: (() -> Unit)? = null) {
-    var likes by remember {
-        mutableStateOf(0)
-    }
-    var numBoosts by remember {
-        mutableStateOf(0)
-    }
-    var postLiked by remember {
-        mutableStateOf(isPostLiked)
-    }
-    var postBoosted by remember {
-        mutableStateOf(isPostBoosted)
-    }
+//    var likes by remember {
+//        mutableStateOf(0)
+//    }
+//    var numBoosts by remember {
+//        mutableStateOf(0)
+//    }
+//    var postLiked by remember {
+//        mutableStateOf(isPostLiked)
+//    }
+//    var postBoosted by remember {
+//        mutableStateOf(isPostBoosted)
+//    }
 
 
     Row(modifier = Modifier
@@ -79,7 +91,7 @@ fun PostView(modifier: Modifier = Modifier,
         .then(modifier)) {
         Column() {
             UserAvatar(
-                //userImage = R.drawable.nosky_logo,
+                userImage = viewingPost.user.image,
                 showProfile = showProfile
             )
             Spacer(modifier = Modifier.height(5.dp))
@@ -97,11 +109,14 @@ fun PostView(modifier: Modifier = Modifier,
         Column {
             //GrayText(text = "You liked")
             NameAndUserName(
-                userName = viewingPost.username,
-                userPubkey = viewingPost.userKey, isUserVerified, showProfile = showProfile
+                userName = viewingPost.user.username,
+                userPubkey = viewingPost.user.pubKey,
+                isUserVerified,
+                publicationTime = viewingPost.timestamp,
+                showProfile = showProfile
             )
             Spacer(modifier = Modifier.size(1.dp))
-            TweetAndImage(post = viewingPost.textContent, containsImage = containsImage)
+            TweetAndImage(post = viewingPost.textContent, imageLinks = viewingPost.imageLinks)
             if (viewingPost.quotedPost != null)
                 QuotedPost(modifier = Modifier
                     .border(
@@ -110,10 +125,10 @@ fun PostView(modifier: Modifier = Modifier,
                     )
                     .padding(all = 2.dp)
                     .fillMaxWidth(),
-                    userName = viewingPost.quotedPost.username,
-                    userPubkey = viewingPost.quotedPost.userKey,
+                    userName = viewingPost.quotedPost.user.username,
+                    userPubkey = viewingPost.quotedPost.user.pubKey,
                     post = viewingPost.quotedPost.textContent,
-                    containsImage = true,
+                    containsImage = viewingPost.quotedPost.imageLinks.isNotEmpty(),
                     onPostClick = { onPostClick(viewingPost.quotedPost) })
 
             if (isRelayRecommendation) {
@@ -121,27 +136,29 @@ fun PostView(modifier: Modifier = Modifier,
                 RelayRecommendation()
                 Spacer(modifier = Modifier.height(5.dp))
             }
-            TweetActions(numLikes = likes, numberOfBoosts = numBoosts,
-                isPostLiked = postLiked,
-                isPostBoosted = postBoosted,
-                onPostLike = {
-                    if (postLiked) {
-                        likes -= 1
-                        postLiked = !postLiked
-                    } else {
-                        likes += 1
-                        postLiked = !postLiked
-                    }
-                },
-                onPostBoost = {
-                    if (postBoosted) {
-                        numBoosts -= 1
-                        postBoosted = !postBoosted
-                    } else {
-                        numBoosts += 1
-                        postBoosted = !postBoosted
-                    }
-                },
+            TweetActions(
+//                numLikes = likes,
+//                numberOfBoosts = numBoosts,
+//                isPostLiked = postLiked,
+//                isPostBoosted = postBoosted,
+//                onPostLike = {
+//                    if (postLiked) {
+//                        likes -= 1
+//                        postLiked = !postLiked
+//                    } else {
+//                        likes += 1
+//                        postLiked = !postLiked
+//                    }
+//                },
+//                onPostBoost = {
+//                    if (postBoosted) {
+//                        numBoosts -= 1
+//                        postBoosted = !postBoosted
+//                    } else {
+//                        numBoosts += 1
+//                        postBoosted = !postBoosted
+//                    }
+//                },
                 onPostReply = onReplyTap
             )
         }
@@ -150,12 +167,55 @@ fun PostView(modifier: Modifier = Modifier,
 
 @Composable
 private fun UserAvatar(modifier: Modifier = Modifier,
-                   userImage: Any = R.drawable.ic_launcher_foreground,
+                   userImage: String = "",
                    showProfile:(() -> Unit)? = null) {
 
+    val context = LocalContext.current
+    val imageLoader = ImageLoader.Builder(context)
+        .memoryCachePolicy(CachePolicy.ENABLED)
+        .networkCachePolicy(CachePolicy.ENABLED)
+        .allowHardware(false)
+        .components {
+            if (Build.VERSION.SDK_INT >= 28){
+                add(ImageDecoderDecoder.Factory())
+            } else {
+                add(GifDecoder.Factory())
+            }
+            add(SvgDecoder.Factory())
+            add(VideoFrameDecoder.Factory())
+        }
+        .build()
+
+    val loadedImage: Any = remember {
+        userImage.ifBlank { R.drawable.ic_launcher_foreground }
+    }
+
+//    GlideImage(imageModel = { loadedImage },
+//        modifier = Modifier
+//            .size(50.dp)
+//            .clip(shape = RoundedCornerShape(25.dp))
+//            .border(3.dp, color = Color.Gray, CircleShape)
+//            .then(modifier)
+//            //.background(Color.Cyan)
+//            .aspectRatio(1f)
+//            .clickable {
+//                if (showProfile != null) {
+//                    showProfile()
+//                }
+//            },
+//        imageOptions = ImageOptions(
+//            contentScale = ContentScale.Fit,
+//            contentDescription = ""
+//        ),
+//        glideRequestType = GlideRequestType.BITMAP,
+//        requestOptions = {
+//            RequestOptions().onlyRetrieveFromCache(true)
+//        }
+//    )
 
     CoilImage(
-        imageModel = { userImage },
+        imageModel = { loadedImage },
+        imageLoader = { imageLoader },
         modifier = Modifier
             .size(50.dp)
             .clip(shape = RoundedCornerShape(25.dp))
@@ -219,52 +279,74 @@ private fun NameAndUserName(
     }
 }
 
+//TODO: Add handling for rendering content if it is an image.
 @Composable
 private fun TweetAndImage(modifier: Modifier = Modifier,
                           post: String = "",
-                          containsImage: Boolean = false) {
-    LinkifyText(
-        text = post,
-        style = TextStyle(fontSize = 14.sp),
-        color = MaterialTheme.colors.onSurface,
-        overflow = TextOverflow.Ellipsis
-    )
-    Spacer(modifier = Modifier.height(10.dp))
-    if (containsImage) {
-        CoilImage(
-            imageModel = { R.drawable.ic_launcher_foreground },
-            modifier = Modifier
-                //.height(170.dp)
-                .fillMaxWidth()
-                .clip(shape = RoundedCornerShape(2.dp)),
-            imageOptions = ImageOptions(
-                contentDescription = "",
-                contentScale = ContentScale.Fit
-            )
+                          imageLinks: List<String> = emptyList()) {
+
+    val context = LocalContext.current
+    val imageLoader = ImageLoader.Builder(context)
+        .memoryCachePolicy(CachePolicy.ENABLED)
+        .networkCachePolicy(CachePolicy.ENABLED)
+        .components {
+            if (Build.VERSION.SDK_INT >= 28){
+                add(ImageDecoderDecoder.Factory())
+            } else {
+                add(GifDecoder.Factory())
+            }
+            add(SvgDecoder.Factory())
+            add(VideoFrameDecoder.Factory())
+        }
+        .build()
+    Column {
+        LinkifyText(
+            text = post,
+            style = TextStyle(fontSize = 14.sp),
+            color = MaterialTheme.colors.onSurface,
+            overflow = TextOverflow.Ellipsis
         )
+        Spacer(modifier = Modifier.height(3.dp))
+        if (imageLinks.isNotEmpty()) {
+            CoilImage(
+                imageModel = { imageLinks.first() },
+                imageLoader = { imageLoader },
+                modifier = Modifier
+//                    .height(170.dp)
+                    .fillMaxWidth()
+                    .clip(shape = RoundedCornerShape(2.dp)),
+                imageOptions = ImageOptions(
+                    contentDescription = "",
+                    contentScale = ContentScale.Fit
+                ),
+                previewPlaceholder = R.drawable.ic_launcher_foreground
+            )
+        } else {
+            Spacer(modifier = Modifier.size(1.dp))
+        }
     }
 
 }
 
 @Composable
 internal fun TweetActions(numberOfComments: Int = 0,
-                         numberOfBoosts: Int = 0,
-                         numLikes: Int = 0,
-                         isPostBoosted: Boolean,
-                         isPostLiked: Boolean,
-                         onPostBoost:() -> Unit,
-                         onPostLike:() -> Unit,
+//                         numberOfBoosts: Int = 0,
+//                         numLikes: Int = 0,
+//                         isPostBoosted: Boolean,
+//                         isPostLiked: Boolean,
+//                         onPostBoost:() -> Unit,
+//                         onPostLike:() -> Unit,
                           onPostReply:() -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(end = 20.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.SpaceAround
     ) {
         val imageSize = 20.dp
-        val likeIcon = if (isPostLiked) R.drawable.ic_liked else R.drawable.ic_like
-        val boostIcon = if (isPostBoosted) R.drawable.ic_retweeted else R.drawable.ic_retweet
+//        val likeIcon = if (isPostLiked) R.drawable.ic_liked else R.drawable.ic_like
+//        val boostIcon = if (isPostBoosted) R.drawable.ic_retweeted else R.drawable.ic_retweet
         Row {
             Icon(
                 imageVector = Icons.Default.Comment,
@@ -275,30 +357,30 @@ internal fun TweetActions(numberOfComments: Int = 0,
             GrayText(text = numberOfComments.toString())
         }
 
-        Row(modifier = Modifier) {
-            Image(
-                painter = painterResource(id = likeIcon),
-                contentDescription = "",
-                modifier = Modifier
-                    .size(imageSize)
-                    .clickable { onPostLike() }
-            )
-
-            Spacer(modifier = Modifier.size(4.dp))
-            GrayText(text = numLikes.toString())
-        }
-
-        Row(modifier = Modifier) {
-            Image(
-                painter = painterResource(id = boostIcon),
-                contentDescription = "",
-                modifier = Modifier
-                    .size(imageSize)
-                    .clickable { onPostBoost() }
-            )
-            Spacer(modifier = Modifier.size(4.dp))
-            GrayText(text = numberOfBoosts.toString())
-        }
+//        Row(modifier = Modifier) {
+//            Image(
+//                painter = painterResource(id = likeIcon),
+//                contentDescription = "",
+//                modifier = Modifier
+//                    .size(imageSize)
+//                    .clickable { onPostLike() }
+//            )
+//
+//            Spacer(modifier = Modifier.size(4.dp))
+//            GrayText(text = numLikes.toString())
+//        }
+//
+//        Row(modifier = Modifier) {
+//            Image(
+//                painter = painterResource(id = boostIcon),
+//                contentDescription = "",
+//                modifier = Modifier
+//                    .size(imageSize)
+//                    .clickable { onPostBoost() }
+//            )
+//            Spacer(modifier = Modifier.size(4.dp))
+//            GrayText(text = numberOfBoosts.toString())
+//        }
 
         Icon(
             imageVector = Icons.Default.Reply,

@@ -1,5 +1,7 @@
 package kt.nostr.nosky_compose.common_components.ui
 
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -10,8 +12,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -19,10 +23,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.bumble.appyx.navmodel.backstack.BackStack
+import com.google.accompanist.placeholder.PlaceholderHighlight
+import com.google.accompanist.placeholder.material.placeholder
+import com.google.accompanist.placeholder.material.shimmer
+import kotlinx.coroutines.cancel
 import kt.nostr.nosky_compose.BottomNavigationBar
 import kt.nostr.nosky_compose.common_components.theme.NoskycomposeTheme
 import kt.nostr.nosky_compose.home.backend.Post
+import kt.nostr.nosky_compose.home.backend.PostViewModel
+import kt.nostr.nosky_compose.home.backend.RepliesUiState
 import kt.nostr.nosky_compose.home.ui.CustomDivider
 import kt.nostr.nosky_compose.home.ui.PostReply
 import kt.nostr.nosky_compose.navigation.structure.Destination
@@ -37,14 +49,20 @@ import kt.nostr.nosky_compose.profile.ui.ProfilePosts
 fun PostScreen(
     currentPost: Post = Post(),
     goBack: () -> Unit, navigator: BackStack<Destination>) {
+
+    val postViewModel = viewModel<PostViewModel>()
+    val repliesUiState by postViewModel.repliesUiState.collectAsState()
+    DisposableEffect(key1 = repliesUiState){
+        postViewModel.getRepliesForPost(postId = currentPost.postId)
+        onDispose {
+            postViewModel.viewModelScope.cancel("Replies fetching stopped.")
+        }
+    }
+
     BackHandler {
         goBack()
     }
     val userPost = remember {
-//        Post(
-//            textContent = "One of the user's very very long messages. " +
-//                    "from 8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f"
-//        )
         currentPost
     }
 
@@ -119,7 +137,10 @@ fun PostScreen(
 
             top.linkTo(mainPost.bottom)
             bottom.linkTo(bottomBar.top, margin = 10.dp)
-        })
+        },
+        uiState = repliesUiState,
+        onForceRefresh = { postViewModel.getRepliesForPost(currentPost.postId) }
+        )
 
         BottomNavigationBar(modifier = Modifier.constrainAs(bottomBar){
             start.linkTo(parent.start)
@@ -131,9 +152,55 @@ fun PostScreen(
 
 }
 
+
 @Composable
-fun Replies(modifier: Modifier = Modifier) {
-    ProfilePosts(modifier = modifier, onPostClick = {  })
+fun Replies(
+    modifier: Modifier = Modifier,
+    uiState: RepliesUiState,
+    onForceRefresh: () -> Unit = {}) {
+
+    when(uiState){
+        is RepliesUiState.LoadingError -> {
+            Box(modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                //CircularProgressIndicator(Modifier.align(Alignment.Center))
+                Column(modifier = Modifier.align(Alignment.Center)) {
+                    Text(text = "Error loading replies: ${uiState.error.message}")
+                    Button(
+                        modifier = Modifier.align(CenterHorizontally),
+                        onClick = onForceRefresh
+                    ) {
+                        Text(text = "Try again")
+                    }
+                }
+
+                Toast.makeText(
+                    LocalContext.current,
+                    "Error: ${uiState.error.message}",
+                    Toast.LENGTH_SHORT).show()
+            }
+            Log.e("NoskyApp", uiState.error.message, uiState.error)
+        }
+        else -> {
+            ProfilePosts(
+                modifier = modifier
+                    .placeholder(
+                        visible = uiState == RepliesUiState.Loading,
+                        highlight = PlaceholderHighlight.shimmer()
+                    ),
+                listOfPosts = if (uiState is RepliesUiState.Loaded) uiState.replies else emptyList(),
+                onPostClick = {  })
+            if (uiState == RepliesUiState.Loading){
+
+                Toast.makeText(
+                    LocalContext.current,
+                    "Loading replies",
+                    Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
 }
 
 @Preview
