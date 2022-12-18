@@ -8,7 +8,6 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import fr.acinq.secp256k1.Secp256k1
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,6 +18,7 @@ import kt.nostr.nosky_compose.NoskyApplication
 import kt.nostr.nosky_compose.profile.LocalProfileDataStore
 import kt.nostr.nosky_compose.profile.ProfileProvider
 import kt.nostr.nosky_compose.utility_functions.misc.toHexString
+import ktnostr.crypto.CryptoUtils
 import java.security.SecureRandom
 
 
@@ -39,8 +39,6 @@ class LocalProfileViewModel(
     private val profileStore: ProfileProvider
 ): ViewModel() {
 
-    //Re-enable when the context cleanup issue in kostr-android is solved.
-//    private val cryptoContext = CryptoUtils.get()
 
 //    private val internalPubKey = MutableStateFlow("")
 //    val pubKey = internalPubKey.asStateFlow()
@@ -55,6 +53,8 @@ class LocalProfileViewModel(
 
     private val internalProfile = MutableStateFlow(Profile())
     val newUserProfile = internalProfile.asStateFlow()
+
+
 
 
 //    val stateProfile = combine(flow = pubKey, flow2 = privKey){ newPub, newPriv ->
@@ -91,8 +91,10 @@ class LocalProfileViewModel(
 
     fun generateProfile() {
         viewModelScope.launch(Dispatchers.Default) {
-            val privKey  = generatePrivKey()
-            val pubKey = Secp256k1.get().pubkeyCreate(privKey).drop(1).take(32).toByteArray()
+//            val privKey  = generatePrivKey()
+//            val pubKey = Secp256k1.get().pubkeyCreate(privKey).drop(1).take(32).toByteArray()
+            val privKey = CryptoUtils.generatePrivateKey()
+            val pubKey = CryptoUtils.getPublicKey(privKey)
             internalProfile.update { currentProfile ->
                 currentProfile.copy(privKey = privKey.toHexString())
             }

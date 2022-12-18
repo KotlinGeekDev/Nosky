@@ -11,9 +11,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import kt.nostr.nosky_compose.home.backend.Post
-import kt.nostr.nosky_compose.common_components.ui.QuotedPost
 import kt.nostr.nosky_compose.common_components.theme.NoskycomposeTheme
+import kt.nostr.nosky_compose.common_components.ui.QuotedPost
+import kt.nostr.nosky_compose.home.backend.Post
 
 @Composable
 fun PostReply(
@@ -54,8 +54,8 @@ fun PostReply(
                  modifier = Modifier
                      .fillMaxWidth()
                      .padding(bottom = 10.dp),
-                 userName = originalPost.username,
-                 userPubkey = originalPost.userKey,
+                 userName = originalPost.user.username,
+                 userPubkey = originalPost.user.pubKey,
                  post = originalPost.textContent,
                  onPostClick = {})
             Spacer(modifier = Modifier.height(10.dp))

@@ -70,7 +70,7 @@ class NoskyRootNode(
                     },
                     navigator = backStack)
             }
-            is Destination.MyProfile -> ProfileViewNode(buildContext,
+            is Destination.ProfileInfo -> ProfileViewNode(buildContext,
                 profile = navTarget.profile,
                 navigator = backStack)
             Destination.Notifications -> NotificationsViewNode(buildContext, backStack)
@@ -98,7 +98,7 @@ sealed class Destination(val icon: ImageVector? = null, val title: String) : Par
     class ViewingPost(val clickedPost: Post = Post()) : Destination(title = "")
 
     @Parcelize
-    class MyProfile(val profile: Profile? = null) :
+    class ProfileInfo(val profile: Profile? = null) :
         Destination(icon = Icons.Filled.Person, title = "Profile")
 
     @Parcelize
@@ -119,7 +119,7 @@ sealed class Destination(val icon: ImageVector? = null, val title: String) : Par
 fun bottomNavTargets(): List<Destination> {
     return listOf(
         Destination.Home,
-        Destination.MyProfile(),
+        Destination.ProfileInfo(),
         Destination.Notifications,
 //        Destination.Messages(),
         Destination.Settings

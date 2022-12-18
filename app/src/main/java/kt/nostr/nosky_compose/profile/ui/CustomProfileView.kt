@@ -1,6 +1,7 @@
 package kt.nostr.nosky_compose.profile.ui
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -25,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -33,6 +35,11 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
 import androidx.constraintlayout.compose.Dimension
 import androidx.constraintlayout.compose.layoutId
+import coil.ImageLoader
+import coil.decode.GifDecoder
+import coil.decode.ImageDecoderDecoder
+import coil.decode.SvgDecoder
+import coil.request.CachePolicy
 import com.bumble.appyx.navmodel.backstack.BackStack
 import com.bumble.appyx.navmodel.backstack.operation.push
 import com.bumble.appyx.navmodel.backstack.operation.singleTop
@@ -376,7 +383,7 @@ fun ProfileDetails(
                     },
                 goBack = goBack)
 
-        Avatar()
+        Avatar(profileImageUrl = { user.profileImage })
         ProfileDescription(
             transparency = if (isProfileMine) 1f else alphaProvider,
             user = user,
@@ -420,12 +427,27 @@ internal fun Avatar(modifier: Modifier = Modifier, profileImageUrl: () -> String
         profileImageUrl().ifBlank { R.drawable.nosky_logo }
     }
 
+    val context = LocalContext.current
+    val imageLoader = ImageLoader.Builder(context)
+        .memoryCachePolicy(CachePolicy.ENABLED)
+        .networkCachePolicy(CachePolicy.ENABLED)
+        .components {
+            if (Build.VERSION.SDK_INT >= 28){
+                add(ImageDecoderDecoder.Factory())
+            } else {
+                add(GifDecoder.Factory())
+            }
+            add(SvgDecoder.Factory())
+        }
+        .build()
+
 //    ResourcesCompat.getDrawable(
 //        context.resources, R.drawable.nosky_logo, context.theme)
 
 
     CoilImage(
         imageModel = { profileImage },
+        imageLoader = { imageLoader },
         modifier = Modifier
             .clip(shape = RoundedCornerShape(40.dp))
             .layoutId("avatar")

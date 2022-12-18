@@ -116,10 +116,10 @@ fun NotificationsScreen(
                                 },
                                 showProfile = {
                                     navigator.push(
-                                        Destination.MyProfile(
+                                        Destination.ProfileInfo(
                                             Profile(
-                                                pubKey = post.userKey,
-                                                userName = post.username
+                                                pubKey = post.user.pubKey,
+                                                userName = post.user.username
                                             )
                                         )
                                     )

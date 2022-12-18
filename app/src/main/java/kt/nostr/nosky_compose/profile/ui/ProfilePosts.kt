@@ -33,7 +33,7 @@ fun ProfilePosts(modifier: Modifier = Modifier,
             PostView(
                 viewingPost = post.copy(
                     textContent = "One of the user's very very long messages. " +
-                            "from ${post.userKey}"
+                            "from ${post.user.pubKey}"
                 ),
                 isUserVerified = index.mod(2) != 0,
                 containsImage = index.mod(2) == 0,

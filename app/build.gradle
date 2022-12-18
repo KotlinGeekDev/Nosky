@@ -110,8 +110,9 @@ dependencies {
     implementation "androidx.compose.material:material:$compose_version"
     implementation "androidx.compose.material:material-icons-extended:$compose_version"
     implementation("br.com.devsrsouza.compose.icons.android:font-awesome:1.0.0")
-    //implementation 'androidx.palette:palette:1.0.0'
     implementation 'com.google.accompanist:accompanist-placeholder-material:0.27.0'
+
+    implementation "com.google.android.material:material:1.7.0"
 
 
     // To use constraintlayout in compose
@@ -119,8 +120,11 @@ dependencies {
 
     // Image loading
     implementation "com.github.skydoves:landscapist-coil:2.1.0"
+    implementation "com.github.skydoves:landscapist-glide:2.1.0"
     implementation "com.github.skydoves:landscapist-placeholder:2.1.0"
     implementation "com.github.skydoves:landscapist-palette:2.1.0"
+    implementation "io.coil-kt:coil-svg:2.2.1"
+    implementation "io.coil-kt:coil-video:2.2.1"
 
     implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1'
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.5.1'
