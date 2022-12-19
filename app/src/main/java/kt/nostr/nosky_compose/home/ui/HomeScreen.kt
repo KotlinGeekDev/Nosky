@@ -19,6 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.bumble.appyx.navmodel.backstack.BackStack
@@ -38,6 +40,7 @@ import kt.nostr.nosky_compose.profile.model.Profile
 
 //TODO: Replace double AnimatedVisibility below with single AnimatedContent.
 
+@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun Home(modifier: Modifier = Modifier,
          //showPost: (Post) -> Unit,
@@ -48,11 +51,14 @@ fun Home(modifier: Modifier = Modifier,
 ) {
 
     val feedViewModel: FeedViewModel = viewModel()
-    val feed by feedViewModel.feedContent.collectAsState()
+    val feed by feedViewModel.feedContent.collectAsStateWithLifecycle()
 
     DisposableEffect(key1 = feed){
         feedViewModel.getUpdateFeed()
-        onDispose { feedViewModel.viewModelScope.cancel() }
+        onDispose {
+            feedViewModel.viewModelScope.cancel()
+
+        }
     }
 
 
@@ -168,7 +174,7 @@ fun Content(modifier: Modifier = Modifier,
     LazyColumn(state = listState,
             modifier = Modifier.then(modifier)){
 
-            itemsIndexed(items = list.items, key = { index, post -> post.postId}){ postIndex, post ->
+            itemsIndexed(items = list.items, key = { index, post -> post.postId + index}){ postIndex, post ->
                 PostView(
                     viewingPost = post,
                     isUserVerified = false,

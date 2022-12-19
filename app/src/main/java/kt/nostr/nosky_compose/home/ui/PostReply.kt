@@ -57,6 +57,7 @@ fun PostReply(
                  userName = originalPost.user.username,
                  userPubkey = originalPost.user.pubKey,
                  post = originalPost.textContent,
+                 profileImageLink = originalPost.user.image,
                  onPostClick = {})
             Spacer(modifier = Modifier.height(10.dp))
         },

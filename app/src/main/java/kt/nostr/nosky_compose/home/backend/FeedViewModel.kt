@@ -3,6 +3,7 @@ package kt.nostr.nosky_compose.home.backend
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -35,65 +36,70 @@ class FeedViewModel(): ViewModel() {
     fun getUpdateFeed(){
 
         viewModelScope.launch {
+            if (postCache.isNotEmpty()){
+                Log.i(APP_TAG, "Taking cached events instead. Cache size: ${postCache.size}")
+                //val feed = postCache.distinctBy { it.postId }.sortedByDescending { it.timestamp }
+                //_feedContent.update { postCache.toList() }
+            } else {
 
-            nostrService.getTextEvents()
+                nostrService.getTextEvents()
 
-                .onCompletion { Log.i(APP_TAG,"Text events completed.") }
-                .distinctUntilChanged { old, new ->
-                    old.id.contentEquals(new.id)
-                }
-                .catch { Log.i(APP_TAG,"Caught ${it.message}") }
-                .collect {
-                         eventsCache.add(it)
-                        Log.i(APP_TAG,"Collected event ${it.content} ")
-                }
-
-            Log.i(APP_TAG,"eventsCacheSize: ${eventsCache.size}")
-            delay(2000)
-            nostrService.getProfilesInfo(
-                eventsCache.map { it.pubKey.toHex() }
-            )
-                .onCompletion { Log.i(APP_TAG,"Profiles completed.") }
-                .distinctUntilChanged { old, new ->
-                old.id.contentEquals(new.id)
-            }.catch { Log.e(APP_TAG,"Caught ${it.message}") }
-
-                .collect {
-                    profiles.add(it)
-                    Log.i(APP_TAG,"Obtained profile: Name ->${it.contactMetaData.name} Image->${it.contactMetaData.picture}")
-                }
-            Log.i(APP_TAG,"profilesCacheSize: ${profiles.size}")
-
-            val eventsByPubkey = eventsCache.associateBy { it.pubKey.toHex() }
-
-            val posts = profiles
-                //.filter { eventsByPubkey[it.pubKey.toHex()] != null }
-                .map { metadataEvent ->
-                    val textEvent = eventsByPubkey[metadataEvent.pubKey.toHex()]
-                    if (textEvent != null){
-                        Post(
-                            user = User(
-                                username = metadataEvent
-                                    .contactMetaData.name ?: textEvent.pubKey.toNpub().take(5),
-                                pubKey = textEvent.pubKey.toNpub(),
-                                bio = metadataEvent.contactMetaData.about ?: "",
-                                image = metadataEvent.contactMetaData.picture ?: ""
-                            ),
-                            postId = textEvent.id.toHex(),
-                            timestamp = textEvent.createdAt,
-                            textContent = textEvent.content,
-                            imageLinks = textEvent.content.urlsInText()
-                        )
-                    } else {
-                        Log.i(APP_TAG, "Profile ${metadataEvent.contactMetaData.name} has no posts.")
-                        Post()
+                    .onCompletion { Log.i(APP_TAG,"Text events completed.") }
+                    .distinctUntilChanged { old, new ->
+                        old.id.contentEquals(new.id)
                     }
-                }
-            Log.i(APP_TAG,"intermediatePostsCacheSize: ${posts.size}")
-            posts.filter { it.postId.isNotBlank() }.forEach { post ->
-                postCache.add(post)
-            }
+                    .catch { Log.i(APP_TAG,"Feed flow. Caught ${it.message}") }
+                    .collect {
+                        eventsCache.add(it)
+                        Log.i(APP_TAG,"Collected event ${it.content} ")
+                    }
 
+                Log.i(APP_TAG,"eventsCacheSize: ${eventsCache.size}")
+                delay(2000)
+                val pubkeys = eventsCache.map { it.pubKey.toHex() }.distinct()
+                Log.i(APP_TAG,"pubkeys_Size: ${pubkeys.size}")
+                nostrService.getProfilesInfo(
+                    pubkeys
+                )
+
+                    .onCompletion { Log.i(APP_TAG,"Profiles completed.") }
+                    .distinctUntilChanged { old, new ->
+                        old.id.contentEquals(new.id)
+                    }.catch { Log.e(APP_TAG,"Profiles flow. Caught ${it.message}") }
+
+                    .collect {
+                        profiles.add(it)
+                        Log.i(APP_TAG,"Obtained profile: Name ->${it.contactMetaData.name} Image->${it.contactMetaData.picture}")
+                    }
+                Log.i(APP_TAG,"profilesCacheSize: ${profiles.size}")
+
+                val eventsByPubkey = eventsCache.associateBy { it.pubKey.toHex() }
+
+                Log.i(APP_TAG,"eventsByPubkeySize: ${eventsByPubkey.size}")
+                val posts = profiles
+                    //.filter { eventsByPubkey[it.pubKey.toHex()] != null }
+                    .map { metadataEvent ->
+                        val textEvent = eventsByPubkey[metadataEvent.pubKey.toHex()]
+                        if (textEvent != null){
+                            Post(
+                                user = User(
+                                    username = metadataEvent
+                                        .contactMetaData.name ?: textEvent.pubKey.toNpub().take(9),
+                                    pubKey = textEvent.pubKey.toNpub(),
+                                    bio = metadataEvent.contactMetaData.about ?: "",
+                                    image = metadataEvent.contactMetaData.picture ?: ""
+                                ),
+                                postId = textEvent.id.toHex(),
+                                timestamp = textEvent.createdAt,
+                                textContent = textEvent.content,
+                                imageLinks = textEvent.content.urlsInText()
+                            )
+                        } else {
+                            Log.i(APP_TAG, "Profile ${metadataEvent.contactMetaData.name} has no posts.")
+                            Post()
+                        }
+                    }
+                Log.i(APP_TAG,"intermediatePostsCacheSize: ${posts.size}")
 //            val feed = eventsCache.zip(profiles){ textEvent, profile ->
 //                if (textEvent.pubKey.toHex() == profile.pubKey.toHex()){
 //                    val metadata = profile.contactMetaData
@@ -122,13 +128,30 @@ class FeedViewModel(): ViewModel() {
 //            }.distinctBy { it.postId }.sortedByDescending { it.timestamp }
 
 
-            val feed = postCache.distinctBy { it.postId }.sortedByDescending { it.timestamp }
-            Log.i(APP_TAG,"feedPostsSize: ${eventsCache.size}")
-            _feedContent.update { it + feed }
+                val feed = posts
+                    //.filter { it.postId.isNotBlank() }
+                    .distinctBy { it.postId }
+                    .sortedByDescending { it.timestamp }
+                feed.forEach { post ->
+                    postCache.add(post)
+                }
+                Log.i(APP_TAG,"feedPostsSize: ${feed.size}")
+                _feedContent.update { it + feed }
+            }
         }
 
-
     }
+
+    override fun onCleared() {
+        Log.i(APP_TAG, "FeedVM cleared.")
+        viewModelScope.cancel()
+        super.onCleared()
+    }
+    fun clean(){
+        onCleared()
+    }
+
+
 
     //TODO: Make it work!
 //    fun getProfiles(): List<Profile> {
