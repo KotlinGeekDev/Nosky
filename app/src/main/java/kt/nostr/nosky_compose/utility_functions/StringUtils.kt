@@ -15,14 +15,16 @@ const val PROFILE_IMAGE_TAG = "profile_image"
 
 
 fun String.isURL(): Boolean {
+
     val urlPattern =
         Regex("((http:\\/\\/|https:\\/\\/)?(www.)?(([a-zA-Z0-9-]){2,}\\.){1,4}([a-zA-Z]){2,6}(\\/([a-zA-Z-_\\/\\.0-9#:?=&;,]*)?)?)")
     return contains(urlPattern)
+
     //URLUtil.isValidUrl(text)
 }
 
 fun String.urlsInText(): List<String> {
-    val listSubstrings = this.split(" ", ",")
+    val listSubstrings = this.split(" ", ",", "\n", "\n\n")
     val links = listSubstrings.filter { substring -> substring.isURL() }
     return links
 //        .filter {

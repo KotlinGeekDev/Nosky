@@ -8,16 +8,22 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.viewmodel.compose.viewModel
 import kt.nostr.nosky_compose.common_components.theme.NoskycomposeTheme
+import kt.nostr.nosky_compose.home.backend.PostViewModel
+import kt.nostr.nosky_compose.profile.LoggedInProfileProvider
+import ktnostr.crypto.toBytes
 
 
 @Composable
@@ -33,7 +39,7 @@ private fun CloseButton(onCancel: () -> Unit) {
 }
 
 @Composable
-private fun PostButton(postText: TextFieldValue, onPost: () -> Unit = {}) {
+private fun PostButton(postText: String, onPost: () -> Unit = {}) {
     Button(
         onClick = {
             onPost()
@@ -41,7 +47,7 @@ private fun PostButton(postText: TextFieldValue, onPost: () -> Unit = {}) {
         shape = RoundedCornerShape(20.dp),
         colors = ButtonDefaults
             .buttonColors(
-                backgroundColor = if (postText.text.isEmpty())
+                backgroundColor = if (postText.isEmpty())
                     Color(0xFFAAAAAA) else MaterialTheme.colors.primary
             )
     ) {
@@ -51,9 +57,13 @@ private fun PostButton(postText: TextFieldValue, onPost: () -> Unit = {}) {
 
 @Composable
 fun NewPostView(onClose: () -> Unit) {
-    var postContent by remember {
-        mutableStateOf(TextFieldValue(""))
-    }
+
+    val localProfile = LoggedInProfileProvider.getLoggedProfile(LocalContext.current)
+
+    val postViewModel: PostViewModel = viewModel()
+    val post by postViewModel.postContent.collectAsState()
+
+
 
     val dialogProperties = DialogProperties()
     Dialog(
@@ -78,12 +88,18 @@ fun NewPostView(onClose: () -> Unit) {
                 ) {
                     CloseButton(onCancel = onClose)
 
-                    PostButton(postContent)
+                    PostButton(
+                        post.textContent,
+                        onPost = {
+                            postViewModel.sendPost(localProfile.privKey.toBytes())
+                            onClose()
+                        }
+                    )
                 }
 
                 OutlinedTextField(
-                    value = postContent,
-                    onValueChange = { postContent = it },
+                    value = post.textContent,
+                    onValueChange = postViewModel::updateTextContent,
                     modifier = Modifier
                         .background(Color.Transparent)
                         .border(

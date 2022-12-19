@@ -1,6 +1,5 @@
 package kt.nostr.nosky_compose.common_components.ui
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -16,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -28,6 +26,7 @@ import kt.nostr.nosky_compose.R
 import kt.nostr.nosky_compose.common_components.theme.NoskycomposeTheme
 import kt.nostr.nosky_compose.utility_functions.datetime.timeAgoFrom
 import kt.nostr.nosky_compose.utility_functions.misc.currentSystemUnixTimeStamp
+import kt.nostr.nosky_compose.utility_functions.urlsInText
 
 @Composable
 fun QuotedPost(modifier: Modifier = Modifier,
@@ -35,8 +34,9 @@ fun QuotedPost(modifier: Modifier = Modifier,
          userPubkey: String = "8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f",
          post: String = "One of the user's very very long messages. " +
                  "from 8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f",
-         isUserVerified: Boolean = true,
-         containsImage: Boolean = false,
+         isUserVerified: Boolean = false,
+         profileImageLink: String = "",
+         contentImages: List<String> = post.urlsInText(),
          isPostLiked: Boolean = false,
          isPostBoosted: Boolean = false,
          onPostClick: () -> Unit,
@@ -50,7 +50,7 @@ fun QuotedPost(modifier: Modifier = Modifier,
         Column() {
             Row {
                 Avatar(
-                    userImage = R.drawable.nosky_logo
+                    userImage = profileImageLink.ifBlank { R.drawable.ic_launcher_foreground }
                 )
                 Spacer(modifier = Modifier.size(3.dp))
                 NameAndUserName(
@@ -60,7 +60,8 @@ fun QuotedPost(modifier: Modifier = Modifier,
 
             Spacer(modifier = Modifier.height(3.dp))
 
-            TweetAndImage(post = post, containsImage = containsImage)
+            TweetAndImage(post = post,
+                images = if (contentImages.isEmpty()) "" else contentImages.first())
 //            if (isNotMainOrNotifyPost)
 //                Post(modifier = Modifier
 //                    //.height(170.dp)
@@ -140,26 +141,31 @@ private fun NameAndUserName(
         }
         Spacer(modifier = Modifier.size(2.dp))
         GrayText(modifier = Modifier.weight(1f), text = "@${userProfile.second}")
-        GrayText(modifier = Modifier.padding(end = 5.dp), text = " · ${timeStampDiff}")
+        GrayText(modifier = Modifier.padding(end = 5.dp), text = " · $timeStampDiff")
     }
 }
 
 @Composable
 private fun TweetAndImage(modifier: Modifier = Modifier,
                           post: String = "",
-                          containsImage: Boolean = false) {
+                          images: String = "") {
+
+    val actualImage: Any = images.ifBlank { R.drawable.ic_launcher_foreground }
     ThemedText(text = post,
         style = TextStyle(fontSize = 14.sp)
     )
     Spacer(modifier = Modifier.height(10.dp))
-    if (containsImage) {
-        Image(painter = painterResource(id = R.drawable.ic_launcher_foreground),
-            contentDescription = "",
+    if (images.isNotBlank()) {
+        CoilImage(
+            imageModel = { actualImage },
             modifier = Modifier
                 //.height(100.dp)
                 .fillMaxWidth()
                 .clip(shape = RoundedCornerShape(2.dp)),
-            contentScale = ContentScale.Fit
+            imageOptions = ImageOptions(
+                contentDescription = "",
+                contentScale = ContentScale.Fit
+            )
         )
     }
 }
@@ -169,7 +175,7 @@ private fun TweetAndImage(modifier: Modifier = Modifier,
 fun QuotedPostPreview() {
     NoskycomposeTheme {
         Surface {
-            QuotedPost(containsImage = true) {}
+            QuotedPost() {}
         }
     }
 }

@@ -2,11 +2,9 @@ package kt.nostr.nosky_compose.main_backend
 
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.*
 import kt.nostr.nosky_compose.utility_functions.APP_TAG
 import kt.nostr.nosky_compose.utility_functions.misc.currentSystemUnixTimeStamp
 import nostr.postr.Client
@@ -28,26 +26,7 @@ class NostrService(){
     private val nostrClient = Client
 
     val replyEventCount = AtomicInteger(0)
-    val replies: MutableList<TextNoteEvent> = mutableListOf()
-    private val repliesListener = object: Client.Listener() {
-        override fun onEvent(event: Event, relay: Relay) {
-            when(event){
-                is TextNoteEvent -> {
-                    replies.add(event)
-                    Log.i(APP_TAG,"Obtained reply: ${event.content} \n Replying to: ${event.replyTos.first()}")
-                    replyEventCount.getAndIncrement()
-                }
-            }
-        }
-
-        override fun onRelayStateChange(type: Relay.Type, relay: Relay) {
-            when(type){
-                Relay.Type.EOSE -> nostrClient.unsubscribe(this)
-                else ->{}
-            }
-        }
-
-    }
+    private val replies: MutableList<TextNoteEvent> = mutableListOf()
 
     fun sendPost(postContent: String, timestamp: Long, privateKey: ByteArray){
         val event = TextNoteEvent
@@ -59,35 +38,71 @@ class NostrService(){
     }
 
     @OptIn(ExperimentalTime::class)
-    suspend fun getReplies(eventId: String): List<TextNoteEvent> = withContext(Dispatchers.IO){
+    fun getReplies(eventId: String): Flow<TextNoteEvent> = channelFlow {
+        val repliesListener = object: Client.Listener() {
+            override fun onEvent(event: Event, relay: Relay) {
+                when(event){
+                    is TextNoteEvent -> {
+                        Log.i(APP_TAG,"Obtained reply: ${event.content} \n Replying to: ${event.replyTos.first()}")
+                        trySend(event)
+                        replyEventCount.getAndIncrement()
+                    }
+                    else -> {
+                        Log.i(APP_TAG, "Replies sub::Obtained event -> ${event.content}")
+                    }
+                }
+            }
+
+            override fun onRelayStateChange(type: Relay.Type, relay: Relay) {
+                when(type){
+                    Relay.Type.EOSE -> {
+                        Log.i(APP_TAG, "Replies flow ->Relay done sending.")
+                        nostrClient.unsubscribe(this)
+                        close()
+                    }
+                    else ->{}
+                }
+            }
+
+//            override fun onError(error: Error, relay: Relay) {
+//                cancel(error.message?: "Relay Error")
+//            }
+
+        }
+
         val timeSource = TimeSource.Monotonic
         val current = timeSource.markNow()
         check(replyEventCount.get() == 0)
-        Log.i(APP_TAG,"Launching replies subscriber...")
-        nostrClient.subscribe(repliesListener)
-        Log.i(APP_TAG, "Connecting to replies sub...")
-        nostrClient.connect(
-            mutableListOf(JsonFilter(ids = listOf(eventId),
-                kinds = listOf(TextNoteEvent.kind),
-                tags = mapOf("e" to listOf("reply")),
-                limit = feedEventsLimit + feedEventsLimit))
-        )
-        Log.i(APP_TAG,"Retrieving data from replies sub...")
-        while (replyEventCount.get() <= feedEventsLimit - 5){
-            delay(150)
-            Log.i(APP_TAG,"replies sub: $replyEventCount")
-            if (replyEventCount.get() == feedEventsLimit){
-                nostrClient.unsubscribe(repliesListener)
-                replyEventCount.set(0)
+
+            Log.i(APP_TAG,"Launching replies subscriber...")
+            nostrClient.subscribe(repliesListener)
+            Log.i(APP_TAG, "Connecting to replies sub...")
+        val repliesFilter = JsonFilter(
+            kinds = listOf(TextNoteEvent.kind),
+            tags = mapOf("e" to listOf(eventId.take(10))),
+            limit = feedEventsLimit - 7)
+        Log.i(APP_TAG, "Replies Filter -> $repliesFilter")
+            nostrClient.connect(
+                mutableListOf(repliesFilter)
+            )
+            Log.i(APP_TAG,"Retrieving data from replies sub...")
+            while (replyEventCount.get() <= (feedEventsLimit - 5)){
+                delay(1000)
+                Log.i(APP_TAG,"replies sub: $replyEventCount")
+                if (replyEventCount.get() == feedEventsLimit|| current.elapsedNow() == 5.seconds){
+                    Log.i(APP_TAG,"Disconnecting replies sub...")
+                    nostrClient.unsubscribe(repliesListener)
+                    replyEventCount.set(0)
+                    cancel("Either no replies or taking too much time.")
+                    Log.i(APP_TAG,"Disconnected replies sub.")
+                }
             }
-        }
-        if (replies.isEmpty())  emptyList()
-        else replies.toList()
+
     }
 
 
     @OptIn(ExperimentalTime::class)
-    fun getTextEvents(): Flow<TextNoteEvent> = channelFlow {
+    fun getTextEvents(pubkeyList: List<String> = emptyList()): Flow<TextNoteEvent> = channelFlow {
         val incomingEventCount = AtomicInteger(0)
         val timeNow = TimeSource.Monotonic.markNow()
         val feedListener = object : Client.Listener() {
@@ -115,19 +130,24 @@ class NostrService(){
 
             override fun onRelayStateChange(type: Relay.Type, relay: Relay) {
                 if (type == Relay.Type.EOSE) {
-                   // Client.unsubscribe(this)
+                    Log.i(APP_TAG, "TextEvents flow ->Relay done sending.")
+                   Client.unsubscribe(this)
+                    close()
                 }
             }
+
+
         }
         Log.i(APP_TAG,"Launching feed subscriber...")
-        nostrClient.subscribe(feedListener)
+        Client.subscribe(feedListener)
         Log.i(APP_TAG,"Connecting to feed sub...")
-        nostrClient.connect(mutableListOf(
+        Client.connect(mutableListOf(
             JsonFilter(
                 kinds = listOf(TextNoteEvent.kind),
+                authors = pubkeyList.ifEmpty { null },
                 since = currentSystemUnixTimeStamp() - (60*60*5),
                 //until = currentSystemUnixTimeStamp(),
-                limit = feedEventsLimit
+                limit = feedEventsLimit*2
             ),
             //JsonFilter(kinds = listOf(MetadataEvent.kind))
         ),
@@ -135,16 +155,17 @@ class NostrService(){
         )
         Log.i(APP_TAG,"Retrieving data from feed sub...")
 
-        while (incomingEventCount.get() <= feedEventsLimit){
+        while (incomingEventCount.get() <= feedEventsLimit*2){
             delay(1000)
             Log.i(APP_TAG,"feed sub: $incomingEventCount")
             Log.i(APP_TAG, "Elapsed time :${timeNow.elapsedNow().inWholeSeconds}s")
             if (
-                //incomingEventCount.get() == feedEventsLimit
-                timeNow.elapsedNow() == 10.seconds
+                incomingEventCount.get() == feedEventsLimit ||
+                timeNow.elapsedNow().inWholeSeconds == 10L
             ) {
                 Log.i(APP_TAG,"Disconnecting feed sub...")
-                nostrClient.unsubscribe(feedListener)
+                Client.unsubscribe(feedListener)
+                Client.disconnect()
                 incomingEventCount.set(0)
                 Log.i(APP_TAG,"Disconnected from feed sub.")
 
@@ -157,47 +178,71 @@ class NostrService(){
     @OptIn(ExperimentalTime::class)
     fun getProfilesInfo(pubkeyList: List<String> = listOf()): Flow<MetadataEvent> = channelFlow {
         var incomingEventCount = 0
+        val upperLimit = if (pubkeyList.isEmpty()) feedEventsLimit else pubkeyList.size
         val timeNow = TimeSource.Monotonic.markNow()
         val profilesListener = object: Client.Listener() {
             override fun onNewEvent(event: Event) {
-                    (event as MetadataEvent).run {
-                        Log.i(APP_TAG,"Found User: name ->${contactMetaData.name} bio -> ${contactMetaData.about}")
-                        trySend(this)
-                        incomingEventCount++
-                    }
+
+                (event as MetadataEvent).run {
+                    Log.i(APP_TAG,"Found User: name ->${contactMetaData.name} bio -> ${contactMetaData.about}")
+                    trySend(this)
                     Log.i(APP_TAG, "From profile sub: $incomingEventCount")
+                    check(incomingEventCount != -1)
+                    incomingEventCount++
                 }
+
+            }
+
+//            override fun onRelayStateChange(type: Relay.Type, relay: Relay) {
+//                when(type){
+//                    Relay.Type.EOSE -> {
+//                        Log.i(APP_TAG, "Profile flow ->Relay done sending.")
+//                        Log.i(APP_TAG,"Disconnecting profile sub...")
+//                        nostrClient.unsubscribe(this)
+//                        Log.i(APP_TAG,"Disconnected from profile sub.")
+//                        incomingEventCount = -1
+//
+//                    }
+//                    else -> {}
+//                }
+//            }
+
+    //            override fun onError(error: Error, relay: Relay) {
+    //                cancel(error.message?: " Some error")
+    //                super.onError(error, relay)
+    //            }
         }
 
         Log.i(APP_TAG,"Launching profile subscriber...")
-        Client.subscribe(profilesListener)
+        nostrClient.subscribe(profilesListener)
         Log.i(APP_TAG,"Connecting to profile sub...")
         val filter = JsonFilter(
             kinds = listOf(MetadataEvent.kind),
-            authors = pubkeyList.ifEmpty { null },
-            limit = feedEventsLimit + feedEventsLimit)
+            authors = pubkeyList.map { it.take(10) }.ifEmpty { null },
+            limit = upperLimit)
         println("Profile filter: $filter")
-        Client.connect(mutableListOf(filter),
-//            relays = arrayOf(Relay("wss://relay.nostr.info"),
+        nostrClient.connect(mutableListOf(filter),
+       //     relays = arrayOf(Relay("wss://relay.nostr.info"))
 //                //Relay("wss://relay.damus.io"),
 //                Relay("wss://nostr.bitcoiner.social"),
 //                Relay("wss://nostr.rocks"),
 //                Relay("wss//nostr-pub.semisol.dev"))
             )
         println("Retrieving data from profile sub...")
-        while (incomingEventCount <= feedEventsLimit){
+
+        while (incomingEventCount < upperLimit){
             delay(1000)
             Log.i(APP_TAG,"profile sub: $incomingEventCount")
             if (
-                timeNow.elapsedNow() == 10.seconds
-               // incomingEventCount == feedEventsLimit
+                timeNow.elapsedNow() == 10.seconds ||
+                incomingEventCount == -1
             ) {
                 Log.i(APP_TAG,"Disconnecting profile sub...")
-                Client.unsubscribe(profilesListener)
-                incomingEventCount = 0
+                nostrClient.unsubscribe(profilesListener)
                 Log.i(APP_TAG,"Disconnected from profile sub.")
-
+                //close()
             }
+
         }
 
     }.flowOn(Dispatchers.IO)

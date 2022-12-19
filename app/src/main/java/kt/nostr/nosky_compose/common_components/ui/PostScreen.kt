@@ -23,13 +23,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.bumble.appyx.navmodel.backstack.BackStack
-import com.google.accompanist.placeholder.PlaceholderHighlight
-import com.google.accompanist.placeholder.material.placeholder
-import com.google.accompanist.placeholder.material.shimmer
-import kotlinx.coroutines.cancel
 import kt.nostr.nosky_compose.BottomNavigationBar
 import kt.nostr.nosky_compose.common_components.theme.NoskycomposeTheme
 import kt.nostr.nosky_compose.home.backend.Post
@@ -52,14 +47,21 @@ fun PostScreen(
 
     val postViewModel = viewModel<PostViewModel>()
     val repliesUiState by postViewModel.repliesUiState.collectAsState()
-    DisposableEffect(key1 = repliesUiState){
-        postViewModel.getRepliesForPost(postId = currentPost.postId)
-        onDispose {
-            postViewModel.viewModelScope.cancel("Replies fetching stopped.")
+//    DisposableEffect(key1 = repliesUiState){
+//        postViewModel.getRepliesForPost(postId = currentPost.postId)
+//        onDispose {
+//            postViewModel.stopFetching()
+//        }
+//    }
+    SideEffect{
+        if (repliesUiState == RepliesUiState.Loading){
+            postViewModel.getRepliesForPost(postId = currentPost.postId)
         }
     }
 
     BackHandler {
+        postViewModel.stopFetching()
+        postViewModel.dispose()
         goBack()
     }
     val userPost = remember {
@@ -161,7 +163,7 @@ fun Replies(
 
     when(uiState){
         is RepliesUiState.LoadingError -> {
-            Box(modifier = Modifier.fillMaxSize(),
+            Box(modifier = modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
                 //CircularProgressIndicator(Modifier.align(Alignment.Center))
@@ -182,21 +184,50 @@ fun Replies(
             }
             Log.e("NoskyApp", uiState.error.message, uiState.error)
         }
-        else -> {
-            ProfilePosts(
-                modifier = modifier
-                    .placeholder(
-                        visible = uiState == RepliesUiState.Loading,
-                        highlight = PlaceholderHighlight.shimmer()
-                    ),
-                listOfPosts = if (uiState is RepliesUiState.Loaded) uiState.replies else emptyList(),
-                onPostClick = {  })
-            if (uiState == RepliesUiState.Loading){
+        is RepliesUiState.Loaded -> {
 
-                Toast.makeText(
-                    LocalContext.current,
-                    "Loading replies",
-                    Toast.LENGTH_SHORT).show()
+            if (uiState.replies.isEmpty()){
+                Box(modifier = modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    //CircularProgressIndicator(Modifier.align(Alignment.Center))
+                    Column(modifier = Modifier.align(Alignment.Center)) {
+                        Text(text = "No replies.")
+                        Button(
+                            modifier = Modifier.align(CenterHorizontally),
+                            onClick = onForceRefresh
+                        ) {
+                            Text(text = "Try again")
+                        }
+                    }
+                }
+            } else {
+                ProfilePosts(
+                    modifier = modifier,
+                    listOfPosts = uiState.replies,
+                    onPostClick = {  })
+            }
+
+
+            Toast.makeText(
+                LocalContext.current,
+                "Replies loaded.",
+                Toast.LENGTH_SHORT).show()
+        }
+        RepliesUiState.Loading -> {
+            Box(modifier = modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                //CircularProgressIndicator(Modifier.align(Alignment.Center))
+                Row(
+                    modifier = Modifier.align(Alignment.Center),
+                    verticalAlignment = Alignment.Bottom
+                ) {
+
+                    DotsFlashing(
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+                }
             }
         }
     }

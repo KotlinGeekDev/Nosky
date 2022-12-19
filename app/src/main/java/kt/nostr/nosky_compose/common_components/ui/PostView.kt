@@ -37,6 +37,7 @@ import coil.decode.VideoFrameDecoder
 import coil.request.CachePolicy
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.coil.CoilImage
+import com.skydoves.landscapist.glide.GlideImage
 import kt.nostr.nosky_compose.R
 import kt.nostr.nosky_compose.common_components.theme.NoskycomposeTheme
 import kt.nostr.nosky_compose.home.backend.Post
@@ -128,7 +129,6 @@ fun PostView(modifier: Modifier = Modifier,
                     userName = viewingPost.quotedPost.user.username,
                     userPubkey = viewingPost.quotedPost.user.pubKey,
                     post = viewingPost.quotedPost.textContent,
-                    containsImage = viewingPost.quotedPost.imageLinks.isNotEmpty(),
                     onPostClick = { onPostClick(viewingPost.quotedPost) })
 
             if (isRelayRecommendation) {
@@ -308,9 +308,8 @@ private fun TweetAndImage(modifier: Modifier = Modifier,
         )
         Spacer(modifier = Modifier.height(3.dp))
         if (imageLinks.isNotEmpty()) {
-            CoilImage(
+            GlideImage(
                 imageModel = { imageLinks.first() },
-                imageLoader = { imageLoader },
                 modifier = Modifier
 //                    .height(170.dp)
                     .fillMaxWidth()
@@ -318,9 +317,22 @@ private fun TweetAndImage(modifier: Modifier = Modifier,
                 imageOptions = ImageOptions(
                     contentDescription = "",
                     contentScale = ContentScale.Fit
-                ),
-                previewPlaceholder = R.drawable.ic_launcher_foreground
+                )
             )
+
+//            CoilImage(
+//                imageModel = { imageLinks.first() },
+//                imageLoader = { imageLoader },
+//                modifier = Modifier
+////                    .height(170.dp)
+//                    .fillMaxWidth()
+//                    .clip(shape = RoundedCornerShape(2.dp)),
+//                imageOptions = ImageOptions(
+//                    contentDescription = "",
+//                    contentScale = ContentScale.Fit
+//                ),
+//                previewPlaceholder = R.drawable.ic_launcher_foreground
+//            )
         } else {
             Spacer(modifier = Modifier.size(1.dp))
         }
