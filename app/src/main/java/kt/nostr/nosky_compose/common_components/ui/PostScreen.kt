@@ -33,7 +33,9 @@ import kt.nostr.nosky_compose.home.backend.RepliesUiState
 import kt.nostr.nosky_compose.home.ui.CustomDivider
 import kt.nostr.nosky_compose.home.ui.PostReply
 import kt.nostr.nosky_compose.navigation.structure.Destination
+import kt.nostr.nosky_compose.profile.LoggedInProfileProvider
 import kt.nostr.nosky_compose.profile.ui.ProfilePosts
+import ktnostr.crypto.toBytes
 
 
 //TODO : Investigate BackStack, and look for a way to not depend on it.
@@ -47,16 +49,19 @@ fun PostScreen(
 
     val postViewModel = viewModel<PostViewModel>()
     val repliesUiState by postViewModel.repliesUiState.collectAsState()
+    val localProfile = LoggedInProfileProvider.getLoggedProfile(LocalContext.current)
 //    DisposableEffect(key1 = repliesUiState){
 //        postViewModel.getRepliesForPost(postId = currentPost.postId)
 //        onDispose {
 //            postViewModel.stopFetching()
 //        }
 //    }
-    SideEffect{
-        if (repliesUiState == RepliesUiState.Loading){
-            postViewModel.getRepliesForPost(postId = currentPost.postId)
-        }
+    SideEffect() {
+        postViewModel.getRepliesForPost(postId = currentPost.postId)
+
+//        if (repliesUiState == RepliesUiState.Loading){
+//
+//        }
     }
 
     BackHandler {
@@ -76,7 +81,12 @@ fun PostScreen(
         PostReply(
             originalPost = userPost,
             closeDialog = { isReplyClicked =!isReplyClicked }
-        ) { }
+        ) { reply, rootEventId ->
+            postViewModel.sendReply(
+                privKey = localProfile.privKey.toBytes(),
+                reply = reply, rootEventId = rootEventId
+            )
+        }
     }
 
     ConstraintLayout(Modifier.fillMaxSize()) {
@@ -123,7 +133,7 @@ fun PostScreen(
                 onReplyTap = { isReplyClicked = !isReplyClicked })
             Column() {
                 Text(
-                    modifier = Modifier.align(Alignment.CenterHorizontally), text = "Replies",
+                    modifier = Modifier.align(CenterHorizontally), text = "Replies",
                     style = TextStyle(
                     fontSize = 18.sp,
                     color = if (isSystemInDarkTheme()) Color(0xFF666666) else Color.Gray),

@@ -6,8 +6,12 @@ import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 import kt.nostr.nosky_compose.main_backend.NostrService
@@ -28,7 +32,7 @@ data class Post(
     val postId: String = "",
     val timestamp: Long = currentSystemUnixTimeStamp(),
     val user: User = User(),
-    val textContent: String = "Nostr post content",
+    val textContent: String = "",
     val imageLinks: List<String> = emptyList(),
     val quotedPost: Post? = null,
     val replies: List<Post> = emptyList()
@@ -36,7 +40,7 @@ data class Post(
 
 @Stable
 @Parcelize
-class User(
+data class User(
     val username: String = " ",
     val pubKey: String = Random.nextBytes(32).toHexString(),
     val bio: String = "",
@@ -47,7 +51,7 @@ class PostViewModel(): ViewModel() {
 
 
 
-    val nostrService = NostrService.get()
+    val nostrService = NostrService
     private var repliesFetcherJob: Job? = null
     private val replyTextCache: MutableList<TextNoteEvent> = mutableListOf()
     private val replyProfiles: MutableList<MetadataEvent> = mutableListOf()
@@ -74,6 +78,10 @@ class PostViewModel(): ViewModel() {
         nostrService.sendPost(actualPost.textContent, actualPost.timestamp, privKey)
     }
 
+    fun sendReply(privKey: ByteArray, reply: String, rootEventId: String){
+        nostrService.sendPost(reply, currentTimestampFromInstant(), privKey, listOf(rootEventId))
+    }
+
     fun updateTextContent(text: String){
         _internalPost.update { it.copy(textContent = text) }
     }
@@ -94,32 +102,40 @@ class PostViewModel(): ViewModel() {
         }
         repliesFetcherJob = viewModelScope.launch {
             try {
-                val replyEvents = nostrService.getReplies(postId)
+                nostrService.getTextEvents(eventIdList = listOf(postId))
                     .catch { println("Replies error. ${it.message}") }
                     .collect {
                         replyTextCache.add(it)
                     }
-                val associatedProfiles = nostrService
-                    .getProfilesInfo(replyTextCache.map { it.pubKey.toHex() }.distinct())
-                    .onEach { Log.i(APP_TAG,"Obtained profile: Name ->${it.contactMetaData.name} Image->${it.contactMetaData.picture}") }
-                    .onCompletion { Log.i(APP_TAG,"Obtained reply profiles") }
-                    .catch { error ->
-                        _repliesUiState.update {
-                            RepliesUiState.LoadingError(Exception(error.message))
-                        }
-                    }
-                    .collect {
-                        replyProfiles.add(it)
-                    }
 
-                val eventsByPubkey = replyTextCache.associateBy { it.pubKey.toHex() }
+//                val replyKeys = replyTextCache.map { it.pubKey.toHex() }.distinct()
+//
+//                nostrService
+//                    .getProfilesInfo(replyKeys)
+//                    .onEach { Log.i(APP_TAG,"Obtained profile: Name ->${it.contactMetaData.name} Image->${it.contactMetaData.picture}") }
+//                    .onCompletion { Log.i(APP_TAG,"Obtained reply profiles") }
+//                    .catch { error ->
+//                        _repliesUiState.update {
+//                            RepliesUiState.LoadingError(Exception(error.message))
+//                        }
+//                    }
+//                    .collect {
+//                        replyProfiles.add(it)
+//                    }
+
+                val eventsByPubkey = replyTextCache
+                    .distinctBy { it.id.toHex() }
+                    .associateBy { it.pubKey.toHex() }
+
+                Log.i(APP_TAG,"eventsByPubkey Pubkey Size: ${eventsByPubkey.keys.size}")
+                Log.i(APP_TAG,"eventsByPubkey Event Size: ${eventsByPubkey.values.size}")
 
                 val posts = replyProfiles
                     //.filter { eventsByPubkey[it.pubKey.toHex()] != null }
                     .map { metadataEvent ->
                         val textEvent = eventsByPubkey[metadataEvent.pubKey.toHex()]
                         if (textEvent != null){
-                            Post(
+                            val post = Post(
                                 user = User(
                                     username = metadataEvent.contactMetaData.name ?: " ",
                                     pubKey = textEvent.pubKey.toHex(),
@@ -131,16 +147,13 @@ class PostViewModel(): ViewModel() {
                                 textContent = textEvent.content,
                                 imageLinks = textEvent.content.urlsInText()
                             )
-                        } else {
-                            Log.i(APP_TAG, "Profile ${metadataEvent.contactMetaData.name} has no posts.")
-                            Post()
+                            repliesCache.add(post)
                         }
                     }
-                posts.filter { it.postId.isNotBlank() }.forEach { post ->
-                    repliesCache.add(post)
-                }
+                Log.i(APP_TAG, "Event mapping executions: ${posts.size}")
                 Log.i(APP_TAG, "repliesCache size: ${repliesCache.size}")
                 _repliesUiState.update { RepliesUiState.Loaded(repliesCache) }
+                cancel()
             } catch (e: Exception) {
                 delay(2000)
                 _repliesUiState.update { RepliesUiState.LoadingError(e) }
@@ -163,6 +176,7 @@ class PostViewModel(): ViewModel() {
         super.onCleared()
     }
     fun dispose(){
+        repliesFetcherJob = null
         onCleared()
     }
 

@@ -23,7 +23,7 @@ fun PostReply(
                 "about working something blah blah"
     ),
     closeDialog: () -> Unit,
-    postReply: () -> Unit) {
+    postReply: (post:String, rootEvent:String) -> Unit) {
 
     var replyContent by remember {
         mutableStateOf("")
@@ -34,7 +34,7 @@ fun PostReply(
         onDismissRequest = { closeDialog() },
         confirmButton = {
               OutlinedButton(
-                  onClick = { postReply();closeDialog() },
+                  onClick = { postReply(replyContent, originalPost.postId);closeDialog() },
                   enabled = replyContent.isNotBlank()
               ) {
                   Text(text = "Reply")
@@ -101,6 +101,6 @@ fun PostReply(
 @Composable
 fun ReplyUIPreview() {
     NoskycomposeTheme {
-        PostReply(closeDialog = { }) {}
+        PostReply(closeDialog = { }, postReply = { reply, event -> })
     }
 }

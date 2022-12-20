@@ -1,6 +1,7 @@
 package kt.nostr.nosky_compose.home.ui
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.util.Log
 import androidx.compose.animation.*
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
@@ -18,12 +19,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.bumble.appyx.navmodel.backstack.BackStack
 import com.bumble.appyx.navmodel.backstack.operation.push
 import com.bumble.appyx.navmodel.backstack.operation.singleTop
-import kotlinx.coroutines.cancel
 import kt.nostr.nosky_compose.BottomNavigationBar
 import kt.nostr.nosky_compose.common_components.models.PostList
 import kt.nostr.nosky_compose.common_components.theme.NoskycomposeTheme
@@ -53,11 +52,13 @@ fun Home(modifier: Modifier = Modifier,
     val feedViewModel: FeedViewModel = viewModel()
     val feed by feedViewModel.feedContent.collectAsStateWithLifecycle()
 
-    DisposableEffect(key1 = feed){
+    DisposableEffect(
+        key1 = feed
+    ){
         feedViewModel.getUpdateFeed()
-        onDispose {
-            feedViewModel.viewModelScope.cancel()
 
+        onDispose {
+            feedViewModel.clean()
         }
     }
 
@@ -68,7 +69,7 @@ fun Home(modifier: Modifier = Modifier,
         homeFeedState = feed,
         scaffoldState = scaffoldState,
         onPostClicked = { post -> navigator.singleTop(Destination.ViewingPost(post)) },
-        refreshFeed = { feedViewModel.getUpdateFeed() },
+        refreshFeed = { feedViewModel.refresh() },
         navigator = navigator)
 
 }
@@ -100,7 +101,7 @@ fun HomeView(
             )
         },
         bottomBar = {
-            BottomNavigationBar(backStackNavigator = navigator, isNewNotification = true)
+            BottomNavigationBar(backStackNavigator = navigator, isNewNotification = false)
         },
         content = { contentPadding ->
             if (wantsToPost) NewPostView(
@@ -119,7 +120,8 @@ fun HomeView(
                             ) {
                                 //CircularProgressIndicator(Modifier.align(Alignment.Center))
                                 Column(
-                                    modifier = Modifier.align(Alignment.Center)
+                                    modifier = Modifier.align(Alignment.Center),
+                                    horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
                                     Text(text = "Feed is empty.")
                                     OutlinedButton(onClick = refreshFeed) {
@@ -128,7 +130,24 @@ fun HomeView(
                                 }
                             }
                         }
-                        is FeedState.FeedError -> TODO()
+                        is FeedState.FeedError -> {
+                            Box(modifier = modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                //CircularProgressIndicator(Modifier.align(Alignment.Center))
+                                Column(modifier = Modifier.align(Alignment.Center)) {
+                                    Text(text = "Error loading replies: ${state.errorMessage}")
+                                    Button(
+                                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                                        onClick = refreshFeed
+                                    ) {
+                                        Text(text = "Try again")
+                                    }
+                                }
+
+                            }
+                            Log.e("NoskyApp", state.errorMessage)
+                        }
                         is FeedState.Loaded -> {
                             Content(modifier = Modifier.padding(contentPadding),
                                 feed = state.feed,

@@ -3,6 +3,7 @@ package kt.nostr.nosky_compose.profile.ui
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.os.Build
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
@@ -51,11 +52,12 @@ import compose.icons.fontawesomeicons.solid.Envelope
 import kt.nostr.nosky_compose.BottomNavigationBar
 import kt.nostr.nosky_compose.R
 import kt.nostr.nosky_compose.common_components.theme.NoskycomposeTheme
+import kt.nostr.nosky_compose.common_components.ui.DotsFlashing
 import kt.nostr.nosky_compose.common_components.ui.ProfileListView
 import kt.nostr.nosky_compose.common_components.ui.UserInfo
-import kt.nostr.nosky_compose.home.backend.Post
 import kt.nostr.nosky_compose.home.backend.opsList
 import kt.nostr.nosky_compose.navigation.structure.Destination
+import kt.nostr.nosky_compose.profile.model.PostsResult
 import kt.nostr.nosky_compose.profile.model.Profile
 import kotlin.math.min
 
@@ -65,7 +67,7 @@ fun ProfileView(modifier: Modifier = Modifier,
                 user: Profile = Profile(userName = "Satoshi Nakamoto",
                     pubKey = "8565b1a5a63ae21689b80eadd46f6493a3ed393494bb19d0854823a757d8f35f",
                     bio = "A pseudonymous dev", following = 10, followers = 1_001),
-                userPostsList: List<Post> = opsList,
+                userPostsState: PostsResult = PostsResult.Loading,
                 isProfileMine: Boolean = true,
                 navController: BackStack<Destination>,
                 goBack: () -> Unit) {
@@ -124,7 +126,7 @@ fun ProfileView(modifier: Modifier = Modifier,
                 if (isProfileMine){
                     0f
                 } else {
-                    min(1f, scrollState.firstVisibleItemIndex*200/delta)
+                    min(1f, scrollState.firstVisibleItemIndex*100/delta)
                 }
                // min(nestedScrollState.value/delta, 1f)
 
@@ -156,13 +158,56 @@ fun ProfileView(modifier: Modifier = Modifier,
                         goBack = goBack, offsetProvider = { scrollOffset })
                 }
 
-                ProfilePosts(
-                    listOfPosts = userPostsList,
-                    listState = scrollState,
-                    onPostClick = {
-                        navController.push(Destination.ViewingPost(clickedPost = it))
+                Crossfade(targetState = userPostsState) { state ->
+                    when(state) {
+                        PostsResult.Loading -> {
+                            Box(modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                //CircularProgressIndicator(Modifier.align(Alignment.Center))
+                                Row(
+                                    modifier = Modifier.align(Alignment.Center),
+                                    verticalAlignment = Alignment.Bottom
+                                ) {
+                                    Text(text = "Loading feed")
+                                    DotsFlashing(
+                                        modifier = Modifier.padding(bottom = 4.dp)
+                                    )
+                                }
+                            }
+                        }
+                        is PostsResult.Success -> {
+                            ProfilePosts(
+                                listOfPosts = state.postList
+                                    .map {
+                                         it.copy(
+                                             user = it.user.copy(
+                                                 username = user.userName,
+                                                 image = user.profileImage
+                                             )
+                                         )
+                                    },
+                                listState = scrollState,
+                                onPostClick = {
+                                    navController.push(Destination.ViewingPost(clickedPost = it))
+                                }
+                            )
+                        }
+                        is PostsResult.Error -> {
+                            Box(modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                //CircularProgressIndicator(Modifier.align(Alignment.Center))
+                                Row(
+                                    modifier = Modifier.align(Alignment.Center),
+                                    verticalAlignment = Alignment.Bottom
+                                ) {
+                                    Text(text = "Error loading posts: ${state.obtainedError.message}")
+                                }
+                            }
+                        }
                     }
-                )
+                }
             }
         }
 
@@ -410,7 +455,7 @@ private fun ProfileDescription(modifier: Modifier = Modifier,
             userBio = user.bio,
             following = user.following,
             followers = user.followers,
-            isUserVerified = true,
+            isUserVerified = false,
             showFollowing = showFollowing,
             showFollowers = showFollowers
         )
@@ -457,7 +502,7 @@ internal fun Avatar(modifier: Modifier = Modifier, profileImageUrl: () -> String
             )
             .then(modifier),
         imageOptions = ImageOptions(
-            contentScale = ContentScale.Fit,
+            contentScale = ContentScale.FillBounds,
             contentDescription = "Profile Image"
         )
 
@@ -553,7 +598,7 @@ private fun Banner(modifier: Modifier = Modifier) {
 fun CustomProfileViewPreview() {
     NoskycomposeTheme {
         ProfileView(
-            userPostsList = opsList,
+            userPostsState = PostsResult.Success(opsList),
             //profileSelected = true, isProfileMine = false,
             navController = BackStack(
                 initialElement = Destination.Home,

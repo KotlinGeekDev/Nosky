@@ -13,6 +13,7 @@ import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Comment
 import androidx.compose.material.icons.filled.Reply
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -134,8 +135,8 @@ fun PostView(modifier: Modifier = Modifier,
             if (isRelayRecommendation) {
                //CustomRelayRecommendation()
                 RelayRecommendation()
-                Spacer(modifier = Modifier.height(5.dp))
             }
+            Spacer(modifier = Modifier.height(5.dp))
             TweetActions(
 //                numLikes = likes,
 //                numberOfBoosts = numBoosts,
@@ -400,6 +401,14 @@ internal fun TweetActions(numberOfComments: Int = 0,
             modifier = Modifier
                 .size(imageSize)
                 .clickable { onPostReply() }
+        )
+
+        Icon(
+            imageVector = Icons.Default.Share,
+            contentDescription = "",
+            modifier = Modifier
+                .size(imageSize)
+                .clickable {  }
         )
     }
 }

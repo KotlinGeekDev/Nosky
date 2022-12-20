@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kt.nostr.nosky_compose.main_backend.NostrService
@@ -24,15 +23,16 @@ sealed class FeedState {
 
 class FeedViewModel(): ViewModel() {
 
-    private val nostrService = NostrService.get()
+    private val nostrService = NostrService
 
     private val eventsCache: MutableSet<TextNoteEvent> = mutableSetOf()
     private val profiles: MutableSet<MetadataEvent> = mutableSetOf()
 
+
     private val _feedContent = MutableStateFlow<FeedState>(FeedState.Loading)
     val feedContent = _feedContent.asStateFlow()
 
-    private val postCache: MutableList<Post> = mutableListOf()
+    private val postCache: MutableSet<Post> = mutableSetOf()
 
 //    init {
 //        getUpdateFeed()
@@ -43,16 +43,17 @@ class FeedViewModel(): ViewModel() {
 
 
         viewModelScope.launch {
-            if (_feedContent.value != FeedState.Loading){
-                _feedContent.update {
-                    FeedState.Loading
-                }
-            }
+//            if (_feedContent.value != FeedState.Loading){
+//                _feedContent.update {
+//                    FeedState.Loading
+//                }
+//            }
 
             if (postCache.isNotEmpty()){
                 Log.i(APP_TAG, "Taking cached events instead. Cache size: ${postCache.size}")
                 //val feed = postCache.distinctBy { it.postId }.sortedByDescending { it.timestamp }
-                //_feedContent.update { postCache.toList() }
+                _feedContent.update { FeedState.Loaded(postCache.toList()) }
+                this.cancel()
             } else {
 
                 nostrService.getTextEvents()
@@ -63,117 +64,98 @@ class FeedViewModel(): ViewModel() {
                     }
                     .catch { e ->
                         Log.i(APP_TAG,"Feed flow. Caught ${e.message}")
-                        _feedContent.update { FeedState.FeedError(e.message?: "Could not load feed.") }
-                    }
-                    .collect {
+                        _feedContent.update { FeedState.FeedError(e.message?: "Could not load the posts.") }
+                    }.collect {
                         eventsCache.add(it)
                         Log.i(APP_TAG,"Collected event ${it.content} ")
                     }
-
                 Log.i(APP_TAG,"eventsCacheSize: ${eventsCache.size}")
-                delay(2000)
+
+
                 val pubkeys = eventsCache.map { it.pubKey.toHex() }.distinct()
                 Log.i(APP_TAG,"pubkeys_Size: ${pubkeys.size}")
                 nostrService.getProfilesInfo(pubkeys)
                     .onCompletion { Log.i(APP_TAG,"Profiles completed.") }
-                    .catch { Log.e(APP_TAG,"Profiles flow. Caught ${it.message}") }
+                    .catch { error ->
+                        Log.e(APP_TAG,"Profiles flow. Caught ${error.message}")
+                        _feedContent.update { FeedState.FeedError(error.message?: "Could mot load the profiles.") }
+                    }.collect {
 
-                    .collect {
                         profiles.add(it)
                         Log.i(APP_TAG,"Obtained profile: Name ->${it.contactMetaData.name} Image->${it.contactMetaData.picture}")
+                        //if (profiles.size == pubkeys.size) cancel()
                     }
                 Log.i(APP_TAG,"profilesCacheSize: ${profiles.size}")
+
+
+
+                if (eventsCache.isEmpty()) {
+                    //cancel()
+                    _feedContent.update { FeedState.Empty }
+                }
+
 
                 val eventsByPubkey = eventsCache
                     .distinctBy { it.id.toHex() }
                     .associateBy { it.pubKey.toHex() }
 
-                Log.i(APP_TAG,"eventsByPubkey Pubkey Size: ${eventsByPubkey.keys.size}")
-                Log.i(APP_TAG,"eventsByPubkey Event Size: ${eventsByPubkey.values.size}")
                 val posts = profiles
                     //.filter { eventsByPubkey[it.pubKey.toHex()] != null }
-                    .map { metadataEvent ->
-                        val textEvent = eventsByPubkey[metadataEvent.pubKey.toHex()]
-                        if (textEvent != null){
-                            if (textEvent.pubKey.toHex() == metadataEvent.pubKey.toHex()){
-                                val post = Post(
-                                    user = User(
-                                        username = metadataEvent
-                                            .contactMetaData.name ?: textEvent.pubKey.toNpub().take(9),
-                                        pubKey = textEvent.pubKey.toHex(),
-                                        bio = metadataEvent.contactMetaData.about ?: "",
-                                        image = metadataEvent.contactMetaData.picture ?: ""
-                                    ),
-                                    postId = textEvent.id.toHex(),
-                                    timestamp = textEvent.createdAt,
-                                    textContent = textEvent.content,
-                                    imageLinks = textEvent.content.urlsInText()
-                                )
-                                postCache.add(post)
+                    .mapNotNullTo(mutableSetOf()) { metadataEvent ->
+                        val metaDataKey = metadataEvent.pubKey.toHex()
+                        val textEvent = eventsByPubkey[metaDataKey] ?: return@mapNotNullTo null
+                        val textEventKey = textEvent.pubKey.toHex()
+                        val user = User(
+                            username = if (textEventKey == metaDataKey) {
+                                metadataEvent.contactMetaData.name ?: textEvent.pubKey.toNpub().take(9)
                             } else {
-                                val post = Post(
-                                    user = User(
-                                        username = textEvent.pubKey.toNpub().take(9),
-                                        pubKey = textEvent.pubKey.toHex(),
-                                        bio = metadataEvent.contactMetaData.about ?: "",
-                                        image = metadataEvent.contactMetaData.picture ?: ""
-                                    ),
-                                    postId = textEvent.id.toHex(),
-                                    timestamp = textEvent.createdAt,
-                                    textContent = textEvent.content,
-                                    imageLinks = textEvent.content.urlsInText()
-                                )
-                                postCache.add(post)
-                            }
+                                textEvent.pubKey.toNpub().take(9)
+                            },
+                            pubKey = textEventKey,
+                            bio = metadataEvent.contactMetaData.about.orEmpty(),
+                            image = metadataEvent.contactMetaData.picture.orEmpty()
+                        )
 
-                        }
+                        Post(
+                            user = user,
+                            postId = textEvent.id.toHex(),
+                            timestamp = textEvent.createdAt,
+                            textContent = textEvent.content,
+                            imageLinks = textEvent.content.urlsInText()
+                        )
                     }
+
                 Log.i(APP_TAG,"intermediatePostsCacheSize: ${posts.size}")
-//            val feed = eventsCache.zip(profiles){ textEvent, profile ->
-//                if (textEvent.pubKey.toHex() == profile.pubKey.toHex()){
-//                    val metadata = profile.contactMetaData
-//                    Post(
-//                        user = User(
-//                            username = metadata.name,
-//                            pubKey = profile.pubKey.toHex(),
-//                            image = metadata.picture ?: ""),
-//                        postId = textEvent.id.toHex(),
-//                        timestamp = textEvent.createdAt,
-//                        textContent = textEvent.content,
-//                        imageLinks = textEvent.content.urlsInText()
-//                    )
-//                } else {
-//                    Post(
-//                        user = User(
-//                            username = profile.contactMetaData.name,
-//                            pubKey = textEvent.pubKey.toHex(),
-//                            image = profile.contactMetaData.picture ?: ""),
-//                        postId = textEvent.id.toHex(),
-//                        timestamp = textEvent.createdAt,
-//                        textContent = textEvent.content,
-//                        imageLinks = textEvent.content.urlsInText()
-//                    )
-//                }
-//            }.distinctBy { it.postId }.sortedByDescending { it.timestamp }
+
                 Log.i(APP_TAG,"postsCacheSize: ${postCache.size}")
 
-                val feed = postCache
+                val feed = posts
                     //.filter { it.postId.isNotBlank() }
-                    //.distinctBy { it.postId }
+                    .distinctBy { it.postId }
                     .sortedByDescending { it.timestamp }
-                feed.forEach { post ->
-                    postCache.add(post)
-                }
+//                feed.forEach { post ->
+//                    postCache.add(post)
+//                }
                 Log.i(APP_TAG,"feedPostsSize: ${feed.size}")
                 if (feed.isEmpty()){
                     _feedContent.update { FeedState.Empty }
+                    cancel()
                 } else {
                     _feedContent.update { FeedState.Loaded(feed) }
+                    cancel()
                 }
 
             }
+
+
         }
 
+    }
+    fun refresh(){
+        eventsCache.clear()
+        profiles.clear()
+        postCache.clear()
+        getUpdateFeed()
     }
 
     override fun onCleared() {
