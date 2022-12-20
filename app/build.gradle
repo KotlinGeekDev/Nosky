@@ -138,6 +138,8 @@ dependencies {
     //Encrypted Shared Prefs
     //implementation "androidx.security:security-crypto:1.0.0"
 
+    implementation("com.liftric:kvault:1.10.0")
+
 
     //File API
     implementation "com.squareup.okio:okio:3.2.0"

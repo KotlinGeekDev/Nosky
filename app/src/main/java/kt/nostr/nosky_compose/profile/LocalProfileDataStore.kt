@@ -1,7 +1,7 @@
 package kt.nostr.nosky_compose.profile
 
 import android.content.Context
-import androidx.core.content.edit
+import com.liftric.kvault.KVault
 import kt.nostr.nosky_compose.profile.model.Profile
 import kt.nostr.nosky_compose.utility_functions.*
 
@@ -24,55 +24,52 @@ interface ProfileProvider {
 
 class LocalProfileDataStore(appContext: Context): ProfileProvider {
 
+    private val profileVault = KVault(appContext.applicationContext, PROFILE_DATA)
 
-    private val profilePreferences = appContext.applicationContext
-                                        .getSharedPreferences(PROFILE_DATA, Context.MODE_PRIVATE)
+
 
     override fun getProfile(pubkey: String): Profile {
 
+
         //TODO: Implement getting followers and following count from NostrService and update it.
-        with(profilePreferences) {
-            val privKey = getString(PRIVKEY_TAG, "").toString()
-            val pubKey = getString(PUBKEY_TAG, "").toString()
-            val username = getString(USERNAME_TAG, " ").toString()
-            val profileBio = getString(USER_BIO_TAG, " ").toString()
-            val profileImage = getString(PROFILE_IMAGE_TAG, "").toString()
+        with(profileVault) {
+            val privKey = string(PRIVKEY_TAG) ?: ""
+            val pubKey = string(PUBKEY_TAG) ?: ""
+            val username = string(USERNAME_TAG) ?: ""
+            val profileBio = string(USER_BIO_TAG) ?: ""
+            val profileImage = string(PROFILE_IMAGE_TAG) ?: ""
             return Profile(pubKey, privKey, username, profileImage, profileBio)
         }
     }
 
     override fun saveProfile(profile: Profile){
         profile.let { p ->
-            profilePreferences.edit {
-                putString(PRIVKEY_TAG, p.privKey)
-                putString(PUBKEY_TAG, p.pubKey)
-                if (p.userName.isNotBlank()) putString(USERNAME_TAG, p.userName)
-                if (p.bio.isNotBlank()) putString(USER_BIO_TAG, p.bio)
-                if (p.profileImage.isNotBlank()) putString(PROFILE_IMAGE_TAG, p.profileImage)
+            with(profileVault) {
+                set(PRIVKEY_TAG, p.privKey)
+                set(PUBKEY_TAG, p.pubKey)
+                if (p.userName.isNotBlank()) set(USERNAME_TAG, p.userName)
+                if (p.bio.isNotBlank()) set(USER_BIO_TAG, p.bio)
+                if (p.profileImage.isNotBlank()) set(PROFILE_IMAGE_TAG, p.profileImage)
             }
         }
     }
 
     fun updateBio(newBio: String) {
-        profilePreferences.edit {
-            putString("bio", newBio)
-        }
+        profileVault.set("bio", newBio)
     }
 
     fun updateUserName(newUserName: String){
-        profilePreferences.edit {
-            putString("username", newUserName)
-        }
+        profileVault.set("username", newUserName)
     }
 
 
     override fun resetOrDeleteProfile(){
-        profilePreferences.edit {
-            remove(PRIVKEY_TAG)
-            remove(PUBKEY_TAG)
-            remove(USERNAME_TAG)
-            remove(USER_BIO_TAG)
-            remove(PROFILE_IMAGE_TAG)
+        with(profileVault) {
+            deleteObject(PRIVKEY_TAG)
+            deleteObject(PUBKEY_TAG)
+            deleteObject(USERNAME_TAG)
+            deleteObject(USER_BIO_TAG)
+            deleteObject(PROFILE_IMAGE_TAG)
 
         }
     }
@@ -82,28 +79,27 @@ class LocalProfileDataStore(appContext: Context): ProfileProvider {
     }
 
     private fun profileDataExists(): Boolean {
-        val containsEditableProperties = profilePreferences.contains(USERNAME_TAG)
-                                            || profilePreferences.contains(USER_BIO_TAG)
-                                            || profilePreferences.contains(PROFILE_IMAGE_TAG)
+        val containsEditableProperties = profileVault.existsObject(USERNAME_TAG)
+                                            || profileVault.existsObject(USER_BIO_TAG)
+                                            || profileVault.existsObject(PROFILE_IMAGE_TAG)
         return containsEditableProperties && containsIdentityData()
     }
 
     fun containsIdentityData(): Boolean {
-        return profilePreferences.contains(PRIVKEY_TAG) && profilePreferences.contains(PUBKEY_TAG)
+        return profileVault.existsObject(PRIVKEY_TAG) && profileVault.existsObject(PUBKEY_TAG)
     }
 
 }
 
 object LoggedInProfileProvider {
     fun getLoggedProfile(context: Context): Profile {
-        val preferences = context.applicationContext
-            .getSharedPreferences(PROFILE_DATA, Context.MODE_PRIVATE)
-        with(preferences) {
-            val privKey = getString(PRIVKEY_TAG, "").toString()
-            val pubKey = getString(PUBKEY_TAG, "").toString()
-            val username = getString(USERNAME_TAG, " ").toString()
-            val profileBio = getString(USER_BIO_TAG, " ").toString()
-            val profileImage = getString(PROFILE_IMAGE_TAG, "").toString()
+        val vault = KVault(context.applicationContext, PROFILE_DATA)
+        with(vault) {
+            val privKey = string(PRIVKEY_TAG) ?: ""
+            val pubKey = string(PUBKEY_TAG) ?: ""
+            val username = string(USERNAME_TAG) ?: ""
+            val profileBio = string(USER_BIO_TAG) ?: ""
+            val profileImage = string(PROFILE_IMAGE_TAG) ?: ""
             return Profile(pubKey, privKey, username, profileImage, profileBio)
         }
     }
