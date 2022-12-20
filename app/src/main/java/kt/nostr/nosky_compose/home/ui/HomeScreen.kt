@@ -1,10 +1,7 @@
 package kt.nostr.nosky_compose.home.ui
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.*
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -32,13 +29,16 @@ import kt.nostr.nosky_compose.common_components.models.PostList
 import kt.nostr.nosky_compose.common_components.theme.NoskycomposeTheme
 import kt.nostr.nosky_compose.common_components.ui.DotsFlashing
 import kt.nostr.nosky_compose.common_components.ui.PostView
+import kt.nostr.nosky_compose.home.backend.FeedState
 import kt.nostr.nosky_compose.home.backend.FeedViewModel
 import kt.nostr.nosky_compose.home.backend.Post
 import kt.nostr.nosky_compose.home.backend.opsList
 import kt.nostr.nosky_compose.navigation.structure.Destination
 import kt.nostr.nosky_compose.profile.model.Profile
+import ktnostr.crypto.toBytes
+import nostr.postr.toNpub
 
-//TODO: Replace double AnimatedVisibility below with single AnimatedContent.
+
 
 @OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
@@ -65,9 +65,10 @@ fun Home(modifier: Modifier = Modifier,
     val scaffoldState = rememberScaffoldState()
 
     HomeView(
-        homeFeed = feed,
+        homeFeedState = feed,
         scaffoldState = scaffoldState,
         onPostClicked = { post -> navigator.singleTop(Destination.ViewingPost(post)) },
+        refreshFeed = { feedViewModel.getUpdateFeed() },
         navigator = navigator)
 
 }
@@ -75,9 +76,10 @@ fun Home(modifier: Modifier = Modifier,
 @Composable
 fun HomeView(
     modifier: Modifier = Modifier,
-    homeFeed: List<Post> = emptyList(),
+    homeFeedState: FeedState = FeedState.Loading,
     scaffoldState: ScaffoldState = rememberScaffoldState(),
     onPostClicked: (post: Post) -> Unit = {},
+    refreshFeed: () -> Unit = {},
     navigator: BackStack<Destination> = BackStack(
         initialElement = Destination.Home,
         savedStateMap = null
@@ -109,38 +111,50 @@ fun HomeView(
 
             Column() {
 
-                AnimatedVisibility(
-                    visible = homeFeed.isEmpty(),
-                    enter = fadeIn(),
-                    exit = fadeOut()
-                ) {
-                    Box(modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        //CircularProgressIndicator(Modifier.align(Alignment.Center))
-                        Row(
-                            modifier = Modifier.align(Alignment.Center),
-                            verticalAlignment = Alignment.Bottom
-                        ) {
-                            Text(text = "Loading feed")
-                            DotsFlashing(
-                                modifier = Modifier.padding(bottom = 4.dp)
-                            )
+                Crossfade(targetState = homeFeedState) { state ->
+                    when(state){
+                        FeedState.Empty -> {
+                            Box(modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                //CircularProgressIndicator(Modifier.align(Alignment.Center))
+                                Column(
+                                    modifier = Modifier.align(Alignment.Center)
+                                ) {
+                                    Text(text = "Feed is empty.")
+                                    OutlinedButton(onClick = refreshFeed) {
+                                        Text(text = "Refresh")
+                                    }
+                                }
+                            }
+                        }
+                        is FeedState.FeedError -> TODO()
+                        is FeedState.Loaded -> {
+                            Content(modifier = Modifier.padding(contentPadding),
+                                feed = state.feed,
+                                navigator = navigator,
+                                showPost = {
+                                    onPostClicked(it)
+                                    //navigator.navigate("selected_post")
+                                })
+                        }
+                        FeedState.Loading -> {
+                            Box(modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                //CircularProgressIndicator(Modifier.align(Alignment.Center))
+                                Row(
+                                    modifier = Modifier.align(Alignment.Center),
+                                    verticalAlignment = Alignment.Bottom
+                                ) {
+                                    Text(text = "Loading feed")
+                                    DotsFlashing(
+                                        modifier = Modifier.padding(bottom = 4.dp)
+                                    )
+                                }
+                            }
                         }
                     }
-                }
-                AnimatedVisibility(
-                    visible = homeFeed.isNotEmpty(),
-                    enter = fadeIn() + slideInVertically(),
-                    exit = fadeOut()
-                ) {
-                    Content(modifier = Modifier.padding(contentPadding),
-                        feed = homeFeed,
-                        navigator = navigator,
-                        showPost = {
-                            onPostClicked(it)
-                            //navigator.navigate("selected_post")
-                        })
                 }
 
             }
@@ -176,7 +190,10 @@ fun Content(modifier: Modifier = Modifier,
 
             itemsIndexed(items = list.items, key = { index, post -> post.postId + index}){ postIndex, post ->
                 PostView(
-                    viewingPost = post,
+                    viewingPost = post.copy(
+                        user = post.user
+                            .copy(pubKey = post.user.pubKey.toBytes().toNpub())
+                    ),
                     isUserVerified = false,
                     //containsImage = postIndex.mod(2) == 0,
                     //isRelayRecommendation = postIndex == 0,
@@ -227,7 +244,7 @@ fun CustomDivider(modifier: Modifier = Modifier) {
 @Composable
 fun HomePreview() {
     NoskycomposeTheme() {
-        HomeView(homeFeed = opsList)
+        HomeView(homeFeedState = FeedState.Loaded(opsList))
     }
 }
 

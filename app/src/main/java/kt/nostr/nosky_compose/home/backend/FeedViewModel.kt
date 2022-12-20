@@ -15,15 +15,21 @@ import nostr.postr.events.TextNoteEvent
 import nostr.postr.toHex
 import nostr.postr.toNpub
 
+sealed class FeedState {
+    object Loading: FeedState()
+    class Loaded(val feed: List<Post>): FeedState()
+    object Empty: FeedState()
+    class FeedError(val errorMessage: String): FeedState()
+}
 
 class FeedViewModel(): ViewModel() {
 
     private val nostrService = NostrService.get()
 
-    private val eventsCache: MutableList<TextNoteEvent> = mutableListOf()
-    private val profiles: MutableList<MetadataEvent> = mutableListOf()
+    private val eventsCache: MutableSet<TextNoteEvent> = mutableSetOf()
+    private val profiles: MutableSet<MetadataEvent> = mutableSetOf()
 
-    private val _feedContent = MutableStateFlow<List<Post>>(emptyList())
+    private val _feedContent = MutableStateFlow<FeedState>(FeedState.Loading)
     val feedContent = _feedContent.asStateFlow()
 
     private val postCache: MutableList<Post> = mutableListOf()
@@ -35,7 +41,14 @@ class FeedViewModel(): ViewModel() {
     //TODO : Replace with a call to NostrService.
     fun getUpdateFeed(){
 
+
         viewModelScope.launch {
+            if (_feedContent.value != FeedState.Loading){
+                _feedContent.update {
+                    FeedState.Loading
+                }
+            }
+
             if (postCache.isNotEmpty()){
                 Log.i(APP_TAG, "Taking cached events instead. Cache size: ${postCache.size}")
                 //val feed = postCache.distinctBy { it.postId }.sortedByDescending { it.timestamp }
@@ -48,7 +61,10 @@ class FeedViewModel(): ViewModel() {
                     .distinctUntilChanged { old, new ->
                         old.id.contentEquals(new.id)
                     }
-                    .catch { Log.i(APP_TAG,"Feed flow. Caught ${it.message}") }
+                    .catch { e ->
+                        Log.i(APP_TAG,"Feed flow. Caught ${e.message}")
+                        _feedContent.update { FeedState.FeedError(e.message?: "Could not load feed.") }
+                    }
                     .collect {
                         eventsCache.add(it)
                         Log.i(APP_TAG,"Collected event ${it.content} ")
@@ -58,14 +74,9 @@ class FeedViewModel(): ViewModel() {
                 delay(2000)
                 val pubkeys = eventsCache.map { it.pubKey.toHex() }.distinct()
                 Log.i(APP_TAG,"pubkeys_Size: ${pubkeys.size}")
-                nostrService.getProfilesInfo(
-                    pubkeys
-                )
-
+                nostrService.getProfilesInfo(pubkeys)
                     .onCompletion { Log.i(APP_TAG,"Profiles completed.") }
-                    .distinctUntilChanged { old, new ->
-                        old.id.contentEquals(new.id)
-                    }.catch { Log.e(APP_TAG,"Profiles flow. Caught ${it.message}") }
+                    .catch { Log.e(APP_TAG,"Profiles flow. Caught ${it.message}") }
 
                     .collect {
                         profiles.add(it)
@@ -73,30 +84,48 @@ class FeedViewModel(): ViewModel() {
                     }
                 Log.i(APP_TAG,"profilesCacheSize: ${profiles.size}")
 
-                val eventsByPubkey = eventsCache.associateBy { it.pubKey.toHex() }
+                val eventsByPubkey = eventsCache
+                    .distinctBy { it.id.toHex() }
+                    .associateBy { it.pubKey.toHex() }
 
-                Log.i(APP_TAG,"eventsByPubkeySize: ${eventsByPubkey.size}")
+                Log.i(APP_TAG,"eventsByPubkey Pubkey Size: ${eventsByPubkey.keys.size}")
+                Log.i(APP_TAG,"eventsByPubkey Event Size: ${eventsByPubkey.values.size}")
                 val posts = profiles
                     //.filter { eventsByPubkey[it.pubKey.toHex()] != null }
                     .map { metadataEvent ->
                         val textEvent = eventsByPubkey[metadataEvent.pubKey.toHex()]
                         if (textEvent != null){
-                            Post(
-                                user = User(
-                                    username = metadataEvent
-                                        .contactMetaData.name ?: textEvent.pubKey.toNpub().take(9),
-                                    pubKey = textEvent.pubKey.toNpub(),
-                                    bio = metadataEvent.contactMetaData.about ?: "",
-                                    image = metadataEvent.contactMetaData.picture ?: ""
-                                ),
-                                postId = textEvent.id.toHex(),
-                                timestamp = textEvent.createdAt,
-                                textContent = textEvent.content,
-                                imageLinks = textEvent.content.urlsInText()
-                            )
-                        } else {
-                            Log.i(APP_TAG, "Profile ${metadataEvent.contactMetaData.name} has no posts.")
-                            Post()
+                            if (textEvent.pubKey.toHex() == metadataEvent.pubKey.toHex()){
+                                val post = Post(
+                                    user = User(
+                                        username = metadataEvent
+                                            .contactMetaData.name ?: textEvent.pubKey.toNpub().take(9),
+                                        pubKey = textEvent.pubKey.toHex(),
+                                        bio = metadataEvent.contactMetaData.about ?: "",
+                                        image = metadataEvent.contactMetaData.picture ?: ""
+                                    ),
+                                    postId = textEvent.id.toHex(),
+                                    timestamp = textEvent.createdAt,
+                                    textContent = textEvent.content,
+                                    imageLinks = textEvent.content.urlsInText()
+                                )
+                                postCache.add(post)
+                            } else {
+                                val post = Post(
+                                    user = User(
+                                        username = textEvent.pubKey.toNpub().take(9),
+                                        pubKey = textEvent.pubKey.toHex(),
+                                        bio = metadataEvent.contactMetaData.about ?: "",
+                                        image = metadataEvent.contactMetaData.picture ?: ""
+                                    ),
+                                    postId = textEvent.id.toHex(),
+                                    timestamp = textEvent.createdAt,
+                                    textContent = textEvent.content,
+                                    imageLinks = textEvent.content.urlsInText()
+                                )
+                                postCache.add(post)
+                            }
+
                         }
                     }
                 Log.i(APP_TAG,"intermediatePostsCacheSize: ${posts.size}")
@@ -126,17 +155,22 @@ class FeedViewModel(): ViewModel() {
 //                    )
 //                }
 //            }.distinctBy { it.postId }.sortedByDescending { it.timestamp }
+                Log.i(APP_TAG,"postsCacheSize: ${postCache.size}")
 
-
-                val feed = posts
+                val feed = postCache
                     //.filter { it.postId.isNotBlank() }
-                    .distinctBy { it.postId }
+                    //.distinctBy { it.postId }
                     .sortedByDescending { it.timestamp }
                 feed.forEach { post ->
                     postCache.add(post)
                 }
                 Log.i(APP_TAG,"feedPostsSize: ${feed.size}")
-                _feedContent.update { it + feed }
+                if (feed.isEmpty()){
+                    _feedContent.update { FeedState.Empty }
+                } else {
+                    _feedContent.update { FeedState.Loaded(feed) }
+                }
+
             }
         }
 
