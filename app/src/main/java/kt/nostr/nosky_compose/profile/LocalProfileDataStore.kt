@@ -6,14 +6,20 @@ import kt.nostr.nosky_compose.profile.model.Profile
 import kt.nostr.nosky_compose.utility_functions.*
 
 interface ProfileProvider {
-    fun saveProfile(profile: Profile)
-    fun getProfile(pubkey: String = ""): Profile
+    fun saveProfile(profile: Profile) {
+
+    }
+    fun getProfile(pubkey: String = ""): Profile {
+       return Profile(pubKey = pubkey)
+    }
 //    fun updateProfile(username: String = getProfile().userName,
 //                      newBio: String = getProfile().bio,
 //                      profileImage: String = getProfile().profileImage,
 //                      followers: Int, following: Int)
-    fun resetOrDeleteProfile()
-    fun profileExists(profile: Profile? = null): Boolean
+    fun resetOrDeleteProfile() {
+
+    }
+    fun profileExists(profile: Profile? = null): Boolean = true
 }
 
 class LocalProfileDataStore(appContext: Context): ProfileProvider {

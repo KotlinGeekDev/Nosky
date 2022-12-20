@@ -11,6 +11,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentPaste
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,6 +20,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.colorspace.ColorSpaces
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
@@ -70,6 +73,10 @@ fun WelcomeScreen(appThemeState: AppThemeState,
         { if (appThemeState.isDark()) MaterialTheme.colors.surface else Purple500 }
     }
 
+    var isVisible by remember {
+        mutableStateOf(false)
+    }
+
     ConstraintLayout(modifier = Modifier
         .background(backgroundColor())
         .fillMaxSize()
@@ -105,14 +112,22 @@ fun WelcomeScreen(appThemeState: AppThemeState,
             Spacer(modifier = Modifier.height(40.dp))
             KeyEntryField(fieldName = "Private key",
                 data = privKey(),
+                isFieldContentWrong = privKey().startsWith("npub1"),
                 fieldKeyboardOptions = keyboardOptions,
                 fieldKeyboardActions = privKeyFieldActions,
-                visualTransformation = PasswordVisualTransformation(),
+                visualTransformation = if (isVisible) VisualTransformation.None
+                        else PasswordVisualTransformation(),
+                trailingIconImage = if (isVisible) Icons.Default.VisibilityOff
+                        else Icons.Default.Visibility,
+                onTrailingIconTapped = {
+                      isVisible = !isVisible
+                },
                 onDataUpdate = { updatePrivKey(it) }
             )
             Spacer(modifier = Modifier.height(20.dp))
             KeyEntryField(fieldName = "Public key",
                 data = pubKey(),
+                isFieldContentWrong = pubKey().startsWith("nsec1"),
                 fieldKeyboardActions = pubKeyFieldActions,
                 onDataUpdate = { updatePubKey(it) }
             )
@@ -191,6 +206,7 @@ private fun AppLogo() {
 private fun KeyEntryField(
     fieldName: String,
     data: String,
+    isFieldContentWrong: Boolean = false,
     fieldKeyboardOptions: KeyboardOptions = remember {
         KeyboardOptions() },
     fieldKeyboardActions: KeyboardActions = remember {
@@ -198,9 +214,18 @@ private fun KeyEntryField(
     visualTransformation: VisualTransformation = remember {
         VisualTransformation.None
     },
+    trailingIconImage: ImageVector = remember {
+        Icons.Default.ContentPaste
+    },
+    onTrailingIconTapped: () -> Unit = {},
     onDataUpdate: (String) -> Unit
     ) {
 
+    val fieldLabel = remember {
+        if (isFieldContentWrong)
+            "Sorry, this is not a $fieldName"
+        else "Enter the $fieldName here..."
+    }
 
     Column {
         Text(text = fieldName, color = Color.White)
@@ -211,16 +236,17 @@ private fun KeyEntryField(
                 .selectable(true, onClick = {}),
             label = {
                 Text(
-                    text = "Enter the $fieldName here...",
+                    text = fieldLabel,
                     color = Color.White.copy(alpha = 0.7f)
                 )
             },
             trailingIcon = { Icon(
-                imageVector = Icons.Default.ContentPaste,
+                imageVector = trailingIconImage,
                 contentDescription = "Copy the $fieldName",
-                modifier = Modifier.clickable {},
+                modifier = Modifier.clickable { onTrailingIconTapped() },
                 tint = Color.White
             ) },
+            isError = isFieldContentWrong,
             visualTransformation = visualTransformation,
             keyboardOptions = fieldKeyboardOptions,
             keyboardActions = fieldKeyboardActions,

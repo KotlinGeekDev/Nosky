@@ -29,12 +29,14 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
-import kt.nostr.nosky_compose.common_components.ui.GrayText
-import kt.nostr.nosky_compose.common_components.ui.ThemedText
 import kt.nostr.nosky_compose.common_components.theme.NoskycomposeTheme
 import kt.nostr.nosky_compose.common_components.theme.Purple500
 import kt.nostr.nosky_compose.common_components.theme.Purple700
+import kt.nostr.nosky_compose.common_components.ui.GrayText
+import kt.nostr.nosky_compose.common_components.ui.ThemedText
 import kt.nostr.nosky_compose.settings.backend.AppThemeState
+import ktnostr.crypto.toBytes
+import nostr.postr.toNpub
 
 /**
  * TODO:
@@ -168,7 +170,7 @@ fun NewProfileScreen(themeState: AppThemeState,
                 Spacer(modifier = Modifier.height(20.dp))
 
                 OutlinedTextField(
-                    value = pubkey,
+                    value = pubkey.toBytes().toNpub(),
                     onValueChange = {},
                     modifier = Modifier
                         .widthIn(max = TextFieldDefaults.MinWidth),

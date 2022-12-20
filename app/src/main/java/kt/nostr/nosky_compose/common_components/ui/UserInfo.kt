@@ -1,7 +1,6 @@
 package kt.nostr.nosky_compose.common_components.ui
 
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -18,8 +17,8 @@ fun UserInfo(modifier: Modifier = Modifier,
              username: String,
              userPubKey: String,
              userBio: String,
-             following: Int,
-             followers: Int,
+             following: Int = 0,
+             followers: Int = 0,
              isUserVerified: Boolean = false,
              showFollowing: () -> Unit,
              showFollowers: () -> Unit) {
@@ -52,33 +51,33 @@ fun UserInfo(modifier: Modifier = Modifier,
             )
         }
         Spacer(modifier = Modifier.height(8.dp))
-        Row(modifier = Modifier.then(modifier),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(Modifier.clickable { showFollowing() }) {
-                ThemedText(
-                    text = "$following ",
-                    style = TextStyle(fontWeight = FontWeight.Bold)
-                )
-                ThemedText(
-                    text = "Following",
-                    style = TextStyle(fontSize = 14.sp)
-                )
-            }
-            Spacer(modifier = Modifier.width(24.dp))
-            Row(Modifier.clickable { showFollowers() }) {
-                ThemedText(
-                    text = "$followers ",
-                    style = TextStyle(fontWeight = FontWeight.Bold)
-                )
-                ThemedText(
-                    text = "Followers",
-                    style = TextStyle(fontSize = 14.sp)
-                )
-            }
-        }
-        Spacer(modifier = Modifier.height(5.dp))
+//        Row(modifier = Modifier.then(modifier),
+//            horizontalArrangement = Arrangement.SpaceBetween,
+//            verticalAlignment = Alignment.CenterVertically
+//        ) {
+//            Row(Modifier.clickable { showFollowing() }) {
+//                ThemedText(
+//                    text = "$following ",
+//                    style = TextStyle(fontWeight = FontWeight.Bold)
+//                )
+//                ThemedText(
+//                    text = "Following",
+//                    style = TextStyle(fontSize = 14.sp)
+//                )
+//            }
+//            Spacer(modifier = Modifier.width(24.dp))
+//            Row(Modifier.clickable { showFollowers() }) {
+//                ThemedText(
+//                    text = "$followers ",
+//                    style = TextStyle(fontWeight = FontWeight.Bold)
+//                )
+//                ThemedText(
+//                    text = "Followers",
+//                    style = TextStyle(fontSize = 14.sp)
+//                )
+//            }
+//        }
+        Spacer(modifier = Modifier.height(10.dp))
     }
 }
 

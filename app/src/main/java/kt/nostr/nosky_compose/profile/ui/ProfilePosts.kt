@@ -15,6 +15,8 @@ import kt.nostr.nosky_compose.common_components.models.PostList
 import kt.nostr.nosky_compose.common_components.ui.PostView
 import kt.nostr.nosky_compose.home.backend.Post
 import kt.nostr.nosky_compose.home.backend.opsList
+import ktnostr.crypto.toBytes
+import nostr.postr.toNpub
 
 @Composable
 fun ProfilePosts(modifier: Modifier = Modifier,
@@ -29,14 +31,13 @@ fun ProfilePosts(modifier: Modifier = Modifier,
     }
 
     LazyColumn(state = listState, modifier = Modifier.padding(top = 10.dp).then(modifier)) {
-        itemsIndexed(items = list.items, key = { index: Int, post: Post -> index }) { index, post ->
+        itemsIndexed(items = list.items, key = { index: Int, post: Post -> post.postId + index }) { index, post ->
             PostView(
                 viewingPost = post.copy(
-                    textContent = "One of the user's very very long messages. " +
-                            "from ${post.user.pubKey}"
+                    user = post.user
+                        .copy(pubKey = post.user.pubKey.toBytes().toNpub())
                 ),
-                isUserVerified = index.mod(2) != 0,
-                containsImage = index.mod(2) == 0,
+                isUserVerified = false,
                 onPostClick = onPostClick
             )
             //CustomDivider()

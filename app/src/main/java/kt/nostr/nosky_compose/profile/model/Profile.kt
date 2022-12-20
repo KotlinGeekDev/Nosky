@@ -19,7 +19,8 @@ import kt.nostr.nosky_compose.profile.LocalProfileDataStore
 import kt.nostr.nosky_compose.profile.ProfileProvider
 import kt.nostr.nosky_compose.utility_functions.misc.toHexString
 import ktnostr.crypto.CryptoUtils
-import java.security.SecureRandom
+import nostr.postr.Bech32
+import nostr.postr.toHex
 
 
 @Stable
@@ -91,8 +92,7 @@ class LocalProfileViewModel(
 
     fun generateProfile() {
         viewModelScope.launch(Dispatchers.Default) {
-//            val privKey  = generatePrivKey()
-//            val pubKey = Secp256k1.get().pubkeyCreate(privKey).drop(1).take(32).toByteArray()
+
             val privKey = CryptoUtils.generatePrivateKey()
             val pubKey = CryptoUtils.getPublicKey(privKey)
             internalProfile.update { currentProfile ->
@@ -104,13 +104,6 @@ class LocalProfileViewModel(
 
     }
 
-    //This is here temporarily.
-    private fun generatePrivKey(): ByteArray {
-        val secretKey = ByteArray(32)
-        val pseudoRandomBytes = SecureRandom()
-        pseudoRandomBytes.nextBytes(secretKey)
-        return secretKey
-    }
 
     fun deleteResetProfile(){
         internalProfile.update { profile ->
@@ -125,6 +118,25 @@ class LocalProfileViewModel(
     }
 
     fun saveProfile(){
+        val tempSecKey = newUserProfile.value.privKey
+        val tempPubKey = newUserProfile.value.pubKey
+        if (tempPubKey.startsWith("npub1")){
+            val (_, keyBytes, _) = Bech32.decode(tempPubKey, noChecksum = true)
+            internalProfile.update {
+                it.copy(
+                    pubKey = keyBytes.toByteArray().toHex()
+                )
+            }
+        }
+        if (tempSecKey.startsWith("nsec1")){
+            val (_, keyBytes, _) = Bech32.decode(tempSecKey, noChecksum = true)
+            internalProfile.update {
+                it.copy(
+                    privKey = keyBytes.toByteArray().toHex()
+                )
+            }
+        }
+
         profileStore.saveProfile(newUserProfile.value)
     }
 
