@@ -65,7 +65,6 @@ fun PostScreen(
     }
 
     BackHandler {
-        postViewModel.stopFetching()
         postViewModel.dispose()
         goBack()
     }
@@ -203,7 +202,7 @@ fun Replies(
                     //CircularProgressIndicator(Modifier.align(Alignment.Center))
                     Column(modifier = Modifier.align(Alignment.Center)) {
                         Text(text = "No replies.")
-                        Button(
+                        OutlinedButton(
                             modifier = Modifier.align(CenterHorizontally),
                             onClick = onForceRefresh
                         ) {
@@ -211,18 +210,23 @@ fun Replies(
                         }
                     }
                 }
+                Toast.makeText(
+                    LocalContext.current,
+                    "No replies found.",
+                    Toast.LENGTH_SHORT).show()
             } else {
                 ProfilePosts(
                     modifier = modifier,
                     listOfPosts = uiState.replies,
                     onPostClick = {  })
+                Toast.makeText(
+                    LocalContext.current,
+                    "Replies loaded.",
+                    Toast.LENGTH_SHORT).show()
             }
 
 
-            Toast.makeText(
-                LocalContext.current,
-                "Replies loaded.",
-                Toast.LENGTH_SHORT).show()
+
         }
         RepliesUiState.Loading -> {
             Box(modifier = modifier.fillMaxSize(),

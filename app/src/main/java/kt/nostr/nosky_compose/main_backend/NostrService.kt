@@ -20,11 +20,11 @@ import kotlin.time.TimeSource
 
 object NostrService {
 
-    private val feedEventsLimit = 20
+    private const val feedEventsLimit = 20
 
     private val nostrClient = Client
 
-    val replyEventCount = AtomicInteger(0)
+
 
     fun sendPost(postContent: String,
                  timestamp: Long,
@@ -40,88 +40,19 @@ object NostrService {
         nostrClient.send(event)
     }
 
-    @OptIn(ExperimentalTime::class)
-    fun getReplies(eventId: String): Flow<TextNoteEvent> = channelFlow {
-        val repliesListener = object: Client.Listener() {
-            override fun onEvent(event: Event, relay: Relay) {
-                when(event){
-                    is TextNoteEvent -> {
-                        Log.i(APP_TAG,"Obtained reply: ${event.content} \n Replying to: ${event.replyTos.first()}")
-                        trySend(event)
-                    }
 
-                }
-            }
-
-//            override fun onRelayStateChange(type: Relay.Type, relay: Relay) {
-//                when(type){
-//                    Relay.Type.EOSE -> {
-//                        Log.i(APP_TAG, "Replies flow ->Relay done sending.")
-//                        nostrClient.unsubscribe(this)
-//                        close()
-//                    }
-//                    else ->{}
-//                }
-//            }
-
-        }
-
-        val timeSource = TimeSource.Monotonic
-        val current = timeSource.markNow()
-
-        Log.i(APP_TAG,"Launching replies subscriber...")
-        Client.subscribe(repliesListener)
-        Log.i(APP_TAG, "Connecting to replies sub...")
-        val repliesFilter = JsonFilter(
-            kinds = listOf(TextNoteEvent.kind),
-            tags = mapOf("e" to listOf(eventId)),
-            limit = feedEventsLimit - 5)
-        Log.i(APP_TAG, "Replies Filter -> $repliesFilter")
-            Client.connect(
-                mutableListOf(repliesFilter)
-            )
-        Log.i(APP_TAG,"Retrieving data from replies sub...")
-        delay(1000)
-       while (replyEventCount.get() < feedEventsLimit){
-           Log.i(APP_TAG, "Elapsed time... ${current.elapsedNow().inWholeSeconds}")
-           Log.i(APP_TAG,"replies sub: $replyEventCount")
-           replyEventCount.getAndIncrement()
-           if (replyEventCount.get() == feedEventsLimit){
-               Log.i(APP_TAG,"Disconnecting replies sub...")
-               Client.unsubscribe(repliesListener)
-               replyEventCount.set(0)
-               close()
-               Log.i(APP_TAG,"Disconnected replies sub.")
-           }
-       }
-
-
-        awaitClose {
-            Log.i(APP_TAG,"Disconnecting replies sub...")
-            Client.unsubscribe(repliesListener)
-            replyEventCount.set(0)
-            close()
-            Log.i(APP_TAG,"Disconnected replies sub.")
-        }
-
-
-    }.flowOn(Dispatchers.IO)
-
-
-    @OptIn(ExperimentalTime::class)
     fun getTextEvents(pubkeyList: List<String> = emptyList(),
-                      eventIdList: List<String> = emptyList()
+                      eventId: String = ""
                     ): Flow<TextNoteEvent> = channelFlow {
 
-        val timeNow = TimeSource.Monotonic.markNow()
+        val timeNow = currentSystemUnixTimeStamp()
         val feedListener = object : Client.Listener() {
 
             override fun onEvent(event: Event, relay: Relay) {
                 when(event){
                     is TextNoteEvent -> {
                         event.run {
-
-                            Log.i(APP_TAG, "Found Event: Id ->${event.id.toHex()} content -> ${event.content}")
+                            Log.i(APP_TAG, "Found Event: Id ->${id.toHex()} content -> $content")
                             trySend(this)
                         }
                     }
@@ -145,7 +76,7 @@ object NostrService {
             JsonFilter(
                 kinds = listOf(TextNoteEvent.kind),
                 authors = pubkeyList.ifEmpty { null },
-                tags = if (eventIdList.isEmpty()) null else mapOf("e" to eventIdList),
+                tags = if (eventId.isBlank()) null else mapOf("e" to listOf(eventId, "reply")),
                 since = currentSystemUnixTimeStamp() - (60*60*24),
                 limit = feedEventsLimit
             ),
@@ -155,12 +86,12 @@ object NostrService {
         )
         Log.i(APP_TAG,"Retrieving data from feed sub...")
         delay(1000)
-        Log.i(APP_TAG, "Elapsed time :${timeNow.elapsedNow().inWholeSeconds}s")
+        Log.i(APP_TAG, "Elapsed time :${currentSystemUnixTimeStamp() -timeNow}s")
 
         awaitClose {
             Log.i(APP_TAG,"Disconnecting feed sub...")
             Client.unsubscribe(feedListener)
-            //Client.disconnect()
+
 
             Log.i(APP_TAG,"Disconnected from feed sub.")
         }
@@ -168,6 +99,7 @@ object NostrService {
 
     @OptIn(ExperimentalTime::class)
     fun getProfilesInfo(pubkeyList: List<String> = listOf()): Flow<MetadataEvent> = channelFlow {
+        val replyEventCount = AtomicInteger(0)
         val upperLimit = if (pubkeyList.isEmpty()) feedEventsLimit else pubkeyList.size
         val timeNow = TimeSource.Monotonic.markNow()
         val profilesListener = object: Client.Listener() {
@@ -208,6 +140,7 @@ object NostrService {
             authors = pubkeyList.map { it.take(10) }.ifEmpty { null },
             limit = upperLimit)
         println("Profile filter: $filter")
+
         nostrClient.connect(mutableListOf(filter),
        //    relays = arrayOf(Relay("wss://relay.nostr.info"))
 //                //Relay("wss://relay.damus.io"),

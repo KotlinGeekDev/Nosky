@@ -150,8 +150,7 @@ fun WelcomeScreen(appThemeState: AppThemeState,
                 enabled = privKey().isNotBlank() && pubKey().isNotBlank() && areKeysCorrect,
                 colors = ButtonDefaults.outlinedButtonColors(
                     backgroundColor = backgroundColor(),
-                    contentColor = Color.White,
-                    //disabledContentColor = Color.White.copy(alpha = 0.5f)
+                    contentColor = Color.White
                 )
             ) {
                 Text(text = "Login")

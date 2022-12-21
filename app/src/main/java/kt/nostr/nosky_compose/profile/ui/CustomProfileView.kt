@@ -2,12 +2,12 @@ package kt.nostr.nosky_compose.profile.ui
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.os.Build
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -17,14 +17,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -46,9 +43,6 @@ import com.bumble.appyx.navmodel.backstack.operation.push
 import com.bumble.appyx.navmodel.backstack.operation.singleTop
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.coil.CoilImage
-import compose.icons.FontAwesomeIcons
-import compose.icons.fontawesomeicons.Solid
-import compose.icons.fontawesomeicons.solid.Envelope
 import kt.nostr.nosky_compose.BottomNavigationBar
 import kt.nostr.nosky_compose.R
 import kt.nostr.nosky_compose.common_components.theme.NoskycomposeTheme
@@ -126,7 +120,7 @@ fun ProfileView(modifier: Modifier = Modifier,
                 if (isProfileMine){
                     0f
                 } else {
-                    min(1f, scrollState.firstVisibleItemIndex*100/delta)
+                    min(1f, scrollState.firstVisibleItemIndex*50/delta)
                 }
                // min(nestedScrollState.value/delta, 1f)
 
@@ -497,12 +491,12 @@ internal fun Avatar(modifier: Modifier = Modifier, profileImageUrl: () -> String
             .clip(shape = RoundedCornerShape(40.dp))
             .layoutId("avatar")
             .border(
-                border = BorderStroke(width = 3.dp, color = Color.Gray),
+                border = BorderStroke(width = 1.dp, color = Color.Gray),
                 shape = CircleShape
             )
             .then(modifier),
         imageOptions = ImageOptions(
-            contentScale = ContentScale.FillBounds,
+            contentScale = ContentScale.Fit,
             contentDescription = "Profile Image"
         )
 
@@ -534,39 +528,44 @@ private fun TopBar(modifier: Modifier = Modifier, goBack:() -> Unit) {
 @Composable
 private fun FollowButton(modifier: Modifier = Modifier, isProfileMine: Boolean) {
     val buttonLabel by remember {
-        derivedStateOf { if (isProfileMine) "Edit Profile" else "Following" }
+        derivedStateOf { if (isProfileMine) "Edit Profile" else "Follow" }
     }
-    val icon by remember {
-        derivedStateOf {
-            if (isProfileMine) Icons.Default.MoreVert else FontAwesomeIcons.Solid.Envelope
-        }
-    }
+    val localContext = LocalContext.current
+//    val icon by remember {
+//        derivedStateOf {
+//            if (isProfileMine) Icons.Default.MoreVert else FontAwesomeIcons.Solid.Envelope
+//        }
+//    }
 
     Row(
         modifier = Modifier.layoutId("follow"),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Image(
-            imageVector = icon,
-            contentDescription = "Send a direct message.",
-            modifier = Modifier
-                .size(35.dp)
-                .border(
-                    width = 1.dp,
-                    color = MaterialTheme.colors.primary,
-                    shape = RoundedCornerShape(80.dp)
-                )
-                .clip(CircleShape)
-                .scale(0.5f),
-            colorFilter = ColorFilter.tint(MaterialTheme.colors.primary)
-        )
+//        Image(
+//            imageVector = icon,
+//            contentDescription = "Send a direct message.",
+//            modifier = Modifier
+//                .size(35.dp)
+//                .border(
+//                    width = 1.dp,
+//                    color = MaterialTheme.colors.primary,
+//                    shape = RoundedCornerShape(80.dp)
+//                )
+//                .clip(CircleShape)
+//                .scale(0.5f),
+//            colorFilter = ColorFilter.tint(MaterialTheme.colors.primary)
+//        )
 
         Button(
             modifier = Modifier
                 //.layoutId("follow")
                 .then(modifier),
             onClick = {
+                Toast.makeText(
+                    localContext,
+                    "Not yet implemented :|",
+                    Toast.LENGTH_SHORT).show()
             },
             shape = RoundedCornerShape(20.dp),
             colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.surface),

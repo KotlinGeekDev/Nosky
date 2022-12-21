@@ -8,15 +8,11 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 import kt.nostr.nosky_compose.main_backend.NostrService
 import kt.nostr.nosky_compose.utility_functions.APP_TAG
-import kt.nostr.nosky_compose.utility_functions.isURL
 import kt.nostr.nosky_compose.utility_functions.misc.currentSystemUnixTimeStamp
 import kt.nostr.nosky_compose.utility_functions.misc.toHexString
 import kt.nostr.nosky_compose.utility_functions.urlsInText
@@ -55,7 +51,7 @@ class PostViewModel(): ViewModel() {
     private var repliesFetcherJob: Job? = null
     private val replyTextCache: MutableList<TextNoteEvent> = mutableListOf()
     private val replyProfiles: MutableList<MetadataEvent> = mutableListOf()
-    private val repliesCache: MutableList<Post> = mutableListOf()
+    private val repliesCache: MutableSet<Post> = mutableSetOf()
 
     private val _internalPost = MutableStateFlow(Post())
     val postContent = _internalPost.asStateFlow()
@@ -102,26 +98,36 @@ class PostViewModel(): ViewModel() {
         }
         repliesFetcherJob = viewModelScope.launch {
             try {
-                nostrService.getTextEvents(eventIdList = listOf(postId))
+                nostrService.getTextEvents(eventId = postId)
                     .catch { println("Replies error. ${it.message}") }
                     .collect {
                         replyTextCache.add(it)
                     }
 
-//                val replyKeys = replyTextCache.map { it.pubKey.toHex() }.distinct()
-//
-//                nostrService
-//                    .getProfilesInfo(replyKeys)
-//                    .onEach { Log.i(APP_TAG,"Obtained profile: Name ->${it.contactMetaData.name} Image->${it.contactMetaData.picture}") }
-//                    .onCompletion { Log.i(APP_TAG,"Obtained reply profiles") }
-//                    .catch { error ->
-//                        _repliesUiState.update {
-//                            RepliesUiState.LoadingError(Exception(error.message))
-//                        }
-//                    }
-//                    .collect {
-//                        replyProfiles.add(it)
-//                    }
+
+                if (replyTextCache.isEmpty()) _repliesUiState.update {
+                    RepliesUiState.Loaded(emptyList())
+                }
+                val replyKeys = replyTextCache.map { it.pubKey.toHex() }.distinct()
+                val currentTime = currentSystemUnixTimeStamp()
+                nostrService
+                    .getProfilesInfo(replyKeys)
+                    .onEach { Log.i(APP_TAG,"Obtained profile: Name ->${it.contactMetaData.name} Image->${it.contactMetaData.picture}") }
+                    .onCompletion { Log.i(APP_TAG,"Obtained reply profiles") }
+                    .catch { error ->
+                        _repliesUiState.update {
+                            RepliesUiState.LoadingError(Exception(error.message))
+                        }
+                    }
+                    .collect {
+                        if (currentSystemUnixTimeStamp() - currentTime == 10L){
+                            repliesFetcherJob?.cancel("Replies took too long to load.")
+                        }
+                        else {
+                            replyProfiles.add(it)
+                        }
+
+                    }
 
                 val eventsByPubkey = replyTextCache
                     .distinctBy { it.id.toHex() }
@@ -152,7 +158,7 @@ class PostViewModel(): ViewModel() {
                     }
                 Log.i(APP_TAG, "Event mapping executions: ${posts.size}")
                 Log.i(APP_TAG, "repliesCache size: ${repliesCache.size}")
-                _repliesUiState.update { RepliesUiState.Loaded(repliesCache) }
+                _repliesUiState.update { RepliesUiState.Loaded(repliesCache.toList()) }
                 cancel()
             } catch (e: Exception) {
                 delay(2000)
@@ -163,10 +169,6 @@ class PostViewModel(): ViewModel() {
 
     }
 
-    fun stopFetching(){
-        repliesCache.clear()
-        repliesFetcherJob?.cancel()
-    }
 
     override fun onCleared() {
         _internalPost.update {
@@ -176,10 +178,13 @@ class PostViewModel(): ViewModel() {
         super.onCleared()
     }
     fun dispose(){
+        repliesFetcherJob?.cancel()
+        replyTextCache.clear()
+        replyProfiles.clear()
+        repliesCache.clear()
         repliesFetcherJob = null
         onCleared()
     }
 
-    fun textIsLink(): Boolean = postContent.value.textContent.isURL()
 }
 

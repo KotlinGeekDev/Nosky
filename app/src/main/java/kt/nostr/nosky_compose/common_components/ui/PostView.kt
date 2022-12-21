@@ -342,7 +342,8 @@ private fun TweetAndImage(modifier: Modifier = Modifier,
 }
 
 @Composable
-internal fun TweetActions(numberOfComments: Int = 0,
+internal fun TweetActions(
+//                         numberOfComments: Int = 0,
 //                         numberOfBoosts: Int = 0,
 //                         numLikes: Int = 0,
 //                         isPostBoosted: Boolean,
@@ -367,7 +368,7 @@ internal fun TweetActions(numberOfComments: Int = 0,
                 modifier = Modifier.size(imageSize)
             )
             Spacer(modifier = Modifier.size(4.dp))
-            GrayText(text = numberOfComments.toString())
+            //GrayText(text = numberOfComments.toString())
         }
 
 //        Row(modifier = Modifier) {
