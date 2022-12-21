@@ -73,9 +73,13 @@ fun WelcomeScreen(appThemeState: AppThemeState,
         { if (appThemeState.isDark()) MaterialTheme.colors.surface else Purple500 }
     }
 
-    var isVisible by remember {
+    var isPrivKeyVisible by remember {
         mutableStateOf(false)
     }
+
+    val isPrivkeyWrong = privKey().startsWith("npub")
+    val isPubkeyWrong = pubKey().startsWith("nsec")
+    val areKeysCorrect = !isPrivkeyWrong && !isPubkeyWrong
 
     ConstraintLayout(modifier = Modifier
         .background(backgroundColor())
@@ -112,22 +116,22 @@ fun WelcomeScreen(appThemeState: AppThemeState,
             Spacer(modifier = Modifier.height(40.dp))
             KeyEntryField(fieldName = "Private key",
                 data = privKey(),
-                isFieldContentWrong = privKey().startsWith("npub"),
+                isFieldContentWrong = isPrivkeyWrong,
                 fieldKeyboardOptions = keyboardOptions,
                 fieldKeyboardActions = privKeyFieldActions,
-                visualTransformation = if (isVisible) VisualTransformation.None
+                visualTransformation = if (isPrivKeyVisible) VisualTransformation.None
                         else PasswordVisualTransformation(),
-                trailingIconImage = if (isVisible) Icons.Default.VisibilityOff
+                trailingIconImage = if (isPrivKeyVisible) Icons.Default.VisibilityOff
                         else Icons.Default.Visibility,
                 onTrailingIconTapped = {
-                      isVisible = !isVisible
+                      isPrivKeyVisible = !isPrivKeyVisible
                 },
                 onDataUpdate = { updatePrivKey(it) }
             )
             Spacer(modifier = Modifier.height(20.dp))
             KeyEntryField(fieldName = "Public key",
                 data = pubKey(),
-                isFieldContentWrong = pubKey().startsWith("nsec"),
+                isFieldContentWrong = isPubkeyWrong,
                 fieldKeyboardActions = pubKeyFieldActions,
                 onDataUpdate = { updatePubKey(it) }
             )
@@ -143,7 +147,7 @@ fun WelcomeScreen(appThemeState: AppThemeState,
             verticalAlignment = Alignment.Bottom,
             horizontalArrangement = Arrangement.SpaceAround) {
             OutlinedButton(onClick = onLoginClick,
-                enabled = privKey().isNotBlank() && pubKey().isNotBlank(),
+                enabled = privKey().isNotBlank() && pubKey().isNotBlank() && areKeysCorrect,
                 colors = ButtonDefaults.outlinedButtonColors(
                     backgroundColor = backgroundColor(),
                     contentColor = Color.White,
