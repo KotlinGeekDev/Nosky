@@ -112,7 +112,7 @@ fun WelcomeScreen(appThemeState: AppThemeState,
             Spacer(modifier = Modifier.height(40.dp))
             KeyEntryField(fieldName = "Private key",
                 data = privKey(),
-                isFieldContentWrong = privKey().startsWith("npub1"),
+                isFieldContentWrong = privKey().startsWith("npub"),
                 fieldKeyboardOptions = keyboardOptions,
                 fieldKeyboardActions = privKeyFieldActions,
                 visualTransformation = if (isVisible) VisualTransformation.None
@@ -127,7 +127,7 @@ fun WelcomeScreen(appThemeState: AppThemeState,
             Spacer(modifier = Modifier.height(20.dp))
             KeyEntryField(fieldName = "Public key",
                 data = pubKey(),
-                isFieldContentWrong = pubKey().startsWith("nsec1"),
+                isFieldContentWrong = pubKey().startsWith("nsec"),
                 fieldKeyboardActions = pubKeyFieldActions,
                 onDataUpdate = { updatePubKey(it) }
             )
@@ -221,11 +221,10 @@ private fun KeyEntryField(
     onDataUpdate: (String) -> Unit
     ) {
 
-    val fieldLabel = remember {
+    val fieldLabel =
         if (isFieldContentWrong)
             "Sorry, this is not a $fieldName"
         else "Enter the $fieldName here..."
-    }
 
     Column {
         Text(text = fieldName, color = Color.White)
@@ -237,12 +236,14 @@ private fun KeyEntryField(
             label = {
                 Text(
                     text = fieldLabel,
-                    color = Color.White.copy(alpha = 0.7f)
+                    color = if (isFieldContentWrong)
+                        MaterialTheme.colors.error else Color.White.copy(alpha = 0.7f)
                 )
             },
             trailingIcon = { Icon(
                 imageVector = trailingIconImage,
-                contentDescription = "Copy the $fieldName",
+                contentDescription = if (fieldName.contains("priv"))
+                    "See or hide $fieldName" else "Copy the $fieldName",
                 modifier = Modifier.clickable { onTrailingIconTapped() },
                 tint = Color.White
             ) },
