@@ -1,9 +1,7 @@
 package kt.nostr.nosky_compose.settings.ui
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,9 +29,10 @@ import com.bumble.appyx.navmodel.backstack.BackStack
 import com.bumble.appyx.navmodel.backstack.operation.singleTop
 import kt.nostr.nosky_compose.BottomNavigationBar
 import kt.nostr.nosky_compose.BuildConfig
-import kt.nostr.nosky_compose.navigation.structure.Destination
-import kt.nostr.nosky_compose.common_components.ui.TopBar
 import kt.nostr.nosky_compose.common_components.theme.NoskycomposeTheme
+import kt.nostr.nosky_compose.common_components.ui.TopBar
+import kt.nostr.nosky_compose.navigation.structure.Destination
+import kt.nostr.nosky_compose.settings.SettingsDestination
 import kt.nostr.nosky_compose.settings.backend.AppThemeState
 
 
@@ -55,74 +54,81 @@ fun SettingsScreen(
         }
     }
 
-    var isOnMainPage by remember {
-        mutableStateOf(false)
+    var destinationState: SettingsDestination by remember {
+        mutableStateOf(SettingsDestination.MainSettings)
     }
 
-    var showProfileManagement by remember {
-        mutableStateOf(false)
-    }
-
-
-
-    AnimatedVisibility(
-        visible = isOnMainPage,
-        enter = fadeIn(),
-        exit = fadeOut()
-    ) {
-        AppInformationDetails(
-            goBackToMainSettings = {
-                isOnMainPage = !isOnMainPage
+    Crossfade(targetState = destinationState) { destination ->
+        when(destination){
+            SettingsDestination.MainSettings -> {
+                MainSettingsPage(
+                    appThemeState = appThemeState,
+                    onStateChange = onStateChange,
+                    navigator = navigator,
+                    goToRelayDetails = {
+                         destinationState = SettingsDestination.RelayManagement
+                    },
+                    goToAppDetails = {
+                          destinationState = SettingsDestination.AppInformation
+                    },
+                    goToProfileSettingDetails = {}
+                )
             }
-        )
-    }
-
-    AnimatedVisibility(
-        visible = !isOnMainPage,
-//                && !showProfileManagement,
-        enter = fadeIn(),
-        exit = fadeOut()
-    ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            Scaffold(
-                topBar = { TopBar(tabTitle = "Settings") },
-                bottomBar = { BottomNavigationBar(backStackNavigator = navigator) }
-            ) { contentPadding ->
-                Column(Modifier.padding(contentPadding)) {
-                    ProfileSettingsView(
-                        goToProfileSettingDetails = {
-                            //showProfileManagement = !showProfileManagement
-                        }
-                    )
-                    Divider(thickness = Dp.Hairline)
-                    RelaySettingsView(goToRelayDetails = {})
-                    DarkModeSettingView(appThemeState, onStateChange)
-                    Description(
-                        goToAppDetails = {
-                            isOnMainPage = !isOnMainPage
-                        }
-                    )
-
-                }
+            SettingsDestination.AppInformation -> {
+                AppInformationDetails(
+                    goBackToMainSettings = {
+                        destinationState = SettingsDestination.MainSettings
+                    }
+                )
             }
+            SettingsDestination.RelayManagement -> {
 
-            TextField(
-                value = "App version : ${BuildConfig.VERSION_NAME}-${BuildConfig.BUILD_TYPE}",
-                onValueChange = {},
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 60.dp, start = 40.dp),
-                readOnly = true,
-                colors = TextFieldDefaults
-                    .outlinedTextFieldColors(
-                        textColor = Color.White.copy(alpha = 0.5f),
-                        unfocusedBorderColor = Color.Transparent,
-                        focusedBorderColor = Color.Transparent
-                    )
-            )
+            }
         }
     }
 
+
+}
+
+@Composable
+fun MainSettingsPage(
+    appThemeState: AppThemeState,
+    onStateChange: (Boolean) -> Unit = { it -> },
+    navigator: BackStack<Destination>,
+    goToProfileSettingDetails: () -> Unit = {},
+    goToAppDetails: () -> Unit,
+    goToRelayDetails: () -> Unit){
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = { TopBar(tabTitle = "Settings") },
+            bottomBar = { BottomNavigationBar(backStackNavigator = navigator) }
+        ) { contentPadding ->
+            Column(Modifier.padding(contentPadding)) {
+                ProfileSettingsView(goToProfileSettingDetails = goToProfileSettingDetails)
+                Divider(thickness = Dp.Hairline)
+                RelaySettingsView(goToRelayDetails = goToRelayDetails)
+                DarkModeSettingView(appThemeState, onStateChange)
+                Description(goToAppDetails = goToAppDetails)
+
+            }
+        }
+
+        TextField(
+            value = "App version : ${BuildConfig.VERSION_NAME}-${BuildConfig.BUILD_TYPE}",
+            onValueChange = {},
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 60.dp, start = 40.dp),
+            readOnly = true,
+            colors = TextFieldDefaults
+                .outlinedTextFieldColors(
+                    textColor = Color.White.copy(alpha = 0.5f),
+                    unfocusedBorderColor = Color.Transparent,
+                    focusedBorderColor = Color.Transparent
+                )
+        )
+    }
 }
 
 

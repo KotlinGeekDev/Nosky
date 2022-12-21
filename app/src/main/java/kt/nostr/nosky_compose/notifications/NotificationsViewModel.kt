@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kt.nostr.nosky_compose.home.backend.Post
-import kt.nostr.nosky_compose.home.backend.opsList
 
 sealed class NotificationsUiState() {
     object Loading: NotificationsUiState()
@@ -30,7 +29,7 @@ class NotificationsViewModel(): ViewModel(){
         viewModelScope.launch {
             _uiState.value = NotificationsUiState.Loading
             delay(3000)
-            notificationsCache.addAll(opsList)
+            //notificationsCache.addAll(opsList)
             if (notificationsCache.isEmpty()){
                 _uiState.update { NotificationsUiState.Empty }
             } else {
