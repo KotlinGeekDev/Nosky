@@ -9,12 +9,14 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 import kt.nostr.nosky_compose.NoskyApplication
+import kt.nostr.nosky_compose.home.backend.opsList
 import kt.nostr.nosky_compose.profile.LocalProfileDataStore
 import kt.nostr.nosky_compose.profile.ProfileProvider
 import kt.nostr.nosky_compose.utility_functions.misc.toHexString
@@ -47,20 +49,22 @@ class LocalProfileViewModel(
 //    private val internalPrivKey = MutableStateFlow("")
 //    val privKey = internalPrivKey.asStateFlow()
 
-
-
-
-
-
     private val internalProfile = MutableStateFlow(Profile())
     val newUserProfile = internalProfile.asStateFlow()
 
-
-
+    private val _profilePosts:MutableStateFlow<PostsResult> = MutableStateFlow(PostsResult.Loading)
+    val profilePosts = _profilePosts.asStateFlow()
 
 //    val stateProfile = combine(flow = pubKey, flow2 = privKey){ newPub, newPriv ->
 //        Profile(pubKey = newPub, privKey = newPriv)
 //    }.stateIn(viewModelScope, SharingStarted.Lazily, Profile())
+    init {
+        viewModelScope.launch {
+            _profilePosts.update { PostsResult.Loading }
+            delay(3000)
+            _profilePosts.update { PostsResult.Success(opsList) }
+        }
+    }
 
 
     fun updatePrivKey(newKey: String){
@@ -138,6 +142,7 @@ class LocalProfileViewModel(
         }
 
         profileStore.saveProfile(newUserProfile.value)
+        deleteResetProfile()
     }
 
     private fun getLoggedInProfile(): Profile {

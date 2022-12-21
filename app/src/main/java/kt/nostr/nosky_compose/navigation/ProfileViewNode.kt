@@ -40,10 +40,12 @@ class ProfileViewNode(buildContext: BuildContext,
                 profileStore.saveProfile()
             }
             val localProfile by profileStore.newUserProfile.collectAsState()
+            val postsState by profileStore.profilePosts.collectAsState()
 
 
             ProfileView(
                 user = localProfile,
+                userPostsState = postsState,
                 navController = navigator) {
                 navigator.pop()
             }
