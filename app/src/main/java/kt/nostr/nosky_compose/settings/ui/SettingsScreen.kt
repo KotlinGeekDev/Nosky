@@ -82,6 +82,14 @@ fun SettingsScreen(
                 )
             }
             SettingsDestination.RelayManagement -> {
+                RelayManagementSettingsScreen(
+                    returnToMainPage = {
+                        destinationState = SettingsDestination.MainSettings
+                    }
+                )
+            }
+
+            SettingsDestination.ProfileManagement -> {
 
             }
         }

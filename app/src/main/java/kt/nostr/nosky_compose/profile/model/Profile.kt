@@ -60,7 +60,7 @@ class LocalProfileViewModel(
 //    }.stateIn(viewModelScope, SharingStarted.Lazily, Profile())
     init {
         viewModelScope.launch {
-            _profilePosts.update { PostsResult.Loading }
+            //_profilePosts.update { PostsResult.Loading }
             delay(3000)
             _profilePosts.update { PostsResult.Success(opsList) }
         }
