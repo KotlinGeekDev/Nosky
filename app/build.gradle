@@ -5,9 +5,9 @@ plugins {
 
 }
 
-def keyStorePropsFile = rootProject.file("keystore.properties")
-def keyStoreProps = new Properties()
-keyStoreProps.load(new FileInputStream(keyStorePropsFile))
+//def keyStorePropsFile = rootProject.file("keystore.properties")
+//def keyStoreProps = new Properties()
+//keyStoreProps.load(new FileInputStream(keyStorePropsFile))
 
 android {
 
@@ -15,7 +15,7 @@ android {
         abi {
            enable true
             reset()
-            include "x86", "x86_64", "armeabi-v7a", "arm64-v8a"
+            include "x86"//, "x86_64", "armeabi-v7a", "arm64-v8a"
 
             universalApk true
         }
@@ -23,10 +23,10 @@ android {
 
     signingConfigs {
         release {
-        storeFile file(keyStoreProps['storeFile'])
-            storePassword keyStoreProps['storePassword']
-            keyAlias keyStoreProps['keyAlias']
-            keyPassword keyStoreProps['keyPassword']
+//        storeFile file(keyStoreProps['storeFile'])
+//            storePassword keyStoreProps['storePassword']
+//            keyAlias keyStoreProps['keyAlias']
+//            keyPassword keyStoreProps['keyPassword']
         }
     }
     compileSdk 33
@@ -52,7 +52,7 @@ android {
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             //debuggable false
-            signingConfig signingConfigs.release
+            //signingConfig signingConfigs.release
 
         }
         debug {
@@ -91,6 +91,8 @@ dependencies {
 
     //For supporting new Java APIs on older devices
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.2.0'
+
+    //implementation "org.jetbrains.kotlin:kotlin-reflect"
 
     //implementation 'com.github.Giszmo.NostrPostr:nostrpostrlib:46e9208bdb'
     //Here temporarily
@@ -143,6 +145,12 @@ dependencies {
 
     //File API
     implementation "com.squareup.okio:okio:3.2.0"
+
+    implementation "io.github.xxfast:kstore:0.1.1"
+
+    //Serialization
+    implementation("com.squareup.moshi:moshi:1.14.0")
+    implementation("com.squareup.moshi:moshi-kotlin:1.14.0")
 
     //Permissions management
     implementation 'com.google.accompanist:accompanist-permissions:0.27.0'
