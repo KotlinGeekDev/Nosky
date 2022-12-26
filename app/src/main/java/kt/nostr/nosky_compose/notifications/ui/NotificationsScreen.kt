@@ -1,11 +1,9 @@
-@file:OptIn(ExperimentalAnimationApi::class)
-
 package kt.nostr.nosky_compose.notifications.ui
 
 import android.content.res.Configuration
 import android.util.Log
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.*
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed

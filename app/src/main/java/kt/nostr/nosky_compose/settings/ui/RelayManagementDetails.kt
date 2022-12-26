@@ -25,31 +25,24 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.bumble.appyx.navmodel.backstack.BackStack
-import com.bumble.appyx.navmodel.backstack.operation.pop
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kt.nostr.nosky_compose.common_components.theme.NoskycomposeTheme
 import kt.nostr.nosky_compose.common_components.ui.AppTopBar
-import kt.nostr.nosky_compose.navigation.structure.Destination
 import kt.nostr.nosky_compose.settings.SettingsViewModel
 import kt.nostr.nosky_compose.settings.backend.NostrRelay
 
+
+//TODO: Feature: disable adding relay until it fits relay URL pattern.
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun RelayManagementSettingsScreen(
-    navigator: BackStack<Destination>? = null,
     returnToMainPage: () -> Unit = {}
 ) {
 
     BackHandler {
-        if (navigator != null){
-            navigator.pop()
-        }
-        else {
-            returnToMainPage()
-        }
+        returnToMainPage()
     }
 
     val settingsContext = LocalContext.current
