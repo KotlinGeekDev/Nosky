@@ -4,7 +4,6 @@ import android.app.UiModeManager
 import android.content.Context
 import androidx.core.content.edit
 import io.github.xxfast.kstore.*
-import nostr.postr.Constants
 
 const val SETTINGS_DATA = "settings"
 const val DARK_THEME = "dark_theme"
@@ -15,9 +14,7 @@ class SettingsDataStore(appContext: Context) {
 
 
 
-    private val defaultRelays = Constants.defaultRelays.map {
-        NostrRelay(it.url, it.read, it.write)
-    }
+    private val defaultRelays = relayList
 
     private val settingsPreferences = appContext
         .getSharedPreferences(SETTINGS_DATA, Context.MODE_PRIVATE)
@@ -30,6 +27,7 @@ class SettingsDataStore(appContext: Context) {
     val relays = relayConfigStore.updatesOrEmpty
 
     suspend fun addRelay(newRelay: NostrRelay){
+
         relayConfigStore.plus(newRelay)
     }
 
