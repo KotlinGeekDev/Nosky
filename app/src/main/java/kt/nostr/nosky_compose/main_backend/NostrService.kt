@@ -144,7 +144,7 @@ object NostrService {
         nostrClient.connect(mutableListOf(filter),
        //    relays = arrayOf(Relay("wss://relay.nostr.info"))
 //                //Relay("wss://relay.damus.io"),
-//                Relay("wss://nostr.bitcoiner.social"),
+//                Relay("wss://offchain.pub"),
 //                Relay("wss://nostr.rocks"),
 //                Relay("wss//nostr-pub.semisol.dev"))
             )
