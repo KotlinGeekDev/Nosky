@@ -1,6 +1,10 @@
+# Update
+This project is not maintained anymore. Please check out [Amethyst](https://github.com/vitorpamplona/amethyst).
+Thank you.
+
 # Nosky
 A native Android client for Nostr. 
-For more about Nostr, see [here](https://github.com/nostr-protocol/nostr)
+For more about Nostr, see [here](https://github.com/nostr-protocol/nostr).
 
 ## Building an optimized APK file, if you have Android Studio(optional)
 To build an optimized APK file, please go to Build > Select build variant, then select 'release'
